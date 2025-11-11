@@ -27,7 +27,7 @@ public class LocationView {
 
         // Background
         StackPane stackPane = new StackPane();
-        Image image = new Image(getClass().getResourceAsStream("/com/example/dbcarrentalsapp/img2.png"));
+        Image image = new Image(getClass().getResourceAsStream("/com/example/dbcarrentalsapp/aston_martin_dbs-wide.jpg"));
         ImageView imageView = new ImageView(image);
         stackPane.getChildren().add(imageView);
 

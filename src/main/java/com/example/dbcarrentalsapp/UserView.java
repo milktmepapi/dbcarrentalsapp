@@ -8,6 +8,8 @@ import javafx.scene.layout.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.text.Text;
+import javafx.scene.text.Font;
 
 public class UserView {
     public Button records;
@@ -21,32 +23,61 @@ public class UserView {
     }
 
     public Scene getScene() {
-        // Use StackPane to layer the image and buttons
         StackPane stackPane = new StackPane();
 
-        // ✅ Corrected image path
+        // background image
         Image image = new Image(getClass().getResourceAsStream("/com/example/dbcarrentalsapp/img.png"));
         ImageView imageView = new ImageView(image);
-
         stackPane.getChildren().add(imageView);
 
+        // title text at top (slightly left)
+        Text title = new Text("FORZA RENTALS");
+        Font rogFont = Font.loadFont(
+                getClass().getResourceAsStream("/com/example/dbcarrentalsapp/ROGLyonsTypeRegular3.ttf"),
+                56
+        );
+        if (rogFont != null) {
+            title.setFont(rogFont);
+        } else {
+            title.setFont(Font.font("Arial Black", 56));
+        }
+
+        title.setStyle(
+                "-fx-font-style: italic; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-fill: white; " +
+                        "-fx-effect: dropshadow(gaussian, black, 4, 0.5, 1, 1);"
+        );
+
+        // Centered)
+        StackPane.setAlignment(title, Pos.TOP_CENTER);
+        StackPane.setMargin(title, new Insets(40, 0, 0, 0)); // top, right, bottom, left
+
+        stackPane.getChildren().add(title);
+
+        // button layout — slightly left
         records.getStyleClass().add("custom-button");
         transactions.getStyleClass().add("custom-button");
         exit.getStyleClass().add("custom-button");
 
-        VBox root = new VBox(20); // 20px spacing between elements
-        root.setAlignment(Pos.CENTER); // Center the buttons
-        root.setStyle("-fx-background-color: transparent");
-        root.setPadding(new Insets(0, 0, 0, 50));
-        root.setMaxWidth(VBox.USE_PREF_SIZE);
+        VBox root = new VBox(20);
+        root.setAlignment(Pos.CENTER_LEFT); // keeps them vertically centered
+        root.setPadding(new Insets(0, 0, 0, 87)); // pushes slightly from the left
+        root.setStyle("-fx-background-color: transparent;");
         root.getChildren().addAll(records, transactions, exit);
 
         stackPane.getChildren().add(root);
-        StackPane.setAlignment(root, Pos.CENTER_LEFT);
+        StackPane.setAlignment(root, Pos.CENTER);
+
+        // footnote at the bottom
+        Text footnote = new Text("© 2025 Forza Rentals. All rights reserved.");
+        footnote.setStyle("-fx-fill: white; -fx-font-size: 10px; -fx-opacity: 0.7;");
+
+        stackPane.getChildren().add(footnote);
+        StackPane.setAlignment(footnote, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(footnote, new Insets(0, 0, 30, 0));
 
         Scene scene = new Scene(stackPane, 815, 450);
-
-        // Fixed the CSS path
         scene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
