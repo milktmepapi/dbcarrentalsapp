@@ -36,7 +36,7 @@ public class ManageRecordsView {
         // Root layer
         StackPane stackPane = new StackPane();
 
-        // ✅ Corrected image path
+        // Corrected image path
         Image image = new Image(getClass().getResourceAsStream("/com/example/dbcarrentalsapp/img2.png"));
         ImageView imageView = new ImageView(image);
         stackPane.getChildren().add(imageView);
@@ -70,6 +70,12 @@ public class ManageRecordsView {
         root.getChildren().addAll(leftBox, rightBox);
 
         stackPane.getChildren().add(root);
+
+        // Actions on buttons
+        locations.setOnAction(e -> {
+            LocationView locationView = new LocationView(stage);
+            stage.setScene(locationView.getScene());
+        });
 
         // Create scene
         scene = new Scene(stackPane, 815, 450);
