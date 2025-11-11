@@ -1,13 +1,14 @@
 package com.example.dbcarrentalsapp;
 
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 
 public class ManageRecordsView {
 
@@ -32,7 +33,34 @@ public class ManageRecordsView {
         imageView.setMouseTransparent(true);
         stackPane.getChildren().add(imageView);
 
-        // Style
+        // ===== TITLE =====
+        Text title = new Text("MANAGE RECORDS");
+
+        // Load ROG font
+        Font rogFont = Font.loadFont(
+                getClass().getResourceAsStream("/com/example/dbcarrentalsapp/ROGLyonsTypeRegular3.ttf"),
+                48
+        );
+        if (rogFont != null) {
+            title.setFont(rogFont);
+        } else {
+            title.setFont(Font.font("Arial Black", 48));
+        }
+
+        // Style title
+        title.setStyle(
+                "-fx-font-style: italic; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-fill: white; " +
+                        "-fx-effect: dropshadow(gaussian, black, 4, 0.5, 1, 1);"
+        );
+
+        // Align title at top-center with margin
+        StackPane.setAlignment(title, Pos.TOP_CENTER);
+        StackPane.setMargin(title, new Insets(40, 0, 0, 0));
+        stackPane.getChildren().add(title);
+
+        // ===== BUTTONS =====
         String buttonStyle = "custom-button";
         departments.getStyleClass().add(buttonStyle);
         locations.getStyleClass().add(buttonStyle);
@@ -43,7 +71,7 @@ public class ManageRecordsView {
         renters.getStyleClass().add(buttonStyle);
         returns.getStyleClass().add(buttonStyle);
 
-        // Layout
+        // Layout (two columns)
         VBox leftBox = new VBox(20, departments, locations, staffs, cars);
         VBox rightBox = new VBox(20, jobs, branches, renters, returns);
         leftBox.setAlignment(Pos.CENTER);
