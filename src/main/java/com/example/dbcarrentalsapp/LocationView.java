@@ -61,4 +61,4 @@ public class LocationView {
     public Scene getScene() {
         return scene;
     }
-}
+}   
