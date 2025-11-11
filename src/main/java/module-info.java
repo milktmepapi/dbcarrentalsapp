@@ -2,6 +2,7 @@ module com.example.dbcarrentalsapp {
     requires javafx.controls;
     requires javafx.fxml;
     requires javafx.web;
+    requires java.sql;
 
     requires org.controlsfx.controls;
     requires com.dlsc.formsfx;
@@ -14,3 +15,4 @@ module com.example.dbcarrentalsapp {
     opens com.example.dbcarrentalsapp to javafx.fxml;
     exports com.example.dbcarrentalsapp;
 }
+
