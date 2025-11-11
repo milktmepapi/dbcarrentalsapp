@@ -65,7 +65,7 @@ public class ManageRecordsView {
         rightBox.getChildren().addAll(jobs, branches, renters, returns);
 
         // Combine both sides
-        HBox root = new HBox(50);
+        HBox root = new HBox(100);
         root.setAlignment(Pos.CENTER);
         root.getChildren().addAll(leftBox, rightBox);
 
@@ -75,6 +75,16 @@ public class ManageRecordsView {
         locations.setOnAction(e -> {
             LocationView locationView = new LocationView(stage);
             stage.setScene(locationView.getScene());
+        });
+
+        //Return Button
+        returns.setOnAction(e -> {
+            // Go back to the main menu (UserView)
+            UserView userView = new UserView();
+            UserController userController = new UserController(userView, stage);
+            userController.setupActions();
+
+            stage.setScene(userView.getScene());
         });
 
         // Create scene
