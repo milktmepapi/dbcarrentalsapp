@@ -37,12 +37,12 @@ public class ManageRecordsView {
         Text title = new Text("MANAGE RECORDS");
 
         // Load ROG font
-        Font rogFont = Font.loadFont(
-                getClass().getResourceAsStream("/com/example/dbcarrentalsapp/ROGLyonsTypeRegular3.ttf"),
+        Font f1Font = Font.loadFont(
+                getClass().getResourceAsStream("/com/example/dbcarrentalsapp/Formula1-Bold_web_0.ttf"),
                 48
         );
-        if (rogFont != null) {
-            title.setFont(rogFont);
+        if (f1Font != null) {
+            title.setFont(f1Font);
         } else {
             title.setFont(Font.font("Arial Black", 48));
         }
