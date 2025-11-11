@@ -1,4 +1,3 @@
-/* This selector matches the "custom-button" class you set in your Java code */
 .custom-button {
     /* --- This is the "frosted glass" gray look --- */
     -fx-background-color: rgba(255, 255, 255, 0.2); /* White, 20% opacity */
@@ -7,23 +6,22 @@
     /* A subtle white border to define the shape */
     -fx-border-color: rgba(255, 255, 255, 0.4); /* White, 40% opacity */
     -fx-border-width: 1px;
-    /* --- End of main change --- */
 
     -fx-font-weight: bold;
     -fx-font-family: "Arial";
     -fx-font-size: 16px;
 
-    -fx-background-radius: 0;
-    -fx-border-radius: 0;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
 
     -fx-pref-width: 200px;
     -fx-pref-height: 40px;
 }
 
-/* --- Updated hover/pressed effects for the "frosted" style --- */
+/* --- Updated hover/pressed effects for the frosted style --- */
 
 .custom-button:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.4); /* Becomes more "frosted" */
+    -fx-background-color: rgba(255, 255, 255, 0.4); /* Becomes more frosted */
     -fx-cursor: hand;
 }
 
