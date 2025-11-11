@@ -1,26 +1,33 @@
 /* This selector matches the "custom-button" class you set in your Java code */
 .custom-button {
-    -fx-background-color: white; /* White background */
-    -fx-text-fill: black;         /* Black text */
-    -fx-font-weight: bold;        /* Bold font */
-    -fx-font-family: "Arial";     /* A clean, sans-serif font */
+    /* --- This is the "frosted glass" gray look --- */
+    -fx-background-color: rgba(255, 255, 255, 0.2); /* White, 20% opacity */
+    -fx-text-fill: white;
+
+    /* A subtle white border to define the shape */
+    -fx-border-color: rgba(255, 255, 255, 0.4); /* White, 40% opacity */
+    -fx-border-width: 1px;
+    /* --- End of main change --- */
+
+    -fx-font-weight: bold;
+    -fx-font-family: "Arial";
     -fx-font-size: 16px;
 
-    -fx-background-radius: 0;     /* Sharp corners (no rounding) */
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
 
-    -fx-pref-width: 200px;        /* Makes all buttons the same width */
-    -fx-pref-height: 40px;        /* Sets a fixed height */
+    -fx-pref-width: 200px;
+    -fx-pref-height: 40px;
 }
 
-/* --- Optional: Add effects for mouse hover and click --- */
+/* --- Updated hover/pressed effects for the "frosted" style --- */
 
-/* Style for when the mouse is hovering over the button */
 .custom-button:hover {
-    -fx-background-color: #f0f0f0; /* A light gray */
-    -fx-cursor: hand;             /* Show a hand cursor */
+    -fx-background-color: rgba(255, 255, 255, 0.4); /* Becomes more "frosted" */
+    -fx-cursor: hand;
 }
 
-/* Style for when the button is being pressed */
 .custom-button:pressed {
-    -fx-background-color: #e0e0e0; /* A slightly darker gray */
+    -fx-background-color: rgba(255, 255, 255, 0.7); /* Becomes nearly solid white */
+    -fx-text-fill: black; /* Flip text to black for readability */
 }
