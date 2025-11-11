@@ -18,8 +18,9 @@ public class UserController{
     }
 
     private void openRecords(){
-        ManageRecordsView recordsView = new ManageRecordsView(stage);
-        stage.setScene(recordsView.getScene());
+        ManageRecordsView manageView = new ManageRecordsView();
+        ManageRecordsController manageController = new ManageRecordsController(manageView, stage);
+        stage.setScene(manageView.getScene());
     }
 
 //    private void openTransactions(){

@@ -1,28 +1,20 @@
 package com.example.dbcarrentalsapp;
 
-import javafx.scene.Scene;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.Image;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.*;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.stage.Stage;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
 public class ManageRecordsView {
 
     private Scene scene;
-    public Button departments;
-    public Button locations;
-    public Button staffs;
-    public Button cars;
-    public Button jobs;
-    public Button branches;
-    public Button renters;
-    public Button returns;
+    public Button departments, locations, staffs, cars, jobs, branches, renters, returns;
 
-    public ManageRecordsView(Stage stage) {
-
+    public ManageRecordsView() {
         // Initialize buttons
         departments = new Button("Departments");
         locations = new Button("Locations");
@@ -33,15 +25,14 @@ public class ManageRecordsView {
         renters = new Button("Renters");
         returns = new Button("Return");
 
-        // Root layer
+        // Background
         StackPane stackPane = new StackPane();
-
-        // Corrected image path
         Image image = new Image(getClass().getResourceAsStream("/com/example/dbcarrentalsapp/img2.png"));
         ImageView imageView = new ImageView(image);
+        imageView.setMouseTransparent(true);
         stackPane.getChildren().add(imageView);
 
-        // Style classes
+        // Style
         String buttonStyle = "custom-button";
         departments.getStyleClass().add(buttonStyle);
         locations.getStyleClass().add(buttonStyle);
@@ -52,45 +43,19 @@ public class ManageRecordsView {
         renters.getStyleClass().add(buttonStyle);
         returns.getStyleClass().add(buttonStyle);
 
-        // Left side (4 buttons)
-        VBox leftBox = new VBox(20);
+        // Layout
+        VBox leftBox = new VBox(20, departments, locations, staffs, cars);
+        VBox rightBox = new VBox(20, jobs, branches, renters, returns);
         leftBox.setAlignment(Pos.CENTER);
-        leftBox.setStyle("-fx-background-color: transparent");
-        leftBox.getChildren().addAll(departments, locations, staffs, cars);
-
-        // Right side (4 buttons)
-        VBox rightBox = new VBox(20);
         rightBox.setAlignment(Pos.CENTER);
-        rightBox.setStyle("-fx-background-color: transparent");
-        rightBox.getChildren().addAll(jobs, branches, renters, returns);
 
-        // Combine both sides
-        HBox root = new HBox(100);
+        HBox root = new HBox(100, leftBox, rightBox);
         root.setAlignment(Pos.CENTER);
-        root.getChildren().addAll(leftBox, rightBox);
 
         stackPane.getChildren().add(root);
 
-        // Actions on buttons
-        locations.setOnAction(e -> {
-            LocationView locationView = new LocationView(stage);
-            stage.setScene(locationView.getScene());
-        });
-
-        //Return Button
-        returns.setOnAction(e -> {
-            // Go back to the main menu (UserView)
-            UserView userView = new UserView();
-            UserController userController = new UserController(userView, stage);
-            userController.setupActions();
-
-            stage.setScene(userView.getScene());
-        });
-
-        // Create scene
+        // Scene setup
         scene = new Scene(stackPane, 815, 450);
-
-        // Corrected stylesheet path
         scene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );

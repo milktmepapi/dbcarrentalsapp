@@ -50,12 +50,6 @@ public class LocationView {
         scene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
-
-        // Return button action → go back to ManageRecordsView
-        returnButton.setOnAction(e -> {
-            ManageRecordsView manageView = new ManageRecordsView(stage);
-            stage.setScene(manageView.getScene());
-        });
     }
 
     public Scene getScene() {
