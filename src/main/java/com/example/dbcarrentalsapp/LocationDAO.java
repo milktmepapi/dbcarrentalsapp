@@ -4,7 +4,7 @@ import model.LocationRecord;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-  
+
 /**
  * Handles all database operations for the Location module.
  */
