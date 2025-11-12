@@ -48,7 +48,7 @@ public class ManageReportsView {
         // ===== Background =====
         StackPane stackPane = new StackPane();
         Image image = new Image(getClass().getResourceAsStream(
-                "/com/example/dbcarrentalsapp/audi_r_zero_concept_black-normal.jpg"));
+                "/com/example/dbcarrentalsapp/audi_r_zero_concept_black-normal.png"));
         ImageView imageView = new ImageView(image);
         imageView.setFitWidth(1152);
         imageView.setFitHeight(761);
@@ -73,7 +73,7 @@ public class ManageReportsView {
                         "-fx-effect: dropshadow(gaussian, black, 4, 0.5, 1, 1);"
         );
         StackPane.setAlignment(title, Pos.TOP_CENTER);
-        StackPane.setMargin(title, new Insets(40, 0, 0, 0));
+        StackPane.setMargin(title, new Insets(80, 0, 0, 0));
         stackPane.getChildren().add(title);
 
         // ===== Button Styles =====
@@ -94,6 +94,7 @@ public class ManageReportsView {
                 violationsButton,
                 returnButton
         );
+        StackPane.setMargin(layout, new Insets(80, 0, 0, 0));
 
         stackPane.getChildren().add(layout);
 

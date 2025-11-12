@@ -3,324 +3,106 @@ package com.example.dbcarrentalsapp;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import model.LocationRecord;
 
 public class LocationView {
 
-    public Button addButton, modifyButton, deleteButton, returnButton, filterButton;
-    public TextField searchField;
-    public TableView<LocationRecord> tableView;
-    private final Scene scene;
+    private Scene scene;
+    public Button addButton;
+    public Button modifyButton;
+    public Button deleteButton;
+    public Button returnButton;
+    public Button viewButton;
 
-    public LocationView() {
-        // ===== Background =====
-        StackPane root = new StackPane();
-        Image bgImage = new Image(
-                getClass().getResourceAsStream("/com/example/dbcarrentalsapp/aston_martin_dbs-wide.jpg")
-        );
-        ImageView bgView = new ImageView(bgImage);
-        bgView.setFitWidth(1152);
-        bgView.setFitHeight(761);
-        bgView.setPreserveRatio(false);
-        root.getChildren().add(bgView);
+    public LocationView(Stage stage) {
 
-        // ===== Title =====
-        Text title = new Text("MANAGE LOCATIONS");
-        Font f1Font = Font.loadFont(
-                getClass().getResourceAsStream("/com/example/dbcarrentalsapp/Formula1-Bold_web_0.ttf"),
-                48
-        );
-        title.setFont(f1Font != null ? f1Font : Font.font("Arial Black", 48));
-        title.setStyle(
-                "-fx-fill: white; -fx-font-style: italic; -fx-font-weight: bold;" +
-                        "-fx-effect: dropshadow(gaussian, black, 4, 0.5, 1, 1);"
-        );
-        StackPane.setAlignment(title, Pos.TOP_CENTER);
-        StackPane.setMargin(title, new Insets(100, 0, 0, 0));
-        root.getChildren().add(title);
-
-        // ===== Search Bar =====
-        searchField = new TextField();
-        searchField.setPromptText("Search by city or province...");
-        searchField.setPrefWidth(300);
-        filterButton = new Button("Filter");
-        filterButton.getStyleClass().add("small-button");
-        filterButton.setPrefWidth(100);
-
-        HBox searchBox = new HBox(10, searchField, filterButton);
-        searchBox.setAlignment(Pos.CENTER);
-
-        // ===== Table =====
-        tableView = new TableView<>();
-        tableView.setPrefWidth(900);
-        tableView.setPrefHeight(300);
-        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-
-        TableColumn<LocationRecord, String> idCol = new TableColumn<>("ID");
-        idCol.setCellValueFactory(new PropertyValueFactory<>("locationId"));
-
-        TableColumn<LocationRecord, String> cityCol = new TableColumn<>("City");
-        cityCol.setCellValueFactory(new PropertyValueFactory<>("locationCity"));
-
-        TableColumn<LocationRecord, String> provinceCol = new TableColumn<>("Province");
-        provinceCol.setCellValueFactory(new PropertyValueFactory<>("locationProvince"));
-
-        tableView.getColumns().addAll(idCol, cityCol, provinceCol);
-
-        // ===== Buttons =====
+        // Initialize buttons with larger size
         addButton = new Button("Add");
         modifyButton = new Button("Modify");
         deleteButton = new Button("Delete");
+        viewButton = new Button("View");
         returnButton = new Button("Return");
 
-        addButton.getStyleClass().add("small-button");
-        modifyButton.getStyleClass().add("small-button");
-        deleteButton.getStyleClass().add("small-button");
-        returnButton.getStyleClass().add("small-button");
+        // Set larger button size
+        addButton.setPrefSize(280, 80);
+        modifyButton.setPrefSize(280, 80);
+        deleteButton.setPrefSize(280, 80);
+        viewButton.setPrefSize(280, 80);
+        returnButton.setPrefSize(280, 80);
 
-        addButton.setPrefWidth(120);
-        modifyButton.setPrefWidth(120);
-        deleteButton.setPrefWidth(120);
-        returnButton.setPrefWidth(120);
+        // Set larger font for buttons
+        String buttonFontStyle = "-fx-font-size: 20px; -fx-font-weight: bold;";
+        addButton.setStyle(buttonFontStyle);
+        modifyButton.setStyle(buttonFontStyle);
+        deleteButton.setStyle(buttonFontStyle);
+        viewButton.setStyle(buttonFontStyle);
+        returnButton.setStyle(buttonFontStyle);
 
-        HBox buttonBox = new HBox(15, addButton, modifyButton, deleteButton, returnButton);
-        buttonBox.setAlignment(Pos.CENTER);
+        // Background
+        StackPane stackPane = new StackPane();
+        Image image = new Image(getClass().getResourceAsStream("/com/example/dbcarrentalsapp/aston_martin_dbs-wide.png"));
+        ImageView imageView = new ImageView(image);
+        imageView.setFitWidth(1152);
+        imageView.setFitHeight(761);
+        imageView.setPreserveRatio(false);
+        stackPane.getChildren().add(imageView);
 
-        // ===== Layout =====
-        VBox layout = new VBox(30, searchBox, tableView, buttonBox);
-        layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(140, 0, 0, 0));
-        root.getChildren().add(layout);
+        // ===== TITLE =====
+        Text title = new Text("LOCATION MANAGEMENT");
 
-        // ===== Scene =====
-        scene = new Scene(root, 1152, 761);
-        scene.getStylesheets().add(
-                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
+        // Load ROG font with larger size
+        Font f1Font = Font.loadFont(
+                getClass().getResourceAsStream("/com/example/dbcarrentalsapp/Formula1-Bold_web_0.ttf"),
+                56
         );
-    }
-
-    /** Popup for adding a new location **/
-    public void showAddLocationPopup(LocationDAO dao, Runnable reloadCallback) {
-        Stage popup = new Stage();
-        popup.initModality(Modality.APPLICATION_MODAL);
-        popup.setTitle("Add New Location");
-
-        Label idLabel = new Label("Location ID:");
-        TextField idField = new TextField();
-        idField.setPromptText("e.g., BEN001");
-
-        Label cityLabel = new Label("City:");
-        TextField cityField = new TextField();
-        cityField.setPromptText("Enter City");
-
-        Label provinceLabel = new Label("Province:");
-        TextField provinceField = new TextField();
-        provinceField.setPromptText("Enter Province");
-
-        Button addBtn = new Button("Add");
-        Button cancelBtn = new Button("Cancel");
-        addBtn.getStyleClass().add("small-button");
-        cancelBtn.getStyleClass().add("small-button");
-
-        Label message = new Label();
-        message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
-
-        addBtn.setOnAction(e -> {
-            String id = idField.getText().trim();
-            String city = cityField.getText().trim();
-            String province = provinceField.getText().trim();
-
-            if (id.isEmpty() || city.isEmpty() || province.isEmpty()) {
-                message.setText("Please fill in all fields!");
-                message.setStyle("-fx-text-fill: orange;");
-                return;
-            }
-
-            boolean success = dao.addLocation(id, city, province);
-            if (success) {
-                reloadCallback.run();
-                popup.close();
-                showSuccessPopup("Success", "Location added successfully!");
-            } else {
-                message.setText("Failed: Duplicate ID or City + Province.");
-                message.setStyle("-fx-text-fill: red;");
-            }
-        });
-
-        cancelBtn.setOnAction(e -> popup.close());
-
-        VBox box = new VBox(12,
-                idLabel, idField,
-                cityLabel, cityField,
-                provinceLabel, provinceField,
-                new HBox(10, addBtn, cancelBtn),
-                message
-        );
-        box.setPadding(new Insets(20));
-        box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
-
-        Scene popupScene = new Scene(box, 320, 320);
-        popupScene.getStylesheets().add(
-                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
-        );
-
-        popup.setScene(popupScene);
-        popup.showAndWait();
-    }
-
-    /** Popup for modifying existing location **/
-    public void showModifyLocationPopup(LocationDAO dao, LocationRecord selected, Runnable reloadCallback) {
-        selected = tableView.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showSuccessPopup("No Selection", "Please select a location to modify.");
-            return;
+        if (f1Font != null) {
+            title.setFont(f1Font);
+        } else {
+            title.setFont(Font.font("Arial Black", 56));
         }
 
-        Stage popup = new Stage();
-        popup.initModality(Modality.APPLICATION_MODAL);
-        popup.setTitle("Modify Location");
-
-        Label idLabel = new Label("Location ID:");
-        TextField idField = new TextField(selected.getLocationId());
-        idField.setEditable(false);
-        idField.setStyle("-fx-opacity: 0.7;");
-
-        Label cityLabel = new Label("City:");
-        TextField cityField = new TextField(selected.getLocationCity());
-
-        Label provinceLabel = new Label("Province:");
-        TextField provinceField = new TextField(selected.getLocationProvince());
-
-        Button saveBtn = new Button("Save");
-        Button cancelBtn = new Button("Cancel");
-        saveBtn.getStyleClass().add("small-button");
-        cancelBtn.getStyleClass().add("small-button");
-
-        Label message = new Label();
-        message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
-
-        LocationRecord finalSelected = selected;
-        saveBtn.setOnAction(e -> {
-            String city = cityField.getText().trim();
-            String province = provinceField.getText().trim();
-
-            if (city.isEmpty() || province.isEmpty()) {
-                message.setText("Please fill in all fields!");
-                message.setStyle("-fx-text-fill: orange;");
-                return;
-            }
-
-            boolean success = dao.updateLocation(finalSelected.getLocationId(), city, province);
-            if (success) {
-                reloadCallback.run();
-                popup.close();
-                showSuccessPopup("Updated", "Location updated successfully!");
-            } else {
-                message.setText("Failed: Duplicate or database error.");
-                message.setStyle("-fx-text-fill: red;");
-            }
-        });
-
-        cancelBtn.setOnAction(e -> popup.close());
-
-        VBox box = new VBox(12,
-                idLabel, idField,
-                cityLabel, cityField,
-                provinceLabel, provinceField,
-                new HBox(10, saveBtn, cancelBtn),
-                message
-        );
-        box.setPadding(new Insets(20));
-        box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
-
-        Scene popupScene = new Scene(box, 320, 320);
-        popupScene.getStylesheets().add(
-                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
+        // Style title
+        title.setStyle(
+                "-fx-font-style: italic; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-fill: white; " +
+                        "-fx-effect: dropshadow(gaussian, black, 4, 0.5, 1, 1);"
         );
 
-        popup.setScene(popupScene);
-        popup.showAndWait();
-    }
+        // Align title at top-center with margin
+        StackPane.setAlignment(title, Pos.TOP_CENTER);
+        javafx.geometry.Insets titleMargin = new javafx.geometry.Insets(80, 0, 0, 0);
+        StackPane.setMargin(title, titleMargin);
+        stackPane.getChildren().add(title);
 
-    /** ✅ Reusable Success Popup **/
-    public void showSuccessPopup(String title, String messageText) {
-        Stage popup = new Stage();
-        popup.initModality(Modality.APPLICATION_MODAL);
-        popup.setTitle(title);
+        // Style the buttons
+        String buttonStyle = "custom-button";
+        addButton.getStyleClass().add(buttonStyle);
+        modifyButton.getStyleClass().add(buttonStyle);
+        deleteButton.getStyleClass().add(buttonStyle);
+        viewButton.getStyleClass().add(buttonStyle);
+        returnButton.getStyleClass().add(buttonStyle);
 
-        Label msg = new Label(messageText);
-        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
-
-        Button okBtn = new Button("OK");
-        okBtn.getStyleClass().add("small-button");
-        okBtn.setOnAction(e -> popup.close());
-
-        VBox layout = new VBox(15, msg, okBtn);
+        // Layout for buttons with larger spacing
+        VBox layout = new VBox(40);
         layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(20));
-        layout.setStyle("-fx-background-color: rgba(20,20,20,0.95); -fx-background-radius: 10;");
+        layout.getChildren().addAll(addButton, modifyButton, deleteButton, viewButton, returnButton);
+        StackPane.setMargin(layout, new Insets(80, 0, 0, 0));
 
-        Scene scene = new Scene(layout, 300, 150);
+        stackPane.getChildren().add(layout);
+
+        // Scene setup with UserView dimensions
+        scene = new Scene(stackPane, 1152, 761);
         scene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
-
-        popup.setScene(scene);
-        popup.showAndWait();
-    }
-
-    /** ✅ Reusable Confirmation Popup (for deletions) **/
-    public boolean showConfirmPopup(String title, String messageText) {
-        final boolean[] confirmed = {false};
-
-        Stage popup = new Stage();
-        popup.initModality(Modality.APPLICATION_MODAL);
-        popup.setTitle(title);
-
-        Label msg = new Label(messageText);
-        msg.setWrapText(true);
-        msg.setAlignment(Pos.CENTER);
-        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
-
-        Button yesBtn = new Button("Yes");
-        Button noBtn = new Button("No");
-        yesBtn.getStyleClass().add("small-button");
-        noBtn.getStyleClass().add("small-button");
-
-        yesBtn.setOnAction(e -> {
-            confirmed[0] = true;
-            popup.close();
-        });
-        noBtn.setOnAction(e -> popup.close());
-
-        HBox buttons = new HBox(15, yesBtn, noBtn);
-        buttons.setAlignment(Pos.CENTER);
-
-        VBox layout = new VBox(20, msg, buttons);
-        layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(25));
-        layout.setStyle("-fx-background-color: rgba(20,20,20,0.95); -fx-background-radius: 10;");
-
-        Scene scene = new Scene(layout, 360, 180);
-        scene.getStylesheets().add(
-                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
-        );
-
-        popup.setScene(scene);
-        popup.showAndWait();
-
-        return confirmed[0];
     }
 
     public Scene getScene() {
