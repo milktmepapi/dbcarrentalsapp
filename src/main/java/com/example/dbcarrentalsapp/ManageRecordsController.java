@@ -16,7 +16,7 @@ public class ManageRecordsController {
 
         // Locations Button
         view.locations.setOnAction(e -> {
-            LocationView locationView = new LocationView();
+            LocationView locationView = new LocationView(stage);
             LocationController locationController = new LocationController(locationView, stage);
             stage.setScene(locationView.getScene());
         });
