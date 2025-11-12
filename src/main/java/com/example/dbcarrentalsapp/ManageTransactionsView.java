@@ -33,7 +33,7 @@ public class ManageTransactionsView {
         // ===== Background =====
         StackPane stackPane = new StackPane();
         Image image = new Image(getClass().getResourceAsStream(
-                "/com/example/dbcarrentalsapp/audi_r_zero_concept_black-normal.jpg"));
+                "/com/example/dbcarrentalsapp/mercedes_benz_glc_400_4matic_with_eq_technology_amg_line_2026-1920x1080.jpg"));
         ImageView imageView = new ImageView(image);
         stackPane.getChildren().add(imageView);
 
