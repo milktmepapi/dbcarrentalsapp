@@ -31,3 +31,45 @@
     -fx-background-color: rgba(255, 255, 255, 0.7); /* Becomes nearly solid white */
     -fx-text-fill: black; /* Flip text to black for readability */
 }
+
+/* smaller buttons */
+.small-button {
+    -fx-font-family: "Formula1";
+    -fx-font-size: 12px;
+    -fx-text-fill: white;
+    -fx-background-color: rgba(0,0,0,0.6);
+    -fx-background-radius: 10;
+    -fx-padding: 6 14;
+    -fx-cursor: hand;
+    -fx-border-color: white;
+    -fx-border-radius: 10;
+}
+.small-button:hover {
+    -fx-background-color: rgba(255,255,255,0.3);
+}
+
+/* table styling */
+.table-view.modern-table {
+    -fx-background-color: rgba(255,255,255,0.8);
+    -fx-border-color: white;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 5;
+}
+
+.table-view.modern-table .column-header {
+    -fx-background-color: linear-gradient(to bottom, #e0e0e0, #c0c0c0);
+    -fx-text-fill: #111;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 2, 0, 0, 1);
+}
+
+
+.table-row-cell:filled:selected {
+    -fx-background-color: rgba(50,205,50,0.5);
+}
+
+.table-row-cell:filled:hover {
+    -fx-background-color: rgba(255,255,255,0.3);
+}

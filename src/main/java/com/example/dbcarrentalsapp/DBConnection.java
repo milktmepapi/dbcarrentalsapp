@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class DBConnection {
     private static final String URL = "jdbc:mysql://localhost:3306/dbcarrentals";
     private static final String USER = "root";  // change if needed
-    private static final String PASSWORD = "";  // add your MySQL password if any
+    private static final String PASSWORD = "newpassword";  // add your MySQL password if any
 
     private static Connection connection;
 

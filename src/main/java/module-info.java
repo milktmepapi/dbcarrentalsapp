@@ -14,5 +14,6 @@ module com.example.dbcarrentalsapp {
 
     opens com.example.dbcarrentalsapp to javafx.fxml;
     exports com.example.dbcarrentalsapp;
+    opens model to javafx.base;
 }
 
