@@ -23,6 +23,7 @@ public class LocationController {
         // Placeholder actions
         view.addButton.setOnAction(e -> System.out.println("Add location clicked"));
         view.modifyButton.setOnAction(e -> System.out.println("Modify location clicked"));
+        //view.viewButton.setOnAction();
         view.deleteButton.setOnAction(e -> System.out.println("Delete location clicked"));
     }
 }

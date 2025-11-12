@@ -16,6 +16,7 @@ public class LocationView {
     public Button modifyButton;
     public Button deleteButton;
     public Button returnButton;
+    public Button viewButton;
 
     public LocationView(Stage stage) {
 
@@ -23,6 +24,7 @@ public class LocationView {
         addButton = new Button("Add");
         modifyButton = new Button("Modify");
         deleteButton = new Button("Delete");
+        viewButton = new Button("View");
         returnButton = new Button("Return");
 
         // Background
@@ -36,12 +38,13 @@ public class LocationView {
         addButton.getStyleClass().add(buttonStyle);
         modifyButton.getStyleClass().add(buttonStyle);
         deleteButton.getStyleClass().add(buttonStyle);
+        viewButton.getStyleClass().add(buttonStyle);
         returnButton.getStyleClass().add(buttonStyle);
 
         // Layout for buttons
         VBox layout = new VBox(20);
         layout.setAlignment(Pos.CENTER);
-        layout.getChildren().addAll(addButton, modifyButton, deleteButton, returnButton);
+        layout.getChildren().addAll(addButton, modifyButton, deleteButton, viewButton, returnButton);
 
         stackPane.getChildren().add(layout);
 

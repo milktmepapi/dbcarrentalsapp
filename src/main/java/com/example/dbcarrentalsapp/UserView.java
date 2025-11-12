@@ -14,11 +14,13 @@ import javafx.scene.text.Font;
 public class UserView {
     public Button records;
     public Button transactions;
+    public Button reports;  //
     public Button exit;
 
     public UserView() {
         records = new Button("Records");
         transactions = new Button("Transactions");
+        reports = new Button("Reports"); //
         exit = new Button("Exit");
     }
 
@@ -30,7 +32,7 @@ public class UserView {
         ImageView imageView = new ImageView(image);
         stackPane.getChildren().add(imageView);
 
-        // title text at top (slightly left)
+        // title text
         Text title = new Text("FORZA RENTALS");
         Font f1Font = Font.loadFont(
                 getClass().getResourceAsStream("/com/example/dbcarrentalsapp/Formula1-Bold_web_0.ttf"),
@@ -49,30 +51,28 @@ public class UserView {
                         "-fx-effect: dropshadow(gaussian, black, 4, 0.5, 1, 1);"
         );
 
-        // Centered)
         StackPane.setAlignment(title, Pos.TOP_CENTER);
-        StackPane.setMargin(title, new Insets(40, 0, 0, 0)); // top, right, bottom, left
-
+        StackPane.setMargin(title, new Insets(40, 0, 0, 0));
         stackPane.getChildren().add(title);
 
-        // button layout — slightly left
+        // button layout
         records.getStyleClass().add("custom-button");
         transactions.getStyleClass().add("custom-button");
+        reports.getStyleClass().add("custom-button"); //
         exit.getStyleClass().add("custom-button");
 
         VBox root = new VBox(20);
-        root.setAlignment(Pos.CENTER_LEFT); // keeps them vertically centered
-        root.setPadding(new Insets(0, 0, 0, 87)); // pushes slightly from the left
+        root.setAlignment(Pos.CENTER_LEFT);
+        root.setPadding(new Insets(0, 0, 0, 87));
         root.setStyle("-fx-background-color: transparent;");
-        root.getChildren().addAll(records, transactions, exit);
+        root.getChildren().addAll(records, transactions, reports, exit); //
 
         stackPane.getChildren().add(root);
         StackPane.setAlignment(root, Pos.CENTER);
 
-        // footnote at the bottom
+        // footnote
         Text footnote = new Text("© 2025 Forza Rentals. All rights reserved.");
         footnote.setStyle("-fx-fill: white; -fx-font-size: 10px; -fx-opacity: 0.7;");
-
         stackPane.getChildren().add(footnote);
         StackPane.setAlignment(footnote, Pos.BOTTOM_CENTER);
         StackPane.setMargin(footnote, new Insets(0, 0, 30, 0));
