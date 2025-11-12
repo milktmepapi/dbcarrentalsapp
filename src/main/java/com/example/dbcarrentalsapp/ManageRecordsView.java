@@ -81,7 +81,7 @@ public class ManageRecordsView {
 
         // Align title at top-center with margin
         StackPane.setAlignment(title, Pos.TOP_CENTER);
-        StackPane.setMargin(title, new Insets(40, 0, 0, 0));
+        StackPane.setMargin(title, new Insets(80, 0, 0, 0));
         stackPane.getChildren().add(title);
 
         // ===== BUTTONS =====
@@ -103,6 +103,7 @@ public class ManageRecordsView {
 
         HBox root = new HBox(150, leftBox, rightBox);
         root.setAlignment(Pos.CENTER);
+        StackPane.setMargin(root, new Insets(80, 0, 0, 0));
 
         stackPane.getChildren().add(root);
 

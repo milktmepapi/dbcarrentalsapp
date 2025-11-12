@@ -48,7 +48,7 @@ public class ManageTransactionsView {
         // ===== Background =====
         StackPane stackPane = new StackPane();
         Image image = new Image(getClass().getResourceAsStream(
-                "/com/example/dbcarrentalsapp/mercedes_benz_glc_400_4matic_with_eq_technology_amg_line_2026-1920x1080.jpg"));
+                "/com/example/dbcarrentalsapp/mercedes_benz_glc_400_4matic_with_eq_technology_amg_line_2026-1920x1080.png"));
         ImageView imageView = new ImageView(image);
         imageView.setFitWidth(1152);
         imageView.setFitHeight(761);
@@ -73,7 +73,7 @@ public class ManageTransactionsView {
                         "-fx-effect: dropshadow(gaussian, black, 4, 0.5, 1, 1);"
         );
         StackPane.setAlignment(title, Pos.TOP_CENTER);
-        StackPane.setMargin(title, new Insets(40, 0, 0, 0));
+        StackPane.setMargin(title, new Insets(80, 0, 0, 0));
         stackPane.getChildren().add(title);
 
         // ===== Button Styles =====
@@ -94,6 +94,7 @@ public class ManageTransactionsView {
                 returnsButton,
                 backButton
         );
+        StackPane.setMargin(layout, new Insets(80, 0, 0, 0));
 
         stackPane.getChildren().add(layout);
 
