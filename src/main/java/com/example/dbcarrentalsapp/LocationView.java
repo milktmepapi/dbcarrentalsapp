@@ -28,8 +28,8 @@ public class LocationView {
                 getClass().getResourceAsStream("/com/example/dbcarrentalsapp/aston_martin_dbs-wide.jpg")
         );
         ImageView bgView = new ImageView(bgImage);
-        bgView.setFitWidth(815);
-        bgView.setFitHeight(450);
+        bgView.setFitWidth(1152);
+        bgView.setFitHeight(761);
         bgView.setPreserveRatio(false);
         root.getChildren().add(bgView);
 
@@ -51,16 +51,18 @@ public class LocationView {
         // ===== Search Bar =====
         searchField = new TextField();
         searchField.setPromptText("Search by city or province...");
-        searchField.setPrefWidth(200);
+        searchField.setPrefWidth(300);
         filterButton = new Button("Filter");
         filterButton.getStyleClass().add("small-button");
+        filterButton.setPrefWidth(100);
 
         HBox searchBox = new HBox(10, searchField, filterButton);
         searchBox.setAlignment(Pos.CENTER);
 
         // ===== Table =====
         tableView = new TableView<>();
-        tableView.setPrefHeight(200);
+        tableView.setPrefWidth(900); // Wider table
+        tableView.setPrefHeight(300);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         TableColumn<LocationRecord, String> idCol = new TableColumn<>("ID");
@@ -85,18 +87,23 @@ public class LocationView {
         deleteButton.getStyleClass().add("small-button");
         returnButton.getStyleClass().add("small-button");
 
+        addButton.setPrefWidth(120);
+        modifyButton.setPrefWidth(120);
+        deleteButton.setPrefWidth(120);
+        returnButton.setPrefWidth(120);
+
         HBox buttonBox = new HBox(15, addButton, modifyButton, deleteButton, returnButton);
         buttonBox.setAlignment(Pos.CENTER);
 
         // ===== Layout =====
-        VBox layout = new VBox(20, searchBox, tableView, buttonBox);
+        VBox layout = new VBox(30, searchBox, tableView, buttonBox); // more spacing between sections
         layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(100, 0, 0, 0));
+        layout.setPadding(new Insets(140, 0, 0, 0));
 
         root.getChildren().add(layout);
 
         // ===== Scene =====
-        scene = new Scene(root, 815, 450);
+        scene = new Scene(root, 1152, 761);
         scene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
