@@ -45,7 +45,7 @@ public class LocationView {
                         "-fx-effect: dropshadow(gaussian, black, 4, 0.5, 1, 1);"
         );
         StackPane.setAlignment(title, Pos.TOP_CENTER);
-        StackPane.setMargin(title, new Insets(40, 0, 0, 0));
+        StackPane.setMargin(title, new Insets(100, 0, 0, 0));
         root.getChildren().add(title);
 
         // ===== Search Bar =====
@@ -163,6 +163,90 @@ public class LocationView {
         cancelBtn.setOnAction(e -> popup.close());
 
         HBox buttonBox = new HBox(10, addBtn, cancelBtn);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        VBox box = new VBox(12,
+                idLabel, idField,
+                cityLabel, cityField,
+                provinceLabel, provinceField,
+                buttonBox, message
+        );
+        box.setPadding(new Insets(20));
+        box.setAlignment(Pos.CENTER);
+        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+
+        Scene popupScene = new Scene(box, 320, 320);
+        popupScene.getStylesheets().add(
+                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
+        );
+
+        popup.setScene(popupScene);
+        popup.showAndWait();
+    }
+
+    /**
+     * Show Modify Location popup — allows editing city and province only.
+     **/
+    public void showModifyLocationPopup(LocationDAO dao, LocationRecord selected, Runnable reloadCallback) {
+        selected = tableView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("No Selection");
+            alert.setHeaderText(null);
+            alert.setContentText("Please select a location to modify.");
+            alert.showAndWait();
+            return;
+        }
+
+        Stage popup = new Stage();
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle("Modify Location");
+
+        Label idLabel = new Label("Location ID:");
+        TextField idField = new TextField(selected.getLocationId());
+        idField.setEditable(false);
+        idField.setStyle("-fx-opacity: 0.7;");
+
+        Label cityLabel = new Label("City:");
+        TextField cityField = new TextField(selected.getLocationCity());
+
+        Label provinceLabel = new Label("Province:");
+        TextField provinceField = new TextField(selected.getLocationProvince());
+
+        Button saveBtn = new Button("Save");
+        Button cancelBtn = new Button("Cancel");
+        saveBtn.getStyleClass().add("small-button");
+        cancelBtn.getStyleClass().add("small-button");
+
+        Label message = new Label();
+        message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
+
+        LocationRecord finalSelected = selected;
+        saveBtn.setOnAction(e -> {
+            String city = cityField.getText().trim();
+            String province = provinceField.getText().trim();
+
+            if (city.isEmpty() || province.isEmpty()) {
+                message.setText("Please fill in all fields!");
+                message.setStyle("-fx-text-fill: orange;");
+                return;
+            }
+
+            boolean success = dao.updateLocation(finalSelected.getLocationId(), city, province);
+            if (success) {
+                message.setText("Updated successfully!");
+                message.setStyle("-fx-text-fill: lightgreen;");
+                reloadCallback.run(); // refresh the table
+                popup.close();
+            } else {
+                message.setText("Failed: Duplicate or database error.");
+                message.setStyle("-fx-text-fill: red;");
+            }
+        });
+
+        cancelBtn.setOnAction(e -> popup.close());
+
+        HBox buttonBox = new HBox(10, saveBtn, cancelBtn);
         buttonBox.setAlignment(Pos.CENTER);
 
         VBox box = new VBox(12,

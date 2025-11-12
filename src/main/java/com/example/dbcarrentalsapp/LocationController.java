@@ -40,12 +40,11 @@ public class LocationController {
                 view.showAddLocationPopup(dao, this::loadLocations)
         );
 
-        // ===== Modify Location (to be implemented later) =====
+        // ===== Modify Location =====
         view.modifyButton.setOnAction(e -> {
             LocationRecord selected = view.tableView.getSelectionModel().getSelectedItem();
             if (selected != null) {
-                System.out.println("Modify Location: " + selected.getLocationId());
-                // TODO: implement modify popup later
+                view.showModifyLocationPopup(dao, selected, this::loadLocations);
             } else {
                 showAlert(Alert.AlertType.WARNING, "No Selection", "Please select a location to modify.");
             }
@@ -73,6 +72,7 @@ public class LocationController {
                     if (success) {
                         showAlert(Alert.AlertType.INFORMATION, "Deleted", "Location deleted successfully.");
                         loadLocations(); // refresh table
+                        System.out.println("Deleted Location ID: " + selected.getLocationId());
                     } else {
                         showAlert(Alert.AlertType.ERROR, "Error", "Failed to delete location.");
                     }
@@ -82,11 +82,15 @@ public class LocationController {
 
         // ===== Filter/Search =====
         view.filterButton.setOnAction(e -> applyFilter());
+
+        // Optional: Press Enter in search field to filter
+        view.searchField.setOnAction(e -> applyFilter());
     }
 
     /** Loads all locations from database **/
     public void loadLocations() {
         List<LocationRecord> locations = dao.getAllLocations();
+        if (locations == null) locations = List.of(); // avoid NPE
         masterList = FXCollections.observableArrayList(locations);
         view.tableView.setItems(masterList);
     }

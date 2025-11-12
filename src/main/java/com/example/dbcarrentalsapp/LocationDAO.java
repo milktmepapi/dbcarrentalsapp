@@ -89,6 +89,47 @@ public class LocationDAO {
     }
 
     /**
+     * Updates an existing location's city and province by its ID.
+     *
+     * @param id       the location ID (cannot be changed)
+     * @param city     the new city name
+     * @param province the new province name
+     * @return true if update succeeded, false otherwise
+     */
+    public boolean updateLocation(String id, String city, String province) {
+        String checkComboSql = "SELECT COUNT(*) FROM location_record WHERE location_city = ? AND location_province = ? AND location_id <> ?";
+        String updateSql = "UPDATE location_record SET location_city = ?, location_province = ? WHERE location_id = ?";
+
+        try (Connection conn = DBConnection.getConnection()) {
+
+            // === Prevent duplicate city+province ===
+            try (PreparedStatement psCheck = conn.prepareStatement(checkComboSql)) {
+                psCheck.setString(1, city);
+                psCheck.setString(2, province);
+                psCheck.setString(3, id);
+                ResultSet rs = psCheck.executeQuery();
+                if (rs.next() && rs.getInt(1) > 0) {
+                    System.out.println("Error: City and province combination already exists.");
+                    return false;
+                }
+            }
+
+            // === Perform update ===
+            try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
+                ps.setString(1, city);
+                ps.setString(2, province);
+                ps.setString(3, id);
+                int rows = ps.executeUpdate();
+                return rows > 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
      * Deletes a location by its ID.
      *
      * @param id the location ID to delete
