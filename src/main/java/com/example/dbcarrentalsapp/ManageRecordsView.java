@@ -26,25 +26,49 @@ public class ManageRecordsView {
         renters = new Button("Renters");
         returns = new Button("Return");
 
-        // Background
+        // Make buttons larger (from first version)
+        departments.setPrefSize(280, 80);
+        locations.setPrefSize(280, 80);
+        staffs.setPrefSize(280, 80);
+        cars.setPrefSize(280, 80);
+        jobs.setPrefSize(280, 80);
+        branches.setPrefSize(280, 80);
+        renters.setPrefSize(280, 80);
+        returns.setPrefSize(280, 80);
+
+        // Set larger font for buttons (from first version)
+        String buttonFontStyle = "-fx-font-size: 20px; -fx-font-weight: bold;";
+        departments.setStyle(buttonFontStyle);
+        locations.setStyle(buttonFontStyle);
+        staffs.setStyle(buttonFontStyle);
+        cars.setStyle(buttonFontStyle);
+        jobs.setStyle(buttonFontStyle);
+        branches.setStyle(buttonFontStyle);
+        renters.setStyle(buttonFontStyle);
+        returns.setStyle(buttonFontStyle);
+
+        // Background with proper image sizing (from first version)
         StackPane stackPane = new StackPane();
         Image image = new Image(getClass().getResourceAsStream("/com/example/dbcarrentalsapp/img2.png"));
         ImageView imageView = new ImageView(image);
+        imageView.setFitWidth(1152);
+        imageView.setFitHeight(761);
+        imageView.setPreserveRatio(false);
         imageView.setMouseTransparent(true);
         stackPane.getChildren().add(imageView);
 
         // ===== TITLE =====
         Text title = new Text("MANAGE RECORDS");
 
-        // Load ROG font
+        // Load ROG font with larger size (from first version)
         Font f1Font = Font.loadFont(
                 getClass().getResourceAsStream("/com/example/dbcarrentalsapp/Formula1-Bold_web_0.ttf"),
-                48
+                56
         );
         if (f1Font != null) {
             title.setFont(f1Font);
         } else {
-            title.setFont(Font.font("Arial Black", 48));
+            title.setFont(Font.font("Arial Black", 56));
         }
 
         // Style title
@@ -71,19 +95,19 @@ public class ManageRecordsView {
         renters.getStyleClass().add(buttonStyle);
         returns.getStyleClass().add(buttonStyle);
 
-        // Layout (two columns)
-        VBox leftBox = new VBox(20, departments, locations, staffs, cars);
-        VBox rightBox = new VBox(20, jobs, branches, renters, returns);
+        // Layout with larger spacing for bigger buttons (from first version)
+        VBox leftBox = new VBox(40, departments, locations, staffs, cars);
+        VBox rightBox = new VBox(40, jobs, branches, renters, returns);
         leftBox.setAlignment(Pos.CENTER);
         rightBox.setAlignment(Pos.CENTER);
 
-        HBox root = new HBox(100, leftBox, rightBox);
+        HBox root = new HBox(150, leftBox, rightBox);
         root.setAlignment(Pos.CENTER);
 
         stackPane.getChildren().add(root);
 
-        // Scene setup
-        scene = new Scene(stackPane, 815, 450);
+        // Scene setup - using larger dimensions from first version
+        scene = new Scene(stackPane, 1152, 761);
         scene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );

@@ -30,22 +30,40 @@ public class ManageTransactionsView {
         returnsButton = new Button("Rental Returns");
         backButton = new Button("Return");
 
+        // Set larger button size
+        rentalsButton.setPrefSize(280, 80);
+        cancellationsButton.setPrefSize(280, 80);
+        violationsButton.setPrefSize(280, 80);
+        returnsButton.setPrefSize(280, 80);
+        backButton.setPrefSize(280, 80);
+
+        // Set larger font for buttons
+        String buttonFontStyle = "-fx-font-size: 20px; -fx-font-weight: bold;";
+        rentalsButton.setStyle(buttonFontStyle);
+        cancellationsButton.setStyle(buttonFontStyle);
+        violationsButton.setStyle(buttonFontStyle);
+        returnsButton.setStyle(buttonFontStyle);
+        backButton.setStyle(buttonFontStyle);
+
         // ===== Background =====
         StackPane stackPane = new StackPane();
         Image image = new Image(getClass().getResourceAsStream(
                 "/com/example/dbcarrentalsapp/mercedes_benz_glc_400_4matic_with_eq_technology_amg_line_2026-1920x1080.jpg"));
         ImageView imageView = new ImageView(image);
+        imageView.setFitWidth(1152);
+        imageView.setFitHeight(761);
+        imageView.setPreserveRatio(false);
         stackPane.getChildren().add(imageView);
 
         // ===== Title =====
         Text title = new Text("MANAGE TRANSACTIONS");
         Font f1Font = Font.loadFont(
-                getClass().getResourceAsStream("/com/example/dbcarrentalsapp/Formula1-Bold_web_0.ttf"), 48
+                getClass().getResourceAsStream("/com/example/dbcarrentalsapp/Formula1-Bold_web_0.ttf"), 56
         );
         if (f1Font != null) {
             title.setFont(f1Font);
         } else {
-            title.setFont(Font.font("Arial Black", 48));
+            title.setFont(Font.font("Arial Black", 56));
         }
 
         title.setStyle(
@@ -67,7 +85,7 @@ public class ManageTransactionsView {
         backButton.getStyleClass().add(buttonStyle);
 
         // ===== Layout =====
-        VBox layout = new VBox(20);
+        VBox layout = new VBox(40);
         layout.setAlignment(Pos.CENTER);
         layout.getChildren().addAll(
                 rentalsButton,
@@ -77,14 +95,10 @@ public class ManageTransactionsView {
                 backButton
         );
 
-        // Push buttons downward a bit
-        StackPane.setAlignment(layout, Pos.CENTER);
-        StackPane.setMargin(layout, new Insets(80, 0, 0, 0)); // move down by 80px
-
         stackPane.getChildren().add(layout);
 
         // ===== Scene Setup =====
-        scene = new Scene(stackPane, 815, 450);
+        scene = new Scene(stackPane, 1152, 761);
         scene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
