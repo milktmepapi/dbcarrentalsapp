@@ -61,7 +61,7 @@ public class LocationView {
 
         // ===== Table =====
         tableView = new TableView<>();
-        tableView.setPrefWidth(900); // Wider table
+        tableView.setPrefWidth(900);
         tableView.setPrefHeight(300);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
@@ -96,10 +96,9 @@ public class LocationView {
         buttonBox.setAlignment(Pos.CENTER);
 
         // ===== Layout =====
-        VBox layout = new VBox(30, searchBox, tableView, buttonBox); // more spacing between sections
+        VBox layout = new VBox(30, searchBox, tableView, buttonBox);
         layout.setAlignment(Pos.CENTER);
         layout.setPadding(new Insets(140, 0, 0, 0));
-
         root.getChildren().add(layout);
 
         // ===== Scene =====
@@ -109,9 +108,7 @@ public class LocationView {
         );
     }
 
-    /**
-     * Show Add Location popup — accepts DAO + callback
-     **/
+    /** Popup for adding a new location **/
     public void showAddLocationPopup(LocationDAO dao, Runnable reloadCallback) {
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
@@ -150,10 +147,9 @@ public class LocationView {
 
             boolean success = dao.addLocation(id, city, province);
             if (success) {
-                message.setText("Added successfully!");
-                message.setStyle("-fx-text-fill: lightgreen;");
-                reloadCallback.run(); // refresh table in controller
+                reloadCallback.run();
                 popup.close();
+                showSuccessPopup("Success", "Location added successfully!");
             } else {
                 message.setText("Failed: Duplicate ID or City + Province.");
                 message.setStyle("-fx-text-fill: red;");
@@ -162,14 +158,12 @@ public class LocationView {
 
         cancelBtn.setOnAction(e -> popup.close());
 
-        HBox buttonBox = new HBox(10, addBtn, cancelBtn);
-        buttonBox.setAlignment(Pos.CENTER);
-
         VBox box = new VBox(12,
                 idLabel, idField,
                 cityLabel, cityField,
                 provinceLabel, provinceField,
-                buttonBox, message
+                new HBox(10, addBtn, cancelBtn),
+                message
         );
         box.setPadding(new Insets(20));
         box.setAlignment(Pos.CENTER);
@@ -184,17 +178,11 @@ public class LocationView {
         popup.showAndWait();
     }
 
-    /**
-     * Show Modify Location popup — allows editing city and province only.
-     **/
+    /** Popup for modifying existing location **/
     public void showModifyLocationPopup(LocationDAO dao, LocationRecord selected, Runnable reloadCallback) {
         selected = tableView.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("No Selection");
-            alert.setHeaderText(null);
-            alert.setContentText("Please select a location to modify.");
-            alert.showAndWait();
+            showSuccessPopup("No Selection", "Please select a location to modify.");
             return;
         }
 
@@ -234,10 +222,9 @@ public class LocationView {
 
             boolean success = dao.updateLocation(finalSelected.getLocationId(), city, province);
             if (success) {
-                message.setText("Updated successfully!");
-                message.setStyle("-fx-text-fill: lightgreen;");
-                reloadCallback.run(); // refresh the table
+                reloadCallback.run();
                 popup.close();
+                showSuccessPopup("Updated", "Location updated successfully!");
             } else {
                 message.setText("Failed: Duplicate or database error.");
                 message.setStyle("-fx-text-fill: red;");
@@ -246,14 +233,12 @@ public class LocationView {
 
         cancelBtn.setOnAction(e -> popup.close());
 
-        HBox buttonBox = new HBox(10, saveBtn, cancelBtn);
-        buttonBox.setAlignment(Pos.CENTER);
-
         VBox box = new VBox(12,
                 idLabel, idField,
                 cityLabel, cityField,
                 provinceLabel, provinceField,
-                buttonBox, message
+                new HBox(10, saveBtn, cancelBtn),
+                message
         );
         box.setPadding(new Insets(20));
         box.setAlignment(Pos.CENTER);
@@ -266,6 +251,76 @@ public class LocationView {
 
         popup.setScene(popupScene);
         popup.showAndWait();
+    }
+
+    /** ✅ Reusable Success Popup **/
+    public void showSuccessPopup(String title, String messageText) {
+        Stage popup = new Stage();
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle(title);
+
+        Label msg = new Label(messageText);
+        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+
+        Button okBtn = new Button("OK");
+        okBtn.getStyleClass().add("small-button");
+        okBtn.setOnAction(e -> popup.close());
+
+        VBox layout = new VBox(15, msg, okBtn);
+        layout.setAlignment(Pos.CENTER);
+        layout.setPadding(new Insets(20));
+        layout.setStyle("-fx-background-color: rgba(20,20,20,0.95); -fx-background-radius: 10;");
+
+        Scene scene = new Scene(layout, 300, 150);
+        scene.getStylesheets().add(
+                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
+        );
+
+        popup.setScene(scene);
+        popup.showAndWait();
+    }
+
+    /** ✅ Reusable Confirmation Popup (for deletions) **/
+    public boolean showConfirmPopup(String title, String messageText) {
+        final boolean[] confirmed = {false};
+
+        Stage popup = new Stage();
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle(title);
+
+        Label msg = new Label(messageText);
+        msg.setWrapText(true);
+        msg.setAlignment(Pos.CENTER);
+        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+
+        Button yesBtn = new Button("Yes");
+        Button noBtn = new Button("No");
+        yesBtn.getStyleClass().add("small-button");
+        noBtn.getStyleClass().add("small-button");
+
+        yesBtn.setOnAction(e -> {
+            confirmed[0] = true;
+            popup.close();
+        });
+        noBtn.setOnAction(e -> popup.close());
+
+        HBox buttons = new HBox(15, yesBtn, noBtn);
+        buttons.setAlignment(Pos.CENTER);
+
+        VBox layout = new VBox(20, msg, buttons);
+        layout.setAlignment(Pos.CENTER);
+        layout.setPadding(new Insets(25));
+        layout.setStyle("-fx-background-color: rgba(20,20,20,0.95); -fx-background-radius: 10;");
+
+        Scene scene = new Scene(layout, 360, 180);
+        scene.getStylesheets().add(
+                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
+        );
+
+        popup.setScene(scene);
+        popup.showAndWait();
+
+        return confirmed[0];
     }
 
     public Scene getScene() {
