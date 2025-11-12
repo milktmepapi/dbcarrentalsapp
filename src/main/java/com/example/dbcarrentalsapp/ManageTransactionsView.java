@@ -25,9 +25,9 @@ public class ManageTransactionsView {
 
         // ===== Initialize Buttons =====
         rentalsButton = new Button("Rentals");
-        cancellationsButton = new Button("Rental Cancellations");
-        violationsButton = new Button("Rental Violations");
-        returnsButton = new Button("Rental Returns");
+        cancellationsButton = new Button("Cancellations");
+        violationsButton = new Button("Violations");
+        returnsButton = new Button("Returns");
         backButton = new Button("Return");
 
         // Set larger button size
