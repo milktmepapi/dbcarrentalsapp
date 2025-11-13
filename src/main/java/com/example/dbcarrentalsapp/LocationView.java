@@ -253,7 +253,7 @@ public class LocationView {
         popup.showAndWait();
     }
 
-    /** ✅ Reusable Success Popup **/
+    /** Reusable Success Popup **/
     public void showSuccessPopup(String title, String messageText) {
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
@@ -280,7 +280,7 @@ public class LocationView {
         popup.showAndWait();
     }
 
-    /** ✅ Reusable Confirmation Popup (for deletions) **/
+    /** Reusable Confirmation Popup (for deletions) **/
     public boolean showConfirmPopup(String title, String messageText) {
         final boolean[] confirmed = {false};
 
