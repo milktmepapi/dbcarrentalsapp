@@ -21,6 +21,13 @@ public class ManageRecordsController {
             stage.setScene(locationView.getScene());
         });
 
+        // Departments Button
+        view.departments.setOnAction(e -> {
+            DepartmentView departmentView = new DepartmentView();
+            new DepartmentController(departmentView, stage);
+            stage.setScene(departmentView.getScene());
+        });
+
         // Return Button
         view.returns.setOnAction(e -> {
             UserView userView = new UserView();

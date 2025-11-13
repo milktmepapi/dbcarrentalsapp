@@ -1,0 +1,90 @@
+package com.example.dbcarrentalsapp;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import model.DepartmentRecord;
+
+import java.sql.*;
+
+/**
+ * Handles CRUD operations for the department_record table.
+ */
+public class DepartmentDAO {
+
+    /** Retrieve all departments */
+    public ObservableList<DepartmentRecord> getAllDepartments() {
+        ObservableList<DepartmentRecord> departments = FXCollections.observableArrayList();
+        String query = "SELECT * FROM department_record ORDER BY department_id ASC";
+
+        try (Connection conn = DBConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                DepartmentRecord department = new DepartmentRecord(
+                        rs.getString("department_id"),
+                        rs.getString("department_name")
+                );
+                departments.add(department);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return departments;
+    }
+
+    /** Add a new department */
+    public boolean addDepartment(String id, String name) {
+        String query = "INSERT INTO department_record (department_id, department_name) VALUES (?, ?)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setString(1, id);
+            pstmt.setString(2, name);
+            pstmt.executeUpdate();
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /** Update an existing department */
+    public boolean updateDepartment(String id, String name) {
+        String query = "UPDATE department_record SET department_name = ? WHERE department_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setString(1, name);
+            pstmt.setString(2, id);
+            pstmt.executeUpdate();
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /** Delete department by ID */
+    public boolean deleteDepartment(String id) {
+        String query = "DELETE FROM department_record WHERE department_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setString(1, id);
+            pstmt.executeUpdate();
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+}
