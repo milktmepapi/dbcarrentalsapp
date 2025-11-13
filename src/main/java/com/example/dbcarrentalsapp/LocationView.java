@@ -61,9 +61,15 @@ public class LocationView {
 
         // ===== Table =====
         tableView = new TableView<>();
-        tableView.setPrefWidth(900);
-        tableView.setPrefHeight(300);
-        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tableView.setPrefWidth(750);
+        tableView.setPrefHeight(280);
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        tableView.getStyleClass().add("custom-table");
+
+        // Proper fix: keep table fully inside border box
+        tableView.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(tableView, Priority.ALWAYS);
+        tableView.setPadding(new Insets(5, 8, 5, 8));
 
         TableColumn<LocationRecord, String> idCol = new TableColumn<>("ID");
         idCol.setCellValueFactory(new PropertyValueFactory<>("locationId"));
@@ -95,8 +101,22 @@ public class LocationView {
         HBox buttonBox = new HBox(15, addButton, modifyButton, deleteButton, returnButton);
         buttonBox.setAlignment(Pos.CENTER);
 
+        // ===== Card Container =====
+        VBox tableCard = new VBox(15, tableView, buttonBox);
+        tableCard.setAlignment(Pos.CENTER);
+        tableCard.setPadding(new Insets(20));
+        tableCard.setMaxWidth(800);
+        tableCard.setStyle(
+                "-fx-background-color: rgba(25,25,35,0.85);" +
+                        "-fx-background-radius: 15;" +
+                        "-fx-border-color: linear-gradient(to right, #7a40ff, #b46bff);" +
+                        "-fx-border-radius: 15;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-overflow: hidden;"
+        );
+
         // ===== Layout =====
-        VBox layout = new VBox(30, searchBox, tableView, buttonBox);
+        VBox layout = new VBox(30, searchBox, tableCard);
         layout.setAlignment(Pos.CENTER);
         layout.setPadding(new Insets(140, 0, 0, 0));
         root.getChildren().add(layout);
@@ -175,6 +195,7 @@ public class LocationView {
         );
 
         popup.setScene(popupScene);
+        popupScene.getRoot().requestFocus(); // prevent ID field auto-focus
         popup.showAndWait();
     }
 
@@ -250,6 +271,7 @@ public class LocationView {
         );
 
         popup.setScene(popupScene);
+        popupScene.getRoot().requestFocus(); // prevent auto-selection
         popup.showAndWait();
     }
 
@@ -277,24 +299,44 @@ public class LocationView {
         );
 
         popup.setScene(scene);
+        scene.getRoot().requestFocus(); // prevent OK from pre-focusing
         popup.showAndWait();
     }
 
-    /** Reusable Confirmation Popup (for deletions) **/
-    public boolean showConfirmPopup(String title, String messageText) {
+    /** Confirmation Popup (for deletions) **/
+    public boolean showConfirmPopup(LocationRecord selected) {
+        if (selected == null) {
+            showSuccessPopup("No Selection", "Please select a location to delete.");
+            return false;
+        }
+
         final boolean[] confirmed = {false};
 
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
-        popup.setTitle(title);
+        popup.setTitle("Confirm Deletion");
 
-        Label msg = new Label(messageText);
-        msg.setWrapText(true);
-        msg.setAlignment(Pos.CENTER);
-        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+        Label idLabel = new Label("Location ID:");
+        TextField idField = new TextField(selected.getLocationId());
+        idField.setEditable(false);
+        idField.setStyle("-fx-opacity: 0.7;");
+
+        Label cityLabel = new Label("City:");
+        TextField cityField = new TextField(selected.getLocationCity());
+        cityField.setEditable(false);
+        cityField.setStyle("-fx-opacity: 0.7;");
+
+        Label provinceLabel = new Label("Province:");
+        TextField provinceField = new TextField(selected.getLocationProvince());
+        provinceField.setEditable(false);
+        provinceField.setStyle("-fx-opacity: 0.7;");
+
+        Label message = new Label("Are you sure you want to delete this location?");
+        message.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;");
+        message.setWrapText(true);
 
         Button yesBtn = new Button("Yes");
-        Button noBtn = new Button("No");
+        Button noBtn = new Button("Cancel");
         yesBtn.getStyleClass().add("small-button");
         noBtn.getStyleClass().add("small-button");
 
@@ -304,20 +346,27 @@ public class LocationView {
         });
         noBtn.setOnAction(e -> popup.close());
 
-        HBox buttons = new HBox(15, yesBtn, noBtn);
-        buttons.setAlignment(Pos.CENTER);
+        HBox buttonBox = new HBox(10, yesBtn, noBtn);
+        buttonBox.setAlignment(Pos.CENTER_LEFT);
 
-        VBox layout = new VBox(20, msg, buttons);
-        layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(25));
-        layout.setStyle("-fx-background-color: rgba(20,20,20,0.95); -fx-background-radius: 10;");
+        VBox box = new VBox(12,
+                idLabel, idField,
+                cityLabel, cityField,
+                provinceLabel, provinceField,
+                message,
+                buttonBox
+        );
+        box.setPadding(new Insets(20));
+        box.setAlignment(Pos.CENTER);
+        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
 
-        Scene scene = new Scene(layout, 360, 180);
-        scene.getStylesheets().add(
+        Scene popupScene = new Scene(box, 340, 380);
+        popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
 
-        popup.setScene(scene);
+        popup.setScene(popupScene);
+        popupScene.getRoot().requestFocus(); // prevent field focus
         popup.showAndWait();
 
         return confirmed[0];

@@ -56,14 +56,10 @@ public class LocationController {
                 return;
             }
 
-            boolean confirm = view.showConfirmPopup(
-                    "Confirm Delete",
-                    "Are you sure you want to delete this location?\n\n" +
-                            selected.getLocationId() + " — " +
-                            selected.getLocationCity() + ", " + selected.getLocationProvince()
-            );
+            // Show confirmation popup with record details
+            boolean confirmed = view.showConfirmPopup(selected);
 
-            if (confirm) {
+            if (confirmed) {
                 boolean success = dao.deleteLocation(selected.getLocationId());
                 if (success) {
                     view.showSuccessPopup("Deleted", "Location deleted successfully!");

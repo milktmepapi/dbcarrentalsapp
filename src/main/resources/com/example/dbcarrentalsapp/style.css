@@ -73,3 +73,50 @@
 .table-row-cell:filled:hover {
     -fx-background-color: rgba(255,255,255,0.3);
 }
+//* === FINAL FIXED TABLE STYLE === */
+
+ /* Table container border + text color */
+ .custom-table {
+     -fx-background-color: rgba(25, 25, 35, 0.7);
+     -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff);
+     -fx-border-radius: 12;
+     -fx-border-width: 2;
+     -fx-text-fill: white;
+ }
+
+ /* --- HEADER --- */
+ .custom-table .column-header-background {
+     -fx-background-color: rgba(10, 10, 10, 1.0) !important; /* solid black */
+     -fx-border-color: transparent;
+ }
+ .custom-table .column-header,
+ .custom-table .table-column > .label {
+     -fx-background-color: transparent !important;
+     -fx-text-fill: white !important;
+     -fx-font-weight: bold;
+     -fx-font-size: 16px;
+     -fx-alignment: CENTER;
+ }
+
+.custom-table .table-row-cell,
+.custom-table .table-row-cell:odd,
+.custom-table .table-row-cell:even {
+    -fx-background-color: rgba(220, 220, 220, 0.85) !important; /* light silver gray */
+    -fx-text-fill: black !important; /* contrast text */
+    -fx-font-weight: normal;
+    -fx-font-size: 14px;
+}
+
+/* Hover — brighter silver */
+.custom-table .table-row-cell:hover {
+    -fx-background-color: rgba(240, 240, 240, 0.95) !important;
+}
+
+
+/* Selected row — purple gradient */
+.custom-table .table-row-cell:selected {
+    -fx-background-color: linear-gradient(to right, #7a40ff, #b46bff) !important;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
