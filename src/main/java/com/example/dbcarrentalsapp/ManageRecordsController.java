@@ -28,6 +28,13 @@ public class ManageRecordsController {
             stage.setScene(departmentView.getScene());
         });
 
+        // Car Button
+        view.cars.setOnAction(e -> {
+            CarView carView = new CarView();
+            CarController carController = new CarController(carView, stage);
+            stage.setScene(carView.getScene());
+        });
+
         // Return Button
         view.returns.setOnAction(e -> {
             UserView userView = new UserView();
