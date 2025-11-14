@@ -46,45 +46,38 @@ public class JobController {
                 view.showAddJobPopup(dao, this::loadJobs)
         );
 
-
         // ===== Modify Jobs =====
         view.modifyButton.setOnAction(e -> {
             JobRecord selected = view.tableView.getSelectionModel().getSelectedItem();
             if (selected != null) {
                 view.showModifyJobPopup(dao, selected, this::loadJobs);
             } else {
-                showAlert(Alert.AlertType.WARNING, "No Selection", "Please select a job to modify.");
+                view.showSuccessPopup("No Selection", "Please select a job to modify.");
             }
         });
-        // Delete Jobs
+
+        // ===== Delete Jobs =====
         view.deleteButton.setOnAction(e -> {
             JobRecord selected = view.tableView.getSelectionModel().getSelectedItem();
 
             if (selected == null) {
-                showAlert(Alert.AlertType.WARNING, "No Selection", "Please select staff to delete.");
+                view.showSuccessPopup("No Selection", "Please select a job to delete.");
                 return;
             }
 
-            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-            confirm.setTitle("Confirm Delete");
-            confirm.setHeaderText(null);
-            confirm.setContentText("Are you sure you want to delete this job?\n\n"
-                    + selected.getJobId() + " — "
-                    + selected.getJobTitle() + ", " + selected.getJobDepartmentId()
-                    + selected.getJobSalary());
+            // Show confirmation popup with record details
+            boolean confirmed = view.showConfirmPopup(selected);
 
-            confirm.showAndWait().ifPresent(response -> {
-                if (response == ButtonType.OK) {
-                    boolean success = dao.deleteJob(selected.getJobId());
-                    if (success) {
-                        showAlert(Alert.AlertType.INFORMATION, "Deleted", "Job deleted successfully.");
-                        loadJobs(); // refresh table
-                        System.out.println("Deleted Staff Id: " + selected.getJobId());
-                    } else {
-                        showAlert(Alert.AlertType.ERROR, "Error", "Failed to delete job.");
-                    }
+            if (confirmed) {
+                boolean success = dao.deleteJob(selected.getJobId());
+                if (success) {
+                    view.showSuccessPopup("Deleted", "Job deleted successfully!");
+                    loadJobs();
+                    System.out.println("Deleted Job ID: " + selected.getJobId());
+                } else {
+                    view.showSuccessPopup("Error", "Failed to delete job.");
                 }
-            });
+            }
         });
 
         // ===== Filter/Search =====
@@ -121,4 +114,3 @@ public class JobController {
         alert.showAndWait();
     }
 }
-
