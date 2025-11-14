@@ -48,37 +48,44 @@ public class StaffController {
         );
 
 
-        // ===== Modify Staff =====
+        // ===== Modify Car =====
         view.modifyButton.setOnAction(e -> {
             StaffRecord selected = view.tableView.getSelectionModel().getSelectedItem();
             if (selected != null) {
                 view.showModifyStaffPopup(dao, selected, this::loadStaff);
             } else {
-                view.showSuccessPopup("No Selection", "Please select a staff member to modify.");
+                showAlert(Alert.AlertType.WARNING, "No Selection", "Please select a cars to modify.");
             }
         });
-        // ===== Delete Staff =====
+        // Delete Staff
         view.deleteButton.setOnAction(e -> {
             StaffRecord selected = view.tableView.getSelectionModel().getSelectedItem();
 
             if (selected == null) {
-                view.showSuccessPopup("No Selection", "Please select a staff member to delete.");
+                showAlert(Alert.AlertType.WARNING, "No Selection", "Please select staff to delete.");
                 return;
             }
 
-            // Show confirmation popup with record details
-            boolean confirmed = view.showConfirmPopup(selected);
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Confirm Delete");
+            confirm.setHeaderText(null);
+            confirm.setContentText("Are you sure you want to delete this staff member?\n\n"
+                    + selected.getStaffId() + " — "
+                    + selected.getStaffFirstName() + ", " + selected.getStaffLastName()
+                    + selected.getStaffJobId() + ", " + selected.getStaffBranchId());
 
-            if (confirmed) {
-                boolean success = dao.deleteStaff(selected.getStaffId());
-                if (success) {
-                    view.showSuccessPopup("Deleted", "Staff member deleted successfully!");
-                    loadStaff();
-                    System.out.println("Deleted Staff ID: " + selected.getStaffId());
-                } else {
-                    view.showSuccessPopup("Error", "Failed to delete staff member.");
+            confirm.showAndWait().ifPresent(response -> {
+                if (response == ButtonType.OK) {
+                    boolean success = dao.deleteStaff(selected.getStaffId());
+                    if (success) {
+                        showAlert(Alert.AlertType.INFORMATION, "Deleted", "Staff deleted successfully.");
+                        loadStaff(); // refresh table
+                        System.out.println("Deleted Staff Id: " + selected.getStaffId());
+                    } else {
+                        showAlert(Alert.AlertType.ERROR, "Error", "Failed to delete staff member.");
+                    }
                 }
-            }
+            });
         });
 
         // ===== Filter/Search =====

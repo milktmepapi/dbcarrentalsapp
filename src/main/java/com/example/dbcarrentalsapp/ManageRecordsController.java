@@ -42,6 +42,13 @@ public class ManageRecordsController {
             stage.setScene(staffView.getScene());
         });
 
+        // Jobs Button
+        view.jobs.setOnAction(e -> {
+            JobView jobView = new JobView();
+            JobController jobController = new JobController(jobView, stage);
+            stage.setScene(jobView.getScene());
+        });
+
         // Return Button
         view.returns.setOnAction(e -> {
             UserView userView = new UserView();
