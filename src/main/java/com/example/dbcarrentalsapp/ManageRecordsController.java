@@ -49,6 +49,13 @@ public class ManageRecordsController {
             stage.setScene(jobView.getScene());
         });
 
+        // Renter Button
+        view.renters.setOnAction(e -> {
+            RenterView renterView = new RenterView();
+            new RenterController(renterView, stage);
+            stage.setScene(renterView.getScene());
+        });
+
         // Return Button
         view.returns.setOnAction(e -> {
             UserView userView = new UserView();
@@ -58,9 +65,5 @@ public class ManageRecordsController {
         });
 
 
-
-        // You can add others like:
-        // view.departments.setOnAction(e -> { ... });
-        // view.staffs.setOnAction(e -> { ... });
     }
 }
