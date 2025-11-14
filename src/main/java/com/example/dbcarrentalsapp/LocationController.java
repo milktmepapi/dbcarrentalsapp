@@ -89,6 +89,7 @@ public class LocationController {
     /** Applies text-based filtering **/
     private void applyFilter() {
         String filterText = view.searchField.getText().toLowerCase().trim();
+        String og = view.searchField.getText().trim();
 
         if (filterText.isEmpty()) {
             view.tableView.setItems(masterList);
@@ -96,9 +97,9 @@ public class LocationController {
         }
 
         ObservableList<LocationRecord> filteredList = masterList.filtered(record ->
-                record.getLocationCity().toLowerCase().contains(filterText) ||
+                record.getLocationCity().toLowerCase().contains(og) ||
                         record.getLocationProvince().toLowerCase().contains(filterText) ||
-                        record.getLocationId().contains(filterText)
+                        record.getLocationId().contains(og)
         );
 
         view.tableView.setItems(filteredList);

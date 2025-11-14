@@ -97,18 +97,19 @@ public class JobController {
     /** Applies text-based filtering **/
     private void applyFilter() {
         String filterText = view.searchField.getText().toLowerCase().trim();
+        String og = view.searchField.getText().trim();
 
         if (filterText.isEmpty()) {
             view.tableView.setItems(masterList);
             return;
         }
 
-        String temp = String.valueOf(filterText);
+        String temp = String.valueOf(og);
 
         ObservableList<JobRecord> filteredList = masterList.filtered(record ->
                 record.getJobTitle().toLowerCase().contains(filterText) ||
-                        record.getJobDepartmentId().contains(filterText) ||
-                        record.getJobId().contains(filterText)||
+                        record.getJobDepartmentId().contains(og) ||
+                        record.getJobId().contains(og)||
                         record.getStringVersionOfSalary().contains(temp)
         );
 

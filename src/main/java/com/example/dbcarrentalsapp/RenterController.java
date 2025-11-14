@@ -57,6 +57,7 @@ public class RenterController {
         view.filterButton.setOnAction(e -> {
             String keyword = view.searchField.getText().trim().toLowerCase();
 
+
             if (keyword.isEmpty()) {
                 loadRenters();
                 return;

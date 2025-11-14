@@ -91,6 +91,7 @@ public class StaffController {
     /** Applies text-based filtering **/
     private void applyFilter() {
         String filterText = view.searchField.getText().toLowerCase().trim();
+        String og = view.searchField.getText().trim();
 
         if (filterText.isEmpty()) {
             view.tableView.setItems(masterList);
@@ -98,11 +99,11 @@ public class StaffController {
         }
 
         ObservableList<StaffRecord> filteredList = masterList.filtered(record ->
-                record.getStaffJobId().contains(filterText) ||
-                        record.getStaffBranchId().contains(filterText) ||
-                        record.getStaffId().contains(filterText) ||
-                        record.getStaffFirstName().contains(filterText) ||
-                        record.getStaffLastName().contains(filterText)
+                        record.getStaffJobId().contains(og) ||
+                        record.getStaffBranchId().contains(og) ||
+                        record.getStaffId().contains(og) ||
+                        record.getStaffFirstName().toLowerCase().contains(filterText) ||
+                        record.getStaffLastName().toLowerCase().contains(filterText)
         );
 
         view.tableView.setItems(filteredList);

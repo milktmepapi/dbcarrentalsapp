@@ -56,6 +56,14 @@ public class ManageRecordsController {
             stage.setScene(renterView.getScene());
         });
 
+        // Branches Button
+        // Branches Button
+        view.branches.setOnAction(e -> {
+            BranchView branchView = new BranchView();
+            new BranchController(branchView, stage);
+            stage.setScene(branchView.getScene());
+        });
+
         // Return Button
         view.returns.setOnAction(e -> {
             UserView userView = new UserView();

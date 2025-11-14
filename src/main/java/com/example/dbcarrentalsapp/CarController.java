@@ -92,6 +92,7 @@ public class CarController {
     /** Applies text-based filtering **/
     private void applyFilter() {
         String filterText = view.searchField.getText().toLowerCase().trim();
+        String og = view.searchField.getText().trim(); // For non lowercase fields
 
         if (filterText.isEmpty()) {
             view.tableView.setItems(masterList);
@@ -99,9 +100,9 @@ public class CarController {
         }
 
         ObservableList<CarRecord> filteredList = masterList.filtered(record ->
-                record.getCarModel().toLowerCase().contains(filterText) ||
+                        record.getCarModel().toLowerCase().contains(filterText) ||
                         record.getCarBrand().toLowerCase().contains(filterText) ||
-                        record.getCarPlateNumber().contains(filterText)
+                        record.getCarPlateNumber().contains(og)
         );
 
         view.tableView.setItems(filteredList);

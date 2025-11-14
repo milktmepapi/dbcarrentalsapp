@@ -50,7 +50,7 @@ public class BranchView {
 
         // ===== Search Bar =====
         searchField = new TextField();
-        searchField.setPromptText("Search by name...");
+        searchField.setPromptText("Search by attribute...");
         searchField.setPrefWidth(300);
         filterButton = new Button("Filter");
         filterButton.getStyleClass().add("small-button");
@@ -81,7 +81,7 @@ public class BranchView {
         emailAddressCol.setCellValueFactory(new PropertyValueFactory<>("branchEmailAddress"));
 
         TableColumn<BranchRecord, String> locationIDCol = new TableColumn<>("Location ID");
-        locationIDCol.setCellValueFactory(new PropertyValueFactory<>("branchLocationID"));
+        locationIDCol.setCellValueFactory(new PropertyValueFactory<>("branchLocationId"));
 
         tableView.getColumns().addAll(idCol, nameCol, emailAddressCol, locationIDCol);
 
