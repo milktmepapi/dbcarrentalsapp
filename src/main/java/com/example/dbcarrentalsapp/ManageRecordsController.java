@@ -35,6 +35,13 @@ public class ManageRecordsController {
             stage.setScene(carView.getScene());
         });
 
+        // Staff Button
+        view.staffs.setOnAction(e -> {
+            StaffView staffView = new StaffView();
+            StaffController staffController = new StaffController(staffView, stage);
+            stage.setScene(staffView.getScene());
+        });
+
         // Return Button
         view.returns.setOnAction(e -> {
             UserView userView = new UserView();
@@ -42,6 +49,8 @@ public class ManageRecordsController {
             userController.setupActions();
             stage.setScene(userView.getScene());
         });
+
+
 
         // You can add others like:
         // view.departments.setOnAction(e -> { ... });
