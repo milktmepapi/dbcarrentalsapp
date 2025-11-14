@@ -158,7 +158,7 @@ public class JobView {
                 return;
             }
 
-            boolean success = dao.addJob(jobID, jobTitle, jobDepartmentID, jobSalary);
+            boolean success = dao.addJob(jobID, jobTitle, jobDepartmentID, Double.valueOf(jobSalary));
             if (success) {
                 message.setText("Added successfully!");
                 message.setStyle("-fx-text-fill: lightgreen;");
@@ -249,7 +249,7 @@ public class JobView {
                 return;
             }
 
-            boolean success = dao.updateJob(finalSelected.getJobId(), jobTitle, jobDepartmentID, jobSalary);
+            boolean success = dao.updateJob(finalSelected.getJobId(), jobTitle, jobDepartmentID, Double.valueOf(jobSalary));
             if (success) {
                 message.setText("Updated successfully!");
                 message.setStyle("-fx-text-fill: lightgreen;");
