@@ -7,9 +7,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
@@ -62,9 +60,15 @@ public class JobView {
 
         // ===== Table =====
         tableView = new TableView<>();
-        tableView.setPrefWidth(900); // Wider table
-        tableView.setPrefHeight(300);
-        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tableView.setPrefWidth(750);
+        tableView.setPrefHeight(280);
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        tableView.getStyleClass().add("custom-table");
+
+        // Proper fix: keep table fully inside border box
+        tableView.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(tableView, Priority.ALWAYS);
+        tableView.setPadding(new Insets(5, 8, 5, 8));
 
         TableColumn<JobRecord, String> jobIDCol = new TableColumn<>("Job ID");
         jobIDCol.setCellValueFactory(new PropertyValueFactory<>("jobId"));
@@ -77,7 +81,6 @@ public class JobView {
 
         TableColumn<JobRecord, String> jobSalaryCol = new TableColumn<>("Job Salary");
         jobSalaryCol.setCellValueFactory(new PropertyValueFactory<>("jobSalary"));
-
 
         tableView.getColumns().addAll(jobIDCol, jobTitleCol, jobDepartmentIDCol, jobSalaryCol);
 
@@ -100,11 +103,24 @@ public class JobView {
         HBox buttonBox = new HBox(15, addButton, modifyButton, deleteButton, returnButton);
         buttonBox.setAlignment(Pos.CENTER);
 
+        // ===== Card Container =====
+        VBox tableCard = new VBox(15, tableView, buttonBox);
+        tableCard.setAlignment(Pos.CENTER);
+        tableCard.setPadding(new Insets(20));
+        tableCard.setMaxWidth(800);
+        tableCard.setStyle(
+                "-fx-background-color: rgba(25,25,35,0.85);" +
+                        "-fx-background-radius: 15;" +
+                        "-fx-border-color: linear-gradient(to right, #7a40ff, #b46bff);" +
+                        "-fx-border-radius: 15;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-overflow: hidden;"
+        );
+
         // ===== Layout =====
-        VBox layout = new VBox(30, searchBox, tableView, buttonBox); // more spacing between sections
+        VBox layout = new VBox(30, searchBox, tableCard);
         layout.setAlignment(Pos.CENTER);
         layout.setPadding(new Insets(140, 0, 0, 0));
-
         root.getChildren().add(layout);
 
         // ===== Scene =====
@@ -132,7 +148,7 @@ public class JobView {
 
         Label jobDepartmentIDLabel = new Label("Job Department ID:");
         TextField jobDepartmentIDField = new TextField();
-       jobDepartmentIDField.setPromptText("Enter Job Department ID");
+        jobDepartmentIDField.setPromptText("Enter Job Department ID");
 
         Label jobSalaryLabel = new Label("Job Salary:");
         TextField jobSalaryField = new TextField();
@@ -150,23 +166,30 @@ public class JobView {
             String jobID = jobIDField.getText().trim();
             String jobTitle = jobTitleField.getText().trim();
             String jobDepartmentID = jobDepartmentIDField.getText().trim();
-            String jobSalary = jobSalaryField.getText().trim();
+            String jobSalaryText = jobSalaryField.getText().trim();
 
-            if (jobID.isEmpty() || jobTitle.isEmpty() || jobDepartmentID.isEmpty() || jobSalary.isEmpty()) {
+            if (jobID.isEmpty() || jobTitle.isEmpty() || jobDepartmentID.isEmpty() || jobSalaryText.isEmpty()) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange;");
                 return;
             }
 
-            boolean success = dao.addJob(jobID, jobTitle, jobDepartmentID, Double.valueOf(jobSalary));
-            if (success) {
-                message.setText("Added successfully!");
-                message.setStyle("-fx-text-fill: lightgreen;");
-                reloadCallback.run(); // refresh table in controller
-                popup.close();
-            } else {
-                message.setText("Failed: Duplicate ID or Department ID.");
-                message.setStyle("-fx-text-fill: red;");
+            // Parse salary as double with error handling
+            try {
+                double jobSalary = Double.parseDouble(jobSalaryText);
+                boolean success = dao.addJob(jobID, jobTitle, jobDepartmentID, jobSalary);
+                if (success) {
+                    message.setText("Added successfully!");
+                    message.setStyle("-fx-text-fill: lightgreen;");
+                    reloadCallback.run(); // refresh table in controller
+                    popup.close();
+                } else {
+                    message.setText("Failed: Duplicate ID or Department ID.");
+                    message.setStyle("-fx-text-fill: red;");
+                }
+            } catch (NumberFormatException ex) {
+                message.setText("Please enter a valid salary number!");
+                message.setStyle("-fx-text-fill: orange;");
             }
         });
 
@@ -201,17 +224,13 @@ public class JobView {
     public void showModifyJobPopup(JobDAO dao, JobRecord selected, Runnable reloadCallback) {
         selected = tableView.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("No Selection");
-            alert.setHeaderText(null);
-            alert.setContentText("Please select a location to modify.");
-            alert.showAndWait();
+            showSuccessPopup("No Selection", "Please select a job to modify.");
             return;
         }
 
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
-        popup.setTitle("Modify Staff");
+        popup.setTitle("Modify Job");
 
         Label jobIDLabel = new Label("Job ID:");
         TextField jobIDField = new TextField(selected.getJobId());
@@ -241,23 +260,30 @@ public class JobView {
             String jobID = jobIDField.getText().trim();
             String jobTitle = jobTitleField.getText().trim();
             String jobDepartmentID = jobDepartmentIDField.getText().trim();
-            String jobSalary = jobSalaryField.getText().trim();
+            String jobSalaryText = jobSalaryField.getText().trim();
 
-            if (jobID.isEmpty() || jobTitle.isEmpty() || jobDepartmentID.isEmpty() || jobSalary.isEmpty()) {
+            if (jobID.isEmpty() || jobTitle.isEmpty() || jobDepartmentID.isEmpty() || jobSalaryText.isEmpty()) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange;");
                 return;
             }
 
-            boolean success = dao.updateJob(finalSelected.getJobId(), jobTitle, jobDepartmentID, Double.valueOf(jobSalary));
-            if (success) {
-                message.setText("Updated successfully!");
-                message.setStyle("-fx-text-fill: lightgreen;");
-                reloadCallback.run(); // refresh the table
-                popup.close();
-            } else {
-                message.setText("Failed: Duplicate or database error.");
-                message.setStyle("-fx-text-fill: red;");
+            // Parse salary as double with error handling
+            try {
+                double jobSalary = Double.parseDouble(jobSalaryText);
+                boolean success = dao.updateJob(finalSelected.getJobId(), jobTitle, jobDepartmentID, jobSalary);
+                if (success) {
+                    message.setText("Updated successfully!");
+                    message.setStyle("-fx-text-fill: lightgreen;");
+                    reloadCallback.run(); // refresh the table
+                    popup.close();
+                } else {
+                    message.setText("Failed: Duplicate or database error.");
+                    message.setStyle("-fx-text-fill: red;");
+                }
+            } catch (NumberFormatException ex) {
+                message.setText("Please enter a valid salary number!");
+                message.setStyle("-fx-text-fill: orange;");
             }
         });
 
@@ -284,6 +310,109 @@ public class JobView {
 
         popup.setScene(popupScene);
         popup.showAndWait();
+    }
+
+    /** Reusable Success Popup **/
+    public void showSuccessPopup(String title, String messageText) {
+        Stage popup = new Stage();
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle(title);
+
+        Label msg = new Label(messageText);
+        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+
+        Button okBtn = new Button("OK");
+        okBtn.getStyleClass().add("small-button");
+        okBtn.setOnAction(e -> popup.close());
+
+        VBox layout = new VBox(15, msg, okBtn);
+        layout.setAlignment(Pos.CENTER);
+        layout.setPadding(new Insets(20));
+        layout.setStyle("-fx-background-color: rgba(20,20,20,0.95); -fx-background-radius: 10;");
+
+        Scene scene = new Scene(layout, 300, 150);
+        scene.getStylesheets().add(
+                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
+        );
+
+        popup.setScene(scene);
+        scene.getRoot().requestFocus(); // prevent OK from pre-focusing
+        popup.showAndWait();
+    }
+
+    /** Confirmation Popup (for deletions) **/
+    public boolean showConfirmPopup(JobRecord selected) {
+        if (selected == null) {
+            showSuccessPopup("No Selection", "Please select a job to delete.");
+            return false;
+        }
+
+        final boolean[] confirmed = {false};
+
+        Stage popup = new Stage();
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle("Confirm Deletion");
+
+        Label idLabel = new Label("Job ID:");
+        TextField idField = new TextField(selected.getJobId());
+        idField.setEditable(false);
+        idField.setStyle("-fx-opacity: 0.7;");
+
+        Label titleLabel = new Label("Job Title:");
+        TextField titleField = new TextField(selected.getJobTitle());
+        titleField.setEditable(false);
+        titleField.setStyle("-fx-opacity: 0.7;");
+
+        Label departmentLabel = new Label("Department ID:");
+        TextField departmentField = new TextField(selected.getJobDepartmentId());
+        departmentField.setEditable(false);
+        departmentField.setStyle("-fx-opacity: 0.7;");
+
+        Label salaryLabel = new Label("Salary:");
+        TextField salaryField = new TextField(String.valueOf(selected.getJobSalary()));
+        salaryField.setEditable(false);
+        salaryField.setStyle("-fx-opacity: 0.7;");
+
+        Label message = new Label("Are you sure you want to delete this job?");
+        message.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;");
+        message.setWrapText(true);
+
+        Button yesBtn = new Button("Yes");
+        Button noBtn = new Button("Cancel");
+        yesBtn.getStyleClass().add("small-button");
+        noBtn.getStyleClass().add("small-button");
+
+        yesBtn.setOnAction(e -> {
+            confirmed[0] = true;
+            popup.close();
+        });
+        noBtn.setOnAction(e -> popup.close());
+
+        HBox buttonBox = new HBox(10, yesBtn, noBtn);
+        buttonBox.setAlignment(Pos.CENTER_LEFT);
+
+        VBox box = new VBox(12,
+                idLabel, idField,
+                titleLabel, titleField,
+                departmentLabel, departmentField,
+                salaryLabel, salaryField,
+                message,
+                buttonBox
+        );
+        box.setPadding(new Insets(20));
+        box.setAlignment(Pos.CENTER);
+        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+
+        Scene popupScene = new Scene(box, 340, 350);
+        popupScene.getStylesheets().add(
+                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
+        );
+
+        popup.setScene(popupScene);
+        popupScene.getRoot().requestFocus(); // prevent field focus
+        popup.showAndWait();
+
+        return confirmed[0];
     }
 
     public Scene getScene() {

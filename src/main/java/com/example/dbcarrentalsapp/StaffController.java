@@ -98,9 +98,9 @@ public class StaffController {
         }
 
         ObservableList<StaffRecord> filteredList = masterList.filtered(record ->
-                record.getStaffJobId().toLowerCase().contains(filterText) ||
-                        record.getStaffBranchId().toLowerCase().contains(filterText) ||
-                        record.getStaffId().toLowerCase().contains(filterText) ||
+                record.getStaffJobId().contains(filterText) ||
+                        record.getStaffBranchId().contains(filterText) ||
+                        record.getStaffId().contains(filterText) ||
                         record.getStaffFirstName().contains(filterText) ||
                         record.getStaffLastName().contains(filterText)
         );

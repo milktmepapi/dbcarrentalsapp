@@ -101,7 +101,7 @@ public class CarController {
         ObservableList<CarRecord> filteredList = masterList.filtered(record ->
                 record.getCarModel().toLowerCase().contains(filterText) ||
                         record.getCarBrand().toLowerCase().contains(filterText) ||
-                        record.getCarPlateNumber().toLowerCase().contains(filterText)
+                        record.getCarPlateNumber().contains(filterText)
         );
 
         view.tableView.setItems(filteredList);
