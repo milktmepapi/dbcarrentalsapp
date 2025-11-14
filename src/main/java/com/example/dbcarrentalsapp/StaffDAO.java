@@ -9,7 +9,7 @@ public class StaffDAO {
     /**
      * Retrieves all staff records, ordered by plate number.
      *
-     * @return List of all cars from the database.
+     * @return List of all staff from the database.
      */
     public static List<StaffRecord> getAllStaff() {
         List<StaffRecord> staff = new ArrayList<>();
@@ -43,32 +43,33 @@ public class StaffDAO {
      * @param staffId new id of staff member in branch
      * @param firstName first name of staff member
      * @param lastName last name of staff member
-     * @param jobId brand of the car
+     * @param jobId jod if of the staff
      * @param branchId location of the staff in respective branch
      * @return true if added successfully, false otherwise
      */
-    public boolean addStaff (String staffId, String firstName, String lastName, String jobId, String branchId){
+    public boolean addStaff(String staffId, String firstName, String lastName, String jobId, String branchId){
         String checkIdSql = "SELECT COUNT(*) FROM staff_record WHERE staff_id = ?";
-        String insertSql = "INSERT INTO car_record (staff_id, staff_first_name, staff_last_name, staff_job_id, staff_branch_id) VALUES (?, ?, ?, ?, ?)";
+        String insertSql = "INSERT INTO staff_record (staff_id, staff_first_name, staff_last_name, staff_job_id, staff_branch_id) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection()) {
-            // === Check if plate number already exists ===
+            // Check if staff ID already exists
             try (PreparedStatement psCheckId = conn.prepareStatement(checkIdSql)) {
                 psCheckId.setString(1, staffId);
                 ResultSet rs = psCheckId.executeQuery();
                 if (rs.next() && rs.getInt(1) > 0) {
-                    System.out.println("Error: Location ID already exists.");
+                    System.out.println("Error: Staff ID already exists.");
                     return false;
                 }
             }
 
-            // === If checks pass, insert the record ===
+            // Insert the record
             try (PreparedStatement pstmt = conn.prepareStatement(insertSql)){
                 pstmt.setString(1, staffId);
                 pstmt.setString(2, firstName);
                 pstmt.setString(3, lastName);
                 pstmt.setString(4, jobId);
                 pstmt.setString(5, branchId);
-                return true;
+                int rows = pstmt.executeUpdate();
+                return rows > 0;
             }
         } catch (SQLException e){
             e.printStackTrace();
@@ -91,11 +92,11 @@ public class StaffDAO {
         try (Connection conn = DBConnection.getConnection()) {
             // === Perform Update ===
             try (PreparedStatement pstmt = conn.prepareStatement(updateSql)){
-                pstmt.setString(1, staffId);
-                pstmt.setString(2, firstName);
-                pstmt.setString(3, lastName);
-                pstmt.setString(4, jobId);
-                pstmt.setString(5, branchId);
+                pstmt.setString(1, firstName);
+                pstmt.setString(2, lastName);
+                pstmt.setString(3, jobId);
+                pstmt.setString(4, branchId);
+                pstmt.setString(5, staffId);
                 int rows = pstmt.executeUpdate();
                 return rows > 0;
             }

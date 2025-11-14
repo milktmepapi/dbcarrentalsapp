@@ -7,9 +7,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
@@ -62,9 +60,15 @@ public class StaffView {
 
         // ===== Table =====
         tableView = new TableView<>();
-        tableView.setPrefWidth(900); // Wider table
-        tableView.setPrefHeight(300);
-        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tableView.setPrefWidth(750);
+        tableView.setPrefHeight(280);
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        tableView.getStyleClass().add("custom-table");
+
+        // Proper fix: keep table fully inside border box
+        tableView.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(tableView, Priority.ALWAYS);
+        tableView.setPadding(new Insets(5, 8, 5, 8));
 
         TableColumn<StaffRecord, String> staffIDCol = new TableColumn<>("Staff ID");
         staffIDCol.setCellValueFactory(new PropertyValueFactory<>("staffId"));
@@ -102,11 +106,24 @@ public class StaffView {
         HBox buttonBox = new HBox(15, addButton, modifyButton, deleteButton, returnButton);
         buttonBox.setAlignment(Pos.CENTER);
 
+        // ===== Card Container =====
+        VBox tableCard = new VBox(15, tableView, buttonBox);
+        tableCard.setAlignment(Pos.CENTER);
+        tableCard.setPadding(new Insets(20));
+        tableCard.setMaxWidth(800);
+        tableCard.setStyle(
+                "-fx-background-color: rgba(25,25,35,0.85);" +
+                        "-fx-background-radius: 15;" +
+                        "-fx-border-color: linear-gradient(to right, #7a40ff, #b46bff);" +
+                        "-fx-border-radius: 15;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-overflow: hidden;"
+        );
+
         // ===== Layout =====
-        VBox layout = new VBox(30, searchBox, tableView, buttonBox); // more spacing between sections
+        VBox layout = new VBox(30, searchBox, tableCard);
         layout.setAlignment(Pos.CENTER);
         layout.setPadding(new Insets(140, 0, 0, 0));
-
         root.getChildren().add(layout);
 
         // ===== Scene =====
@@ -209,11 +226,7 @@ public class StaffView {
     public void showModifyStaffPopup(StaffDAO dao, StaffRecord selected, Runnable reloadCallback) {
         selected = tableView.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("No Selection");
-            alert.setHeaderText(null);
-            alert.setContentText("Please select a location to modify.");
-            alert.showAndWait();
+            showSuccessPopup("No Selection", "Please select a staff member to modify.");
             return;
         }
 
@@ -295,7 +308,117 @@ public class StaffView {
         );
 
         popup.setScene(popupScene);
+        popupScene.getRoot().requestFocus(); // prevent auto-selection
         popup.showAndWait();
+    }
+
+    /** Reusable Success Popup **/
+    public void showSuccessPopup(String title, String messageText) {
+        Stage popup = new Stage();
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle(title);
+
+        Label msg = new Label(messageText);
+        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+
+        Button okBtn = new Button("OK");
+        okBtn.getStyleClass().add("small-button");
+        okBtn.setOnAction(e -> popup.close());
+
+        VBox layout = new VBox(15, msg, okBtn);
+        layout.setAlignment(Pos.CENTER);
+        layout.setPadding(new Insets(20));
+        layout.setStyle("-fx-background-color: rgba(20,20,20,0.95); -fx-background-radius: 10;");
+
+        Scene scene = new Scene(layout, 300, 150);
+        scene.getStylesheets().add(
+                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
+        );
+
+        popup.setScene(scene);
+        scene.getRoot().requestFocus(); // prevent OK from pre-focusing
+        popup.showAndWait();
+    }
+
+    /** Confirmation Popup (for deletions) **/
+    public boolean showConfirmPopup(StaffRecord selected) {
+        if (selected == null) {
+            showSuccessPopup("No Selection", "Please select a staff member to delete.");
+            return false;
+        }
+
+        final boolean[] confirmed = {false};
+
+        Stage popup = new Stage();
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle("Confirm Deletion");
+
+        Label idLabel = new Label("Staff ID:");
+        TextField idField = new TextField(selected.getStaffId());
+        idField.setEditable(false);
+        idField.setStyle("-fx-opacity: 0.7;");
+
+        Label firstNameLabel = new Label("First Name:");
+        TextField firstNameField = new TextField(selected.getStaffFirstName());
+        firstNameField.setEditable(false);
+        firstNameField.setStyle("-fx-opacity: 0.7;");
+
+        Label lastNameLabel = new Label("Last Name:");
+        TextField lastNameField = new TextField(selected.getStaffLastName());
+        lastNameField.setEditable(false);
+        lastNameField.setStyle("-fx-opacity: 0.7;");
+
+        Label jobIdLabel = new Label("Job ID:");
+        TextField jobIdField = new TextField(selected.getStaffJobId());
+        jobIdField.setEditable(false);
+        jobIdField.setStyle("-fx-opacity: 0.7;");
+
+        Label branchIdLabel = new Label("Branch ID:");
+        TextField branchIdField = new TextField(selected.getStaffBranchId());
+        branchIdField.setEditable(false);
+        branchIdField.setStyle("-fx-opacity: 0.7;");
+
+        Label message = new Label("Are you sure you want to delete this staff member?");
+        message.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;");
+        message.setWrapText(true);
+
+        Button yesBtn = new Button("Yes");
+        Button noBtn = new Button("Cancel");
+        yesBtn.getStyleClass().add("small-button");
+        noBtn.getStyleClass().add("small-button");
+
+        yesBtn.setOnAction(e -> {
+            confirmed[0] = true;
+            popup.close();
+        });
+        noBtn.setOnAction(e -> popup.close());
+
+        HBox buttonBox = new HBox(10, yesBtn, noBtn);
+        buttonBox.setAlignment(Pos.CENTER_LEFT);
+
+        VBox box = new VBox(12,
+                idLabel, idField,
+                firstNameLabel, firstNameField,
+                lastNameLabel, lastNameField,
+                jobIdLabel, jobIdField,
+                branchIdLabel, branchIdField,
+                message,
+                buttonBox
+        );
+        box.setPadding(new Insets(20));
+        box.setAlignment(Pos.CENTER);
+        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+
+        Scene popupScene = new Scene(box, 340, 420);
+        popupScene.getStylesheets().add(
+                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
+        );
+
+        popup.setScene(popupScene);
+        popupScene.getRoot().requestFocus(); // prevent field focus
+        popup.showAndWait();
+
+        return confirmed[0];
     }
 
     public Scene getScene() {
