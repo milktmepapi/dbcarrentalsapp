@@ -112,6 +112,10 @@ public class JobRecord {
         this.jobSalary = jobSalary;
     }
 
+    public String getStringVersionOfSalary() {
+        return String.valueOf(jobSalary);
+    }
+
     /**
      * Returns a string representation of the JobRecord,
      * useful for debugging or logging.

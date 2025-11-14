@@ -103,10 +103,13 @@ public class JobController {
             return;
         }
 
+        String temp = String.valueOf(filterText);
+
         ObservableList<JobRecord> filteredList = masterList.filtered(record ->
                 record.getJobTitle().toLowerCase().contains(filterText) ||
                         record.getJobDepartmentId().toLowerCase().contains(filterText) ||
-                        record.getJobId().toLowerCase().contains(filterText)
+                        record.getJobId().toLowerCase().contains(filterText)||
+                        record.getStringVersionOfSalary().contains(temp)
         );
 
         view.tableView.setItems(filteredList);

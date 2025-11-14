@@ -97,7 +97,8 @@ public class LocationController {
 
         ObservableList<LocationRecord> filteredList = masterList.filtered(record ->
                 record.getLocationCity().toLowerCase().contains(filterText) ||
-                        record.getLocationProvince().toLowerCase().contains(filterText)
+                        record.getLocationProvince().toLowerCase().contains(filterText) ||
+                        record.getLocationId().contains(filterText)
         );
 
         view.tableView.setItems(filteredList);

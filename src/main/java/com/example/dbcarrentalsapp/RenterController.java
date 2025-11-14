@@ -65,9 +65,11 @@ public class RenterController {
             renterList.setAll(
                     dao.getAllRenters().stream()
                             .filter(r ->
-                                    r.getRenterFirstName().toLowerCase().contains(keyword)
-                                            || r.getRenterLastName().toLowerCase().contains(keyword)
-                                            || r.getRenterPhoneNumber().contains(keyword)
+                                    r.getRenterFirstName().toLowerCase().contains(keyword)||
+                                            r.getRenterLastName().toLowerCase().contains(keyword) ||
+                                            r.getRenterPhoneNumber().contains(keyword) ||
+                                            r.getRenterDlNumber().contains(keyword) ||
+                                            r.getRenterEmailAddress().contains(keyword)
                             )
                             .toList()
             );

@@ -50,7 +50,7 @@ public class LocationView {
 
         // ===== Search Bar =====
         searchField = new TextField();
-        searchField.setPromptText("Search by city or province...");
+        searchField.setPromptText("Search by attribute...");
         searchField.setPrefWidth(300);
         filterButton = new Button("Filter");
         filterButton.getStyleClass().add("small-button");

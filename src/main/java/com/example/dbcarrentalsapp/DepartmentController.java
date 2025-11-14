@@ -64,8 +64,8 @@ public class DepartmentController {
         view.filterButton.setOnAction(e -> {
             String keyword = view.searchField.getText().trim().toLowerCase();
             ObservableList<DepartmentRecord> filtered = departmentList.filtered(
-                    d -> d.getDepartmentId().toLowerCase().contains(keyword)
-                            || d.getDepartmentName().toLowerCase().contains(keyword)
+                    d -> d.getDepartmentId().toLowerCase().contains(keyword) ||
+                            d.getDepartmentName().toLowerCase().contains(keyword)
             );
             view.tableView.setItems(filtered);
         });

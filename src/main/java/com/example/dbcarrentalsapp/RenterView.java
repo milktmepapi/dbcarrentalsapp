@@ -53,7 +53,7 @@ public class RenterView {
 
         // ===== Search Bar =====
         searchField = new TextField();
-        searchField.setPromptText("Search by name or phone...");
+        searchField.setPromptText("Search by attribute...");
         searchField.setPrefWidth(300);
 
         filterButton = new Button("Filter");

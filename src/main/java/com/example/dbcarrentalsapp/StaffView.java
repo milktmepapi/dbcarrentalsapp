@@ -49,7 +49,7 @@ public class StaffView {
 
         // ===== Search Bar =====
         searchField = new TextField();
-        searchField.setPromptText("Search by id or branch...");
+        searchField.setPromptText("Search by attribute..");
         searchField.setPrefWidth(300);
         filterButton = new Button("Filter");
         filterButton.getStyleClass().add("small-button");

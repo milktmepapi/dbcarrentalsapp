@@ -107,10 +107,18 @@ public class CarController {
             return;
         }
 
+        String temp1 = String.valueOf(filterText);
+
         ObservableList<CarRecord> filteredList = masterList.filtered(record ->
                 record.getCarModel().toLowerCase().contains(filterText) ||
                         record.getCarBrand().toLowerCase().contains(filterText) ||
-                            record.getCarPlateNumber().toLowerCase().contains(filterText)
+                        record.getCarPlateNumber().toLowerCase().contains(filterText) ||
+                        record.getCarBranchId().toLowerCase().contains(filterText) ||
+                        record.getCarStatus().toLowerCase().contains(filterText) ||
+                        record.getCarTransmission().toLowerCase().contains(filterText) ||
+                        record.getStringVersionOfCarMileage().contains(filterText) ||
+                        record.getStringVersionOfCarSeatNumber().contains(filterText) ||
+                        record.getStringVersionOfYearManufactured().contains(filterText)
         );
 
         view.tableView.setItems(filteredList);

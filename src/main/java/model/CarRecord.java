@@ -242,6 +242,18 @@ public class CarRecord {
         this.carBranchId = carBranchId;
     }
 
+    public String getStringVersionOfYearManufactured() {
+        return String.valueOf(carYearManufactured);
+    }
+
+    public String getStringVersionOfCarMileage() {
+        return String.valueOf(carMileage);
+    }
+
+    public String getStringVersionOfCarSeatNumber() {
+        return String.valueOf(carSeatNumber);
+    }
+
     /**
      * Returns a string representation of the {@code CarRecord}.
      *

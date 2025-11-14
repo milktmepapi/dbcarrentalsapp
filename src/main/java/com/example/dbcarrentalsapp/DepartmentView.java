@@ -50,7 +50,7 @@ public class DepartmentView {
 
         // ===== Search Bar =====
         searchField = new TextField();
-        searchField.setPromptText("Search by Department ID or Name...");
+        searchField.setPromptText("Search by attribute...");
         searchField.setPrefWidth(300);
         filterButton = new Button("Filter");
         filterButton.getStyleClass().add("small-button");

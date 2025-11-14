@@ -51,7 +51,7 @@ public class CarView {
 
         // ===== Search Bar =====
         searchField = new TextField();
-        searchField.setPromptText("Search by plate or brand...");
+        searchField.setPromptText("Search by attribute...");
         searchField.setPrefWidth(300);
         filterButton = new Button("Filter");
         filterButton.getStyleClass().add("small-button");
