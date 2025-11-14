@@ -142,29 +142,41 @@ public class StaffView {
         popup.setTitle("Add New Staff");
 
         Label staffIDLabel = new Label("Staff ID:");
+        staffIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField staffIDField = new TextField();
         staffIDField.setPromptText("e.g., ABC1234");
+        staffIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label staffFirstNameLabel = new Label("Staff First Name:");
+        staffFirstNameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField staffFirstNameField = new TextField();
         staffFirstNameField.setPromptText("Enter First Name");
+        staffFirstNameField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label staffLastNameLabel = new Label("Staff Last Name:");
+        staffLastNameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField staffLastNameField = new TextField();
         staffLastNameField.setPromptText("Enter Last Name");
+        staffLastNameField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label staffJobIDLabel = new Label("Staff Job ID:");
+        staffJobIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField staffJobIDField = new TextField();
         staffJobIDField.setPromptText("Enter Job ID");
+        staffJobIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label staffBranchIDLabel = new Label("Staff Branch ID:");
+        staffBranchIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField staffBranchIDField = new TextField();
         staffBranchIDField.setPromptText("e.g., BEN001");
+        staffBranchIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Button addBtn = new Button("Add");
         Button cancelBtn = new Button("Cancel");
         addBtn.getStyleClass().add("small-button");
         cancelBtn.getStyleClass().add("small-button");
+        addBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        cancelBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         Label message = new Label();
         message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
@@ -178,28 +190,27 @@ public class StaffView {
 
             if (staffID.isEmpty() || staffFirstName.isEmpty() || staffLastName.isEmpty() || staffJobID.isEmpty() || staffBranchID.isEmpty()) {
                 message.setText("Please fill in all fields!");
-                message.setStyle("-fx-text-fill: orange;");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
             boolean success = dao.addStaff(staffID, staffFirstName, staffLastName, staffJobID, staffBranchID);
             if (success) {
-                message.setText("Added successfully!");
-                message.setStyle("-fx-text-fill: lightgreen;");
                 reloadCallback.run(); // refresh table in controller
                 popup.close();
+                showSuccessPopup("Success", "Staff added successfully!");
             } else {
                 message.setText("Failed: Duplicate ID or Branch ID.");
-                message.setStyle("-fx-text-fill: red;");
+                message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
             }
         });
 
         cancelBtn.setOnAction(e -> popup.close());
 
-        HBox buttonBox = new HBox(10, addBtn, cancelBtn);
+        HBox buttonBox = new HBox(15, addBtn, cancelBtn);
         buttonBox.setAlignment(Pos.CENTER);
 
-        VBox box = new VBox(12,
+        VBox box = new VBox(15,
                 staffIDLabel, staffIDField,
                 staffFirstNameLabel, staffFirstNameField,
                 staffLastNameLabel, staffLastNameField,
@@ -207,11 +218,11 @@ public class StaffView {
                 staffBranchIDLabel, staffBranchIDField,
                 buttonBox, message
         );
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene popupScene = new Scene(box, 320, 320);
+        Scene popupScene = new Scene(box, 350, 500);
         popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
@@ -235,26 +246,37 @@ public class StaffView {
         popup.setTitle("Modify Staff");
 
         Label staffIDLabel = new Label("Staff ID:");
+        staffIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField staffIDField = new TextField(selected.getStaffId());
         staffIDField.setEditable(false);
-        staffIDField.setStyle("-fx-opacity: 0.7;");
+        staffIDField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label staffFirstNameLabel = new Label("Staff First Name:");
+        staffFirstNameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField staffFirstNameField = new TextField(selected.getStaffFirstName());
+        staffFirstNameField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label staffLastNameLabel= new Label("Staff Last Name:");
+        staffLastNameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField staffLastNameField = new TextField(selected.getStaffLastName());
+        staffLastNameField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label staffJobIDLabel= new Label("Staff Job ID:");
+        staffJobIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField staffJobIDField = new TextField(selected.getStaffJobId());
+        staffJobIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label staffBranchIDLabel= new Label("Staff Branch ID:");
+        staffBranchIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField staffBranchIDField = new TextField(String.valueOf(selected.getStaffBranchId()));
+        staffBranchIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Button saveBtn = new Button("Save");
         Button cancelBtn = new Button("Cancel");
         saveBtn.getStyleClass().add("small-button");
         cancelBtn.getStyleClass().add("small-button");
+        saveBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        cancelBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         Label message = new Label();
         message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
@@ -269,28 +291,27 @@ public class StaffView {
 
             if (staffID.isEmpty() || staffFirstName.isEmpty() || staffLastName.isEmpty() || staffJobId.isEmpty() || staffBranchId.isEmpty()) {
                 message.setText("Please fill in all fields!");
-                message.setStyle("-fx-text-fill: orange;");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
             boolean success = dao.updateStaff(finalSelected.getStaffId(), staffFirstName, staffLastName, staffJobId, staffBranchId);
             if (success) {
-                message.setText("Updated successfully!");
-                message.setStyle("-fx-text-fill: lightgreen;");
                 reloadCallback.run(); // refresh the table
                 popup.close();
+                showSuccessPopup("Updated", "Staff updated successfully!");
             } else {
                 message.setText("Failed: Duplicate or database error.");
-                message.setStyle("-fx-text-fill: red;");
+                message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
             }
         });
 
         cancelBtn.setOnAction(e -> popup.close());
 
-        HBox buttonBox = new HBox(10, saveBtn, cancelBtn);
+        HBox buttonBox = new HBox(15, saveBtn, cancelBtn);
         buttonBox.setAlignment(Pos.CENTER);
 
-        VBox box = new VBox(12,
+        VBox box = new VBox(15,
                 staffIDLabel, staffIDField,
                 staffFirstNameLabel, staffFirstNameField,
                 staffLastNameLabel, staffLastNameField,
@@ -298,11 +319,11 @@ public class StaffView {
                 staffBranchIDLabel, staffBranchIDField,
                 buttonBox, message
         );
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene popupScene = new Scene(box, 320, 320);
+        Scene popupScene = new Scene(box, 350, 500);
         popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
@@ -319,18 +340,20 @@ public class StaffView {
         popup.setTitle(title);
 
         Label msg = new Label(messageText);
-        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-alignment: center;");
+        msg.setWrapText(true);
 
         Button okBtn = new Button("OK");
         okBtn.getStyleClass().add("small-button");
+        okBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 20;");
         okBtn.setOnAction(e -> popup.close());
 
-        VBox layout = new VBox(15, msg, okBtn);
+        VBox layout = new VBox(20, msg, okBtn);
         layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(20));
-        layout.setStyle("-fx-background-color: rgba(20,20,20,0.95); -fx-background-radius: 10;");
+        layout.setPadding(new Insets(25));
+        layout.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #4CAF50, #8BC34A); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene scene = new Scene(layout, 300, 150);
+        Scene scene = new Scene(layout, 320, 160);
         scene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
@@ -354,38 +377,45 @@ public class StaffView {
         popup.setTitle("Confirm Deletion");
 
         Label idLabel = new Label("Staff ID:");
+        idLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField idField = new TextField(selected.getStaffId());
         idField.setEditable(false);
-        idField.setStyle("-fx-opacity: 0.7;");
+        idField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label firstNameLabel = new Label("First Name:");
+        firstNameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField firstNameField = new TextField(selected.getStaffFirstName());
         firstNameField.setEditable(false);
-        firstNameField.setStyle("-fx-opacity: 0.7;");
+        firstNameField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label lastNameLabel = new Label("Last Name:");
+        lastNameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField lastNameField = new TextField(selected.getStaffLastName());
         lastNameField.setEditable(false);
-        lastNameField.setStyle("-fx-opacity: 0.7;");
+        lastNameField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label jobIdLabel = new Label("Job ID:");
+        jobIdLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField jobIdField = new TextField(selected.getStaffJobId());
         jobIdField.setEditable(false);
-        jobIdField.setStyle("-fx-opacity: 0.7;");
+        jobIdField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label branchIdLabel = new Label("Branch ID:");
+        branchIdLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField branchIdField = new TextField(selected.getStaffBranchId());
         branchIdField.setEditable(false);
-        branchIdField.setStyle("-fx-opacity: 0.7;");
+        branchIdField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label message = new Label("Are you sure you want to delete this staff member?");
-        message.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;");
+        message.setStyle("-fx-text-fill: #ff6b6b; -fx-font-size: 14px; -fx-font-weight: bold; -fx-alignment: center;");
         message.setWrapText(true);
 
-        Button yesBtn = new Button("Yes");
+        Button yesBtn = new Button("Yes, Delete");
         Button noBtn = new Button("Cancel");
         yesBtn.getStyleClass().add("small-button");
         noBtn.getStyleClass().add("small-button");
+        yesBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        noBtn.setStyle("-fx-background-color: #757575; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         yesBtn.setOnAction(e -> {
             confirmed[0] = true;
@@ -393,10 +423,10 @@ public class StaffView {
         });
         noBtn.setOnAction(e -> popup.close());
 
-        HBox buttonBox = new HBox(10, yesBtn, noBtn);
-        buttonBox.setAlignment(Pos.CENTER_LEFT);
+        HBox buttonBox = new HBox(15, yesBtn, noBtn);
+        buttonBox.setAlignment(Pos.CENTER);
 
-        VBox box = new VBox(12,
+        VBox box = new VBox(15,
                 idLabel, idField,
                 firstNameLabel, firstNameField,
                 lastNameLabel, lastNameField,
@@ -405,11 +435,11 @@ public class StaffView {
                 message,
                 buttonBox
         );
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #ff4444, #ff6b6b); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene popupScene = new Scene(box, 340, 420);
+        Scene popupScene = new Scene(box, 360, 500);
         popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );

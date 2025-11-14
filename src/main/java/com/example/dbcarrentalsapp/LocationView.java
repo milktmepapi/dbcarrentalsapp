@@ -135,21 +135,29 @@ public class LocationView {
         popup.setTitle("Add New Location");
 
         Label idLabel = new Label("Location ID:");
+        idLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField idField = new TextField();
         idField.setPromptText("e.g., BEN001");
+        idField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label cityLabel = new Label("City:");
+        cityLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField cityField = new TextField();
         cityField.setPromptText("Enter City");
+        cityField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label provinceLabel = new Label("Province:");
+        provinceLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField provinceField = new TextField();
         provinceField.setPromptText("Enter Province");
+        provinceField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Button addBtn = new Button("Add");
         Button cancelBtn = new Button("Cancel");
         addBtn.getStyleClass().add("small-button");
         cancelBtn.getStyleClass().add("small-button");
+        addBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        cancelBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         Label message = new Label();
         message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
@@ -161,7 +169,7 @@ public class LocationView {
 
             if (id.isEmpty() || city.isEmpty() || province.isEmpty()) {
                 message.setText("Please fill in all fields!");
-                message.setStyle("-fx-text-fill: orange;");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
@@ -172,24 +180,27 @@ public class LocationView {
                 showSuccessPopup("Success", "Location added successfully!");
             } else {
                 message.setText("Failed: Duplicate ID or City + Province.");
-                message.setStyle("-fx-text-fill: red;");
+                message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
             }
         });
 
         cancelBtn.setOnAction(e -> popup.close());
 
-        VBox box = new VBox(12,
+        HBox buttonBox = new HBox(15, addBtn, cancelBtn);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        VBox box = new VBox(15,
                 idLabel, idField,
                 cityLabel, cityField,
                 provinceLabel, provinceField,
-                new HBox(10, addBtn, cancelBtn),
+                buttonBox,
                 message
         );
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene popupScene = new Scene(box, 320, 320);
+        Scene popupScene = new Scene(box, 350, 350);
         popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
@@ -212,20 +223,27 @@ public class LocationView {
         popup.setTitle("Modify Location");
 
         Label idLabel = new Label("Location ID:");
+        idLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField idField = new TextField(selected.getLocationId());
         idField.setEditable(false);
-        idField.setStyle("-fx-opacity: 0.7;");
+        idField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label cityLabel = new Label("City:");
+        cityLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField cityField = new TextField(selected.getLocationCity());
+        cityField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label provinceLabel = new Label("Province:");
+        provinceLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField provinceField = new TextField(selected.getLocationProvince());
+        provinceField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Button saveBtn = new Button("Save");
         Button cancelBtn = new Button("Cancel");
         saveBtn.getStyleClass().add("small-button");
         cancelBtn.getStyleClass().add("small-button");
+        saveBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        cancelBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         Label message = new Label();
         message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
@@ -237,7 +255,7 @@ public class LocationView {
 
             if (city.isEmpty() || province.isEmpty()) {
                 message.setText("Please fill in all fields!");
-                message.setStyle("-fx-text-fill: orange;");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
@@ -248,24 +266,27 @@ public class LocationView {
                 showSuccessPopup("Updated", "Location updated successfully!");
             } else {
                 message.setText("Failed: Duplicate or database error.");
-                message.setStyle("-fx-text-fill: red;");
+                message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
             }
         });
 
         cancelBtn.setOnAction(e -> popup.close());
 
-        VBox box = new VBox(12,
+        HBox buttonBox = new HBox(15, saveBtn, cancelBtn);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        VBox box = new VBox(15,
                 idLabel, idField,
                 cityLabel, cityField,
                 provinceLabel, provinceField,
-                new HBox(10, saveBtn, cancelBtn),
+                buttonBox,
                 message
         );
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene popupScene = new Scene(box, 320, 320);
+        Scene popupScene = new Scene(box, 350, 350);
         popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
@@ -282,18 +303,20 @@ public class LocationView {
         popup.setTitle(title);
 
         Label msg = new Label(messageText);
-        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-alignment: center;");
+        msg.setWrapText(true);
 
         Button okBtn = new Button("OK");
         okBtn.getStyleClass().add("small-button");
+        okBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 20;");
         okBtn.setOnAction(e -> popup.close());
 
-        VBox layout = new VBox(15, msg, okBtn);
+        VBox layout = new VBox(20, msg, okBtn);
         layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(20));
-        layout.setStyle("-fx-background-color: rgba(20,20,20,0.95); -fx-background-radius: 10;");
+        layout.setPadding(new Insets(25));
+        layout.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #4CAF50, #8BC34A); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene scene = new Scene(layout, 300, 150);
+        Scene scene = new Scene(layout, 320, 160);
         scene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
@@ -317,28 +340,33 @@ public class LocationView {
         popup.setTitle("Confirm Deletion");
 
         Label idLabel = new Label("Location ID:");
+        idLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField idField = new TextField(selected.getLocationId());
         idField.setEditable(false);
-        idField.setStyle("-fx-opacity: 0.7;");
+        idField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label cityLabel = new Label("City:");
+        cityLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField cityField = new TextField(selected.getLocationCity());
         cityField.setEditable(false);
-        cityField.setStyle("-fx-opacity: 0.7;");
+        cityField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label provinceLabel = new Label("Province:");
+        provinceLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField provinceField = new TextField(selected.getLocationProvince());
         provinceField.setEditable(false);
-        provinceField.setStyle("-fx-opacity: 0.7;");
+        provinceField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label message = new Label("Are you sure you want to delete this location?");
-        message.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;");
+        message.setStyle("-fx-text-fill: #ff6b6b; -fx-font-size: 14px; -fx-font-weight: bold; -fx-alignment: center;");
         message.setWrapText(true);
 
-        Button yesBtn = new Button("Yes");
+        Button yesBtn = new Button("Yes, Delete");
         Button noBtn = new Button("Cancel");
         yesBtn.getStyleClass().add("small-button");
         noBtn.getStyleClass().add("small-button");
+        yesBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        noBtn.setStyle("-fx-background-color: #757575; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         yesBtn.setOnAction(e -> {
             confirmed[0] = true;
@@ -346,21 +374,21 @@ public class LocationView {
         });
         noBtn.setOnAction(e -> popup.close());
 
-        HBox buttonBox = new HBox(10, yesBtn, noBtn);
-        buttonBox.setAlignment(Pos.CENTER_LEFT);
+        HBox buttonBox = new HBox(15, yesBtn, noBtn);
+        buttonBox.setAlignment(Pos.CENTER);
 
-        VBox box = new VBox(12,
+        VBox box = new VBox(15,
                 idLabel, idField,
                 cityLabel, cityField,
                 provinceLabel, provinceField,
                 message,
                 buttonBox
         );
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #ff4444, #ff6b6b); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene popupScene = new Scene(box, 340, 380);
+        Scene popupScene = new Scene(box, 360, 400);
         popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );

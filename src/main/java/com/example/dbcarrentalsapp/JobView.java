@@ -139,25 +139,35 @@ public class JobView {
         popup.setTitle("Add New Job");
 
         Label jobIDLabel = new Label("Job ID:");
+        jobIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField jobIDField = new TextField();
         jobIDField.setPromptText("e.g., ABC1234");
+        jobIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label jobTitleLabel = new Label("Job Title:");
+        jobTitleLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField jobTitleField = new TextField();
         jobTitleField.setPromptText("Enter Job Title");
+        jobTitleField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label jobDepartmentIDLabel = new Label("Job Department ID:");
+        jobDepartmentIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField jobDepartmentIDField = new TextField();
         jobDepartmentIDField.setPromptText("Enter Job Department ID");
+        jobDepartmentIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label jobSalaryLabel = new Label("Job Salary:");
+        jobSalaryLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField jobSalaryField = new TextField();
         jobSalaryField.setPromptText("Enter Job Salary");
+        jobSalaryField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Button addBtn = new Button("Add");
         Button cancelBtn = new Button("Cancel");
         addBtn.getStyleClass().add("small-button");
         cancelBtn.getStyleClass().add("small-button");
+        addBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        cancelBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         Label message = new Label();
         message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
@@ -170,7 +180,7 @@ public class JobView {
 
             if (jobID.isEmpty() || jobTitle.isEmpty() || jobDepartmentID.isEmpty() || jobSalaryText.isEmpty()) {
                 message.setText("Please fill in all fields!");
-                message.setStyle("-fx-text-fill: orange;");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
@@ -179,37 +189,36 @@ public class JobView {
                 double jobSalary = Double.parseDouble(jobSalaryText);
                 boolean success = dao.addJob(jobID, jobTitle, jobDepartmentID, jobSalary);
                 if (success) {
-                    message.setText("Added successfully!");
-                    message.setStyle("-fx-text-fill: lightgreen;");
                     reloadCallback.run(); // refresh table in controller
                     popup.close();
+                    showSuccessPopup("Success", "Job added successfully!");
                 } else {
                     message.setText("Failed: Duplicate ID or Department ID.");
-                    message.setStyle("-fx-text-fill: red;");
+                    message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                 }
             } catch (NumberFormatException ex) {
                 message.setText("Please enter a valid salary number!");
-                message.setStyle("-fx-text-fill: orange;");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
             }
         });
 
         cancelBtn.setOnAction(e -> popup.close());
 
-        HBox buttonBox = new HBox(10, addBtn, cancelBtn);
+        HBox buttonBox = new HBox(15, addBtn, cancelBtn);
         buttonBox.setAlignment(Pos.CENTER);
 
-        VBox box = new VBox(12,
+        VBox box = new VBox(15,
                 jobIDLabel, jobIDField,
                 jobTitleLabel, jobTitleField,
                 jobDepartmentIDLabel, jobDepartmentIDField,
                 jobSalaryLabel, jobSalaryField,
                 buttonBox, message
         );
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene popupScene = new Scene(box, 320, 320);
+        Scene popupScene = new Scene(box, 350, 400);
         popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
@@ -233,24 +242,33 @@ public class JobView {
         popup.setTitle("Modify Job");
 
         Label jobIDLabel = new Label("Job ID:");
+        jobIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField jobIDField = new TextField(selected.getJobId());
         jobIDField.setEditable(false);
-        jobIDField.setStyle("-fx-opacity: 0.7;");
+        jobIDField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label jobTitleLabel = new Label("Job Title:");
+        jobTitleLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField jobTitleField = new TextField(selected.getJobTitle());
+        jobTitleField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label jobDepartmentIDLabel= new Label("Job Department ID:");
+        jobDepartmentIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField jobDepartmentIDField = new TextField(selected.getJobDepartmentId());
+        jobDepartmentIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label jobSalaryLabel= new Label("Job Salary:");
+        jobSalaryLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField jobSalaryField = new TextField();
         jobSalaryField.setText(Double.toString(selected.getJobSalary()));
+        jobSalaryField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Button saveBtn = new Button("Save");
         Button cancelBtn = new Button("Cancel");
         saveBtn.getStyleClass().add("small-button");
         cancelBtn.getStyleClass().add("small-button");
+        saveBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        cancelBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         Label message = new Label();
         message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
@@ -264,7 +282,7 @@ public class JobView {
 
             if (jobID.isEmpty() || jobTitle.isEmpty() || jobDepartmentID.isEmpty() || jobSalaryText.isEmpty()) {
                 message.setText("Please fill in all fields!");
-                message.setStyle("-fx-text-fill: orange;");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
@@ -273,37 +291,36 @@ public class JobView {
                 double jobSalary = Double.parseDouble(jobSalaryText);
                 boolean success = dao.updateJob(finalSelected.getJobId(), jobTitle, jobDepartmentID, jobSalary);
                 if (success) {
-                    message.setText("Updated successfully!");
-                    message.setStyle("-fx-text-fill: lightgreen;");
                     reloadCallback.run(); // refresh the table
                     popup.close();
+                    showSuccessPopup("Updated", "Job updated successfully!");
                 } else {
-                    message.setText("Failed: Duplicate or database error.");
-                    message.setStyle("-fx-text-fill: red;");
+                    message.setText("Failed: Database error.");
+                    message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                 }
             } catch (NumberFormatException ex) {
                 message.setText("Please enter a valid salary number!");
-                message.setStyle("-fx-text-fill: orange;");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
             }
         });
 
         cancelBtn.setOnAction(e -> popup.close());
 
-        HBox buttonBox = new HBox(10, saveBtn, cancelBtn);
+        HBox buttonBox = new HBox(15, saveBtn, cancelBtn);
         buttonBox.setAlignment(Pos.CENTER);
 
-        VBox box = new VBox(12,
+        VBox box = new VBox(15,
                 jobIDLabel, jobIDField,
                 jobTitleLabel, jobTitleField,
                 jobDepartmentIDLabel, jobDepartmentIDField,
                 jobSalaryLabel, jobSalaryField,
                 buttonBox, message
         );
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene popupScene = new Scene(box, 320, 320);
+        Scene popupScene = new Scene(box, 350, 400);
         popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
@@ -319,18 +336,20 @@ public class JobView {
         popup.setTitle(title);
 
         Label msg = new Label(messageText);
-        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-alignment: center;");
+        msg.setWrapText(true);
 
         Button okBtn = new Button("OK");
         okBtn.getStyleClass().add("small-button");
+        okBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 20;");
         okBtn.setOnAction(e -> popup.close());
 
-        VBox layout = new VBox(15, msg, okBtn);
+        VBox layout = new VBox(20, msg, okBtn);
         layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(20));
-        layout.setStyle("-fx-background-color: rgba(20,20,20,0.95); -fx-background-radius: 10;");
+        layout.setPadding(new Insets(25));
+        layout.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #4CAF50, #8BC34A); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene scene = new Scene(layout, 300, 150);
+        Scene scene = new Scene(layout, 320, 160);
         scene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
@@ -354,33 +373,39 @@ public class JobView {
         popup.setTitle("Confirm Deletion");
 
         Label idLabel = new Label("Job ID:");
+        idLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField idField = new TextField(selected.getJobId());
         idField.setEditable(false);
-        idField.setStyle("-fx-opacity: 0.7;");
+        idField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label titleLabel = new Label("Job Title:");
+        titleLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField titleField = new TextField(selected.getJobTitle());
         titleField.setEditable(false);
-        titleField.setStyle("-fx-opacity: 0.7;");
+        titleField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label departmentLabel = new Label("Department ID:");
+        departmentLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField departmentField = new TextField(selected.getJobDepartmentId());
         departmentField.setEditable(false);
-        departmentField.setStyle("-fx-opacity: 0.7;");
+        departmentField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label salaryLabel = new Label("Salary:");
+        salaryLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField salaryField = new TextField(String.valueOf(selected.getJobSalary()));
         salaryField.setEditable(false);
-        salaryField.setStyle("-fx-opacity: 0.7;");
+        salaryField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label message = new Label("Are you sure you want to delete this job?");
-        message.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;");
+        message.setStyle("-fx-text-fill: #ff6b6b; -fx-font-size: 14px; -fx-font-weight: bold; -fx-alignment: center;");
         message.setWrapText(true);
 
-        Button yesBtn = new Button("Yes");
+        Button yesBtn = new Button("Yes, Delete");
         Button noBtn = new Button("Cancel");
         yesBtn.getStyleClass().add("small-button");
         noBtn.getStyleClass().add("small-button");
+        yesBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        noBtn.setStyle("-fx-background-color: #757575; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         yesBtn.setOnAction(e -> {
             confirmed[0] = true;
@@ -388,10 +413,10 @@ public class JobView {
         });
         noBtn.setOnAction(e -> popup.close());
 
-        HBox buttonBox = new HBox(10, yesBtn, noBtn);
-        buttonBox.setAlignment(Pos.CENTER_LEFT);
+        HBox buttonBox = new HBox(15, yesBtn, noBtn);
+        buttonBox.setAlignment(Pos.CENTER);
 
-        VBox box = new VBox(12,
+        VBox box = new VBox(15,
                 idLabel, idField,
                 titleLabel, titleField,
                 departmentLabel, departmentField,
@@ -399,11 +424,11 @@ public class JobView {
                 message,
                 buttonBox
         );
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #ff4444, #ff6b6b); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene popupScene = new Scene(box, 340, 350);
+        Scene popupScene = new Scene(box, 360, 450);
         popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );

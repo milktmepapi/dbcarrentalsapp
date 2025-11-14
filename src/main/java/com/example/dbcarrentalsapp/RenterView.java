@@ -146,32 +146,44 @@ public class RenterView {
         popup.initModality(Modality.APPLICATION_MODAL);
         popup.setTitle("Add New Renter");
 
-        // ===== LABELS + TEXTFIELDS (same style as Location Add Popup) =====
+        // ===== LABELS + TEXTFIELDS =====
         Label idLabel = new Label("Driver's License Number:");
+        idLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField idField = new TextField();
         idField.setPromptText("e.g., LL000000001");
+        idField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label fnLabel = new Label("First Name:");
+        fnLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField fnField = new TextField();
         fnField.setPromptText("Enter First Name");
+        fnField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label lnLabel = new Label("Last Name:");
+        lnLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField lnField = new TextField();
         lnField.setPromptText("Enter Last Name");
+        lnField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label phoneLabel = new Label("Phone Number:");
+        phoneLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField phoneField = new TextField();
         phoneField.setPromptText("Enter Phone Number");
+        phoneField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label emailLabel = new Label("Email Address:");
+        emailLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField emailField = new TextField();
         emailField.setPromptText("Enter Email Address");
+        emailField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         // ===== BUTTONS =====
         Button addBtn = new Button("Add");
         Button cancelBtn = new Button("Cancel");
         addBtn.getStyleClass().add("small-button");
         cancelBtn.getStyleClass().add("small-button");
+        addBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        cancelBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         Label message = new Label();
         message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
@@ -186,7 +198,7 @@ public class RenterView {
 
             if (id.isEmpty() || fn.isEmpty() || ln.isEmpty() || phone.isEmpty() || email.isEmpty()) {
                 message.setText("Please fill in all fields!");
-                message.setStyle("-fx-text-fill: orange;");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
@@ -200,27 +212,29 @@ public class RenterView {
                 showSuccessPopup("Success", "Renter added successfully!");
             } else {
                 message.setText("Failed: Duplicate DL Number.");
-                message.setStyle("-fx-text-fill: red;");
+                message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
             }
         });
 
         cancelBtn.setOnAction(e -> popup.close());
 
-        // ===== LAYOUT (EXACT same structure as Location Add Popup) =====
-        VBox box = new VBox(
-                12,
+        // ===== LAYOUT =====
+        HBox buttonBox = new HBox(15, addBtn, cancelBtn);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        VBox box = new VBox(15,
                 idLabel, idField,
                 fnLabel, fnField,
                 lnLabel, lnField,
                 phoneLabel, phoneField,
                 emailLabel, emailField,
-                new HBox(10, addBtn, cancelBtn),
+                buttonBox,
                 message
         );
 
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
 
         Scene popupScene = new Scene(box, 350, 480);
         popupScene.getStylesheets().add(
@@ -243,29 +257,40 @@ public class RenterView {
         popup.initModality(Modality.APPLICATION_MODAL);
         popup.setTitle("Modify Renter");
 
-        // --- FIELDS (FOLLOWING LOCATIONVIEW MODIFY EXACTLY) ---
+        // --- FIELDS ---
         Label dlLabel = new Label("Driver's License Number:");
+        dlLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField dlField = new TextField(selected.getRenterDlNumber());
         dlField.setEditable(false);
-        dlField.setStyle("-fx-opacity: 0.7;");
+        dlField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label firstLabel = new Label("First Name:");
+        firstLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField firstField = new TextField(selected.getRenterFirstName());
+        firstField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label lastLabel = new Label("Last Name:");
+        lastLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField lastField = new TextField(selected.getRenterLastName());
+        lastField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label phoneLabel = new Label("Phone Number:");
+        phoneLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField phoneField = new TextField(selected.getRenterPhoneNumber());
+        phoneField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label emailLabel = new Label("Email Address:");
+        emailLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField emailField = new TextField(selected.getRenterEmailAddress());
+        emailField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         // Buttons
         Button saveBtn = new Button("Save");
         Button cancelBtn = new Button("Cancel");
         saveBtn.getStyleClass().add("small-button");
         cancelBtn.getStyleClass().add("small-button");
+        saveBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        cancelBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         Label message = new Label();
         message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
@@ -278,7 +303,7 @@ public class RenterView {
 
             if (first.isEmpty() || last.isEmpty() || phone.isEmpty() || email.isEmpty()) {
                 message.setText("Please fill in all fields!");
-                message.setStyle("-fx-text-fill: orange;");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
@@ -299,26 +324,29 @@ public class RenterView {
                 showSuccessPopup("Updated", "Renter updated successfully!");
             } else {
                 message.setText("Failed: Duplicate or database error.");
-                message.setStyle("-fx-text-fill: red;");
+                message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
             }
         });
 
         cancelBtn.setOnAction(e -> popup.close());
 
-        // --- LAYOUT EXACT SAME AS LOCATION ---
-        VBox box = new VBox(12,
+        HBox buttonBox = new HBox(15, saveBtn, cancelBtn);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        // --- LAYOUT ---
+        VBox box = new VBox(15,
                 dlLabel, dlField,
                 firstLabel, firstField,
                 lastLabel, lastField,
                 phoneLabel, phoneField,
                 emailLabel, emailField,
-                new HBox(10, saveBtn, cancelBtn),
+                buttonBox,
                 message
         );
 
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
 
         Scene popupScene = new Scene(box, 350, 450);
         popupScene.getStylesheets().add(
@@ -343,43 +371,49 @@ public class RenterView {
         popup.initModality(Modality.APPLICATION_MODAL);
         popup.setTitle("Confirm Deletion");
 
-        // ===== LABEL + READ-ONLY FIELDS (matching LocationView) =====
+        // ===== LABEL + READ-ONLY FIELDS =====
         Label idLabel = new Label("DL Number:");
+        idLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField idField = new TextField(selected.getRenterDlNumber());
         idField.setEditable(false);
-        idField.setStyle("-fx-opacity: 0.7;");
+        idField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label fnLabel = new Label("First Name:");
+        fnLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField fnField = new TextField(selected.getRenterFirstName());
         fnField.setEditable(false);
-        fnField.setStyle("-fx-opacity: 0.7;");
+        fnField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label lnLabel = new Label("Last Name:");
+        lnLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField lnField = new TextField(selected.getRenterLastName());
         lnField.setEditable(false);
-        lnField.setStyle("-fx-opacity: 0.7;");
+        lnField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label phoneLabel = new Label("Phone Number:");
+        phoneLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField phoneField = new TextField(selected.getRenterPhoneNumber());
         phoneField.setEditable(false);
-        phoneField.setStyle("-fx-opacity: 0.7;");
+        phoneField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label emailLabel = new Label("Email Address:");
+        emailLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField emailField = new TextField(selected.getRenterEmailAddress());
         emailField.setEditable(false);
-        emailField.setStyle("-fx-opacity: 0.7;");
+        emailField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         // ===== MESSAGE =====
         Label message = new Label("Are you sure you want to delete this renter?");
-        message.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;");
+        message.setStyle("-fx-text-fill: #ff6b6b; -fx-font-size: 14px; -fx-font-weight: bold; -fx-alignment: center;");
         message.setWrapText(true);
 
         // ===== BUTTONS =====
-        Button yesBtn = new Button("Yes");
+        Button yesBtn = new Button("Yes, Delete");
         Button cancelBtn = new Button("Cancel");
-
         yesBtn.getStyleClass().add("small-button");
         cancelBtn.getStyleClass().add("small-button");
+        yesBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        cancelBtn.setStyle("-fx-background-color: #757575; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         yesBtn.setOnAction(e -> {
             confirmed[0] = true;
@@ -387,12 +421,11 @@ public class RenterView {
         });
         cancelBtn.setOnAction(e -> popup.close());
 
-        HBox buttonBox = new HBox(10, yesBtn, cancelBtn);
-        buttonBox.setAlignment(Pos.CENTER_LEFT);
+        HBox buttonBox = new HBox(15, yesBtn, cancelBtn);
+        buttonBox.setAlignment(Pos.CENTER);
 
-        // ===== POPUP LAYOUT (exact same vertical structure as LocationView) =====
-        VBox layout = new VBox(
-                12,
+        // ===== POPUP LAYOUT =====
+        VBox layout = new VBox(15,
                 idLabel, idField,
                 fnLabel, fnField,
                 lnLabel, lnField,
@@ -402,9 +435,9 @@ public class RenterView {
                 buttonBox
         );
 
-        layout.setPadding(new Insets(20));
+        layout.setPadding(new Insets(25));
         layout.setAlignment(Pos.CENTER);
-        layout.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        layout.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #ff4444, #ff6b6b); -fx-border-radius: 15; -fx-border-width: 2;");
 
         Scene scene = new Scene(layout, 360, 500);
         scene.getStylesheets().add(
@@ -421,18 +454,21 @@ public class RenterView {
     public void showSuccessPopup(String title, String text) {
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle(title);
 
         Label msg = new Label(text);
-        msg.setStyle("-fx-text-fill: white;");
+        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-alignment: center;");
+        msg.setWrapText(true);
 
         Button ok = new Button("OK");
         ok.getStyleClass().add("small-button");
+        ok.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 20;");
         ok.setOnAction(e -> popup.close());
 
-        VBox layout = new VBox(10, msg, ok);
+        VBox layout = new VBox(20, msg, ok);
         layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(20));
-        layout.setStyle("-fx-background-color: rgba(20,20,20,0.95); -fx-background-radius: 10;");
+        layout.setPadding(new Insets(25));
+        layout.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #4CAF50, #8BC34A); -fx-border-radius: 15; -fx-border-width: 2;");
 
         Scene scene = new Scene(layout, 300, 150);
         scene.getStylesheets().add(

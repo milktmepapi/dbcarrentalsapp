@@ -155,48 +155,68 @@ public class CarView {
         popup.setTitle("Add New Car");
 
         Label plateNumberLabel = new Label("Plate Number:");
+        plateNumberLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField plateNumberField = new TextField();
         plateNumberField.setPromptText("e.g., ABC1234");
+        plateNumberField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label transmissionLabel = new Label("Transmission:");
+        transmissionLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         ComboBox<String> transmissionComboBox = new ComboBox<>();
         transmissionComboBox.getItems().addAll("Manual", "Automatic", "CVT");
         transmissionComboBox.setPromptText("Select Transmission");
+        transmissionComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label modelLabel = new Label("Model:");
+        modelLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField modelField = new TextField();
         modelField.setPromptText("Enter Model");
+        modelField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label brandLabel = new Label("Brand:");
+        brandLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField brandField = new TextField();
         brandField.setPromptText("Enter Brand");
+        brandField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label yearManufacturedLabel = new Label("Year Manufactured:");
+        yearManufacturedLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField yearManufacturedField = new TextField();
         yearManufacturedField.setPromptText("Enter Year");
+        yearManufacturedField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label mileageLabel = new Label("Mileage:");
+        mileageLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField mileageField = new TextField();
         mileageField.setPromptText("Enter Mileage");
+        mileageField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label seatNumberLabel = new Label("Seat Number:");
+        seatNumberLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         ComboBox<Integer> seatNumberComboBox = new ComboBox<>();
         seatNumberComboBox.getItems().addAll(2, 4, 5, 7, 8);
         seatNumberComboBox.setPromptText("Select Seats");
+        seatNumberComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label statusLabel = new Label("Status:");
+        statusLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         ComboBox<String> statusComboBox = new ComboBox<>();
         statusComboBox.getItems().addAll("Available", "Rented", "Maintenance");
         statusComboBox.setPromptText("Select Status");
+        statusComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label branchIDLabel = new Label("Branch ID:");
+        branchIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField branchIDField = new TextField();
         branchIDField.setPromptText("e.g., BEN001");
+        branchIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Button addBtn = new Button("Add");
         Button cancelBtn = new Button("Cancel");
         addBtn.getStyleClass().add("small-button");
         cancelBtn.getStyleClass().add("small-button");
+        addBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        cancelBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         Label message = new Label();
         message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
@@ -216,7 +236,7 @@ public class CarView {
                     yearManufactured.isEmpty() || mileage.isEmpty() || seatNumber == null ||
                     status == null || branchId.isEmpty()) {
                 message.setText("Please fill in all fields!");
-                message.setStyle("-fx-text-fill: orange;");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
@@ -227,23 +247,22 @@ public class CarView {
 
                 boolean success = dao.addCar(plateNumber, transmission, model, brand, year, distance, seat, status, branchId);
                 if (success) {
-                    message.setText("Added successfully!");
-                    message.setStyle("-fx-text-fill: lightgreen;");
                     reloadCallback.run(); // refresh table in controller
                     popup.close();
+                    showSuccessPopup("Success", "Car added successfully!");
                 } else {
                     message.setText("Failed: Duplicate plate number or invalid data.");
-                    message.setStyle("-fx-text-fill: red;");
+                    message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                 }
             } catch (NumberFormatException ex) {
                 message.setText("Please enter valid numbers for year and mileage!");
-                message.setStyle("-fx-text-fill: orange;");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
             }
         });
 
         cancelBtn.setOnAction(e -> popup.close());
 
-        HBox buttonBox = new HBox(10, addBtn, cancelBtn);
+        HBox buttonBox = new HBox(15, addBtn, cancelBtn);
         buttonBox.setAlignment(Pos.CENTER);
 
         VBox box = new VBox(12,
@@ -258,11 +277,11 @@ public class CarView {
                 branchIDLabel, branchIDField,
                 buttonBox, message
         );
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene popupScene = new Scene(box, 350, 500);
+        Scene popupScene = new Scene(box, 380, 750);
         popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
@@ -286,44 +305,63 @@ public class CarView {
         popup.setTitle("Modify Car");
 
         Label plateNumberLabel = new Label("Plate Number:");
+        plateNumberLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField plateNumberField = new TextField(selected.getCarPlateNumber());
         plateNumberField.setEditable(false);
-        plateNumberField.setStyle("-fx-opacity: 0.7;");
+        plateNumberField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label transmissionLabel = new Label("Transmission:");
+        transmissionLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         ComboBox<String> transmissionComboBox = new ComboBox<>();
         transmissionComboBox.getItems().addAll("Manual", "Automatic", "CVT");
         transmissionComboBox.setValue(selected.getCarTransmission());
+        transmissionComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label modelLabel= new Label("Model:");
+        modelLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField modelField = new TextField(selected.getCarModel());
+        modelField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label brandLabel= new Label("Brand:");
+        brandLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField brandField = new TextField(selected.getCarBrand());
+        brandField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label yearManufacturedLabel= new Label("Year Manufactured:");
+        yearManufacturedLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField yearManufacturedField = new TextField(String.valueOf(selected.getCarYearManufactured()));
+        yearManufacturedField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label mileageLabel= new Label("Mileage:");
+        mileageLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField mileageField = new TextField(String.valueOf(selected.getCarMileage()));
+        mileageField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label seatNumberLabel= new Label("Seat Number:");
+        seatNumberLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         ComboBox<Integer> seatNumberComboBox = new ComboBox<>();
         seatNumberComboBox.getItems().addAll(2, 4, 5, 7, 8);
         seatNumberComboBox.setValue(selected.getCarSeatNumber());
+        seatNumberComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label statusLabel= new Label("Status:");
+        statusLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         ComboBox<String> statusComboBox = new ComboBox<>();
         statusComboBox.getItems().addAll("Available", "Rented", "Maintenance");
         statusComboBox.setValue(selected.getCarStatus());
+        statusComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label branchIDLabel= new Label("Branch ID:");
+        branchIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField branchIDField = new TextField(selected.getCarBranchId());
+        branchIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Button saveBtn = new Button("Save");
         Button cancelBtn = new Button("Cancel");
         saveBtn.getStyleClass().add("small-button");
         cancelBtn.getStyleClass().add("small-button");
+        saveBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        cancelBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         Label message = new Label();
         message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
@@ -344,7 +382,7 @@ public class CarView {
                     yearManufactured.isEmpty() || mileage.isEmpty() || seatNumber == null ||
                     status == null || branchId.isEmpty()) {
                 message.setText("Please fill in all fields!");
-                message.setStyle("-fx-text-fill: orange;");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
@@ -355,23 +393,22 @@ public class CarView {
 
                 boolean success = dao.updateCar(finalSelected.getCarPlateNumber(), transmission, model, brand, year, distance, seat, status, branchId);
                 if (success) {
-                    message.setText("Updated successfully!");
-                    message.setStyle("-fx-text-fill: lightgreen;");
                     reloadCallback.run(); // refresh the table
                     popup.close();
+                    showSuccessPopup("Updated", "Car updated successfully!");
                 } else {
                     message.setText("Failed: Database error.");
-                    message.setStyle("-fx-text-fill: red;");
+                    message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                 }
             } catch (NumberFormatException ex) {
                 message.setText("Please enter valid numbers for year and mileage!");
-                message.setStyle("-fx-text-fill: orange;");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
             }
         });
 
         cancelBtn.setOnAction(e -> popup.close());
 
-        HBox buttonBox = new HBox(10, saveBtn, cancelBtn);
+        HBox buttonBox = new HBox(15, saveBtn, cancelBtn);
         buttonBox.setAlignment(Pos.CENTER);
 
         VBox box = new VBox(12,
@@ -386,11 +423,11 @@ public class CarView {
                 branchIDLabel, branchIDField,
                 buttonBox, message
         );
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene popupScene = new Scene(box, 350, 500);
+        Scene popupScene = new Scene(box, 380, 750);
         popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
@@ -406,18 +443,20 @@ public class CarView {
         popup.setTitle(title);
 
         Label msg = new Label(messageText);
-        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+        msg.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-alignment: center;");
+        msg.setWrapText(true);
 
         Button okBtn = new Button("OK");
         okBtn.getStyleClass().add("small-button");
+        okBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 20;");
         okBtn.setOnAction(e -> popup.close());
 
-        VBox layout = new VBox(15, msg, okBtn);
+        VBox layout = new VBox(20, msg, okBtn);
         layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(20));
-        layout.setStyle("-fx-background-color: rgba(20,20,20,0.95); -fx-background-radius: 10;");
+        layout.setPadding(new Insets(25));
+        layout.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #4CAF50, #8BC34A); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene scene = new Scene(layout, 300, 150);
+        Scene scene = new Scene(layout, 320, 160);
         scene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
@@ -441,38 +480,45 @@ public class CarView {
         popup.setTitle("Confirm Deletion");
 
         Label plateLabel = new Label("Plate Number:");
+        plateLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField plateField = new TextField(selected.getCarPlateNumber());
         plateField.setEditable(false);
-        plateField.setStyle("-fx-opacity: 0.7;");
+        plateField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label modelLabel = new Label("Model:");
+        modelLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField modelField = new TextField(selected.getCarModel());
         modelField.setEditable(false);
-        modelField.setStyle("-fx-opacity: 0.7;");
+        modelField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label brandLabel = new Label("Brand:");
+        brandLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField brandField = new TextField(selected.getCarBrand());
         brandField.setEditable(false);
-        brandField.setStyle("-fx-opacity: 0.7;");
+        brandField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label transmissionLabel = new Label("Transmission:");
+        transmissionLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField transmissionField = new TextField(selected.getCarTransmission());
         transmissionField.setEditable(false);
-        transmissionField.setStyle("-fx-opacity: 0.7;");
+        transmissionField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label branchLabel = new Label("Branch ID:");
+        branchLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField branchField = new TextField(selected.getCarBranchId());
         branchField.setEditable(false);
-        branchField.setStyle("-fx-opacity: 0.7;");
+        branchField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label message = new Label("Are you sure you want to delete this car?");
-        message.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;");
+        message.setStyle("-fx-text-fill: #ff6b6b; -fx-font-size: 14px; -fx-font-weight: bold; -fx-alignment: center;");
         message.setWrapText(true);
 
-        Button yesBtn = new Button("Yes");
+        Button yesBtn = new Button("Yes, Delete");
         Button noBtn = new Button("Cancel");
         yesBtn.getStyleClass().add("small-button");
         noBtn.getStyleClass().add("small-button");
+        yesBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        noBtn.setStyle("-fx-background-color: #757575; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
 
         yesBtn.setOnAction(e -> {
             confirmed[0] = true;
@@ -480,10 +526,10 @@ public class CarView {
         });
         noBtn.setOnAction(e -> popup.close());
 
-        HBox buttonBox = new HBox(10, yesBtn, noBtn);
-        buttonBox.setAlignment(Pos.CENTER_LEFT);
+        HBox buttonBox = new HBox(15, yesBtn, noBtn);
+        buttonBox.setAlignment(Pos.CENTER);
 
-        VBox box = new VBox(12,
+        VBox box = new VBox(15,
                 plateLabel, plateField,
                 modelLabel, modelField,
                 brandLabel, brandField,
@@ -492,11 +538,11 @@ public class CarView {
                 message,
                 buttonBox
         );
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(30,30,30,0.95); -fx-background-radius: 10;");
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #ff4444, #ff6b6b); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene popupScene = new Scene(box, 340, 380);
+        Scene popupScene = new Scene(box, 380, 500);
         popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
