@@ -4,14 +4,27 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import model.RentalRecord;
 
+import java.awt.*;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+
+import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundSize;
+
 
 public class RentalView {
     public Button addButton, modifyButton, deleteButton, returnButton, filterButton;
@@ -22,7 +35,15 @@ public class RentalView {
     public RentalView() {
         // ===== Background =====
         StackPane root = new StackPane();
-        root.setStyle("-fx-background-color: linear-gradient(to bottom, #1a1a2e, #16213e);");
+        Image bgImage = new Image(getClass().getResourceAsStream("/com/example/dbcarrentalsapp/mclaren_speedtail_2-1920x1080.jpg")); // Make sure the image path is correct
+        BackgroundImage backgroundImage = new BackgroundImage(
+                bgImage,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER,
+                new BackgroundSize(100, 100, true, true, true, false)
+        );
+        root.setBackground(new Background(backgroundImage));
 
         // ===== Title =====
         Text title = new Text("MANAGE RENTALS");
