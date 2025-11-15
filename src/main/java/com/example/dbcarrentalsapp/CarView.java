@@ -24,7 +24,7 @@ public class CarView {
         // ===== Background =====
         StackPane root = new StackPane();
         Image bgImage = new Image(
-                getClass().getResourceAsStream("/com/example/dbcarrentalsapp/aston_martin_dbs-wide.jpg")
+                getClass().getResourceAsStream("/com/example/dbcarrentalsapp/aston_martin_dbs-wide.png")
         );
         ImageView bgView = new ImageView(bgImage);
         bgView.setFitWidth(1152);
