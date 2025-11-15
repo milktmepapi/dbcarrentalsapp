@@ -137,4 +137,27 @@ public class CarDAO {
             return false;
         }
     }
+
+    /**
+     * Retrieves all car plate numbers.
+     */
+    public List<String> getAllCarPlates() {
+        List<String> plates = new ArrayList<>();
+        String query = "SELECT car_plate_number FROM car_record ORDER BY car_plate_number ASC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                plates.add(rs.getString("car_plate_number"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return plates;
+    }
+
 }

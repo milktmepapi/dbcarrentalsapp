@@ -12,13 +12,15 @@ public class RentalController {
 
     private final RentalView view;
     private final Stage stage;
-    private final RentalDAO dao;
+    private final RentalDAO rentalDAO;
+    private final RenterDAO renterDAO; // For renter dropdowns
     private ObservableList<RentalRecord> masterList;
 
     public RentalController(RentalView view, Stage stage) {
         this.view = view;
         this.stage = stage;
-        this.dao = new RentalDAO();
+        this.rentalDAO = new RentalDAO();
+        this.renterDAO = new RenterDAO(); // Ensure you have this class to fetch renter DL numbers
 
         loadRentals();
         setupActions();
@@ -27,53 +29,23 @@ public class RentalController {
     /** Sets up all button and UI actions **/
     private void setupActions() {
 
-        // Return to Manage Records
+        // Return to Manage Transactions (main menu)
         view.returnButton.setOnAction(e -> {
             ManageTransactionsView manageView = new ManageTransactionsView(stage);
             new ManageTransactionsController(manageView, stage);
             stage.setScene(manageView.getScene());
         });
 
-        // Add Rental - placeholder popup hookup
-        view.addButton.setOnAction(e -> {
-            view.showAddRentalPopup(dao, this::loadRentals);
-        });
+        // Add Rental
+        view.addButton.setOnAction(e -> view.showAddRentalPopup(rentalDAO, renterDAO, this::loadRentals));
 
-        // Modify Rental - placeholder popup hookup
+        // Modify Rental
         view.modifyButton.setOnAction(e -> {
             RentalRecord selected = view.tableView.getSelectionModel().getSelectedItem();
             if (selected != null) {
-                // TODO: view.showModifyRentalPopup(...)
+                view.showModifyRentalPopup(rentalDAO, selected, this::loadRentals);
             } else {
                 view.showSuccessPopup("No Selection", "Please select a rental to modify.");
-            }
-        });
-
-        // Delete Rental
-        view.deleteButton.setOnAction(e -> {
-            RentalRecord selected = view.tableView.getSelectionModel().getSelectedItem();
-            if (selected == null) {
-                view.showSuccessPopup("No Selection", "Please select a rental to delete.");
-                return;
-            }
-
-            boolean confirmed = view.showConfirmPopup(selected);
-
-            if (!confirmed) return;
-
-            try {
-                boolean success = dao.deleteRental(selected.getRentalId());
-
-                if (success) {
-                    view.showSuccessPopup("Deleted", "Rental deleted successfully!");
-                    loadRentals();
-                } else {
-                    view.showSuccessPopup("Error", "Failed to delete rental. Ensure it’s inactive.");
-                }
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                view.showSuccessPopup("Database Error", "An error occurred while trying to delete this rental.");
             }
         });
 
@@ -82,10 +54,10 @@ public class RentalController {
         view.searchField.setOnAction(e -> applyFilter());
     }
 
-    /** Loads all rentals from database **/
+    /** Loads all rentals from the database **/
     public void loadRentals() {
         try {
-            List<RentalRecord> rentals = dao.getAllRentals();
+            List<RentalRecord> rentals = rentalDAO.getAllRentals();
             masterList = FXCollections.observableArrayList(rentals);
             view.tableView.setItems(masterList);
         } catch (SQLException e) {
@@ -103,8 +75,8 @@ public class RentalController {
         }
 
         ObservableList<RentalRecord> filteredList = masterList.filtered(record ->
-                record.getRentalId().toLowerCase().contains(filterText) ||
-                        record.getRentalStatus().name().toLowerCase().contains(filterText)
+                record.getRentalId().toLowerCase().contains(filterText)
+                        || record.getRentalStatus().name().toLowerCase().contains(filterText)
         );
 
         view.tableView.setItems(filteredList);

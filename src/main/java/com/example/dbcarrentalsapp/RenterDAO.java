@@ -107,4 +107,23 @@ public class RenterDAO {
             return false;
         }
     }
+
+    public List<String> getAllRenterDLs() {
+        List<String> dlNumbers = new ArrayList<>();
+        String sql = "SELECT renter_dl_number FROM renter_record ORDER BY renter_dl_number";
+
+        try (Connection conn = DBConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                dlNumbers.add(rs.getString("renter_dl_number"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return dlNumbers;
+    }
 }

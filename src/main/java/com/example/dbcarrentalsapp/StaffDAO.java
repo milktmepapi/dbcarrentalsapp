@@ -124,4 +124,27 @@ public class StaffDAO {
             return false;
         }
     }
+
+    /**
+     * Retrieves all staff IDs.
+     *
+     * @return List of staff IDs for dropdown menus.
+     */
+    public List<String> getAllStaffIds() {
+        List<String> staffIds = new ArrayList<>();
+        String query = "SELECT staff_id FROM staff_record ORDER BY staff_id ASC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                staffIds.add(rs.getString("staff_id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return staffIds;
+    }
 }

@@ -1,6 +1,5 @@
 package com.example.dbcarrentalsapp;
 
-import com.example.dbcarrentalsapp.DBConnection;
 import model.RentalRecord;
 import model.RentalRecord.RentalStatus;
 
@@ -11,6 +10,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RentalDAO {
+
+    // Generate next rental ID in the format RNT001, RNT002...
+    public String generateNextRentalId() throws SQLException {
+        String sql = "SELECT rental_id FROM rental_details WHERE rental_id LIKE 'RNT%' ORDER BY rental_id DESC LIMIT 1";
+
+        try (Connection conn = DBConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                String lastId = rs.getString("rental_id");
+                int num = Integer.parseInt(lastId.substring(3)) + 1;
+                return String.format("RNT%03d", num);
+            }
+        }
+        return "RNT001"; // First rental ID if none exists
+    }
 
     // Add a new rental
     public void addRental(RentalRecord rental) throws SQLException {
@@ -23,6 +39,9 @@ public class RentalDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
+            // Auto-generate the rental ID
+            rental.setRentalId(generateNextRentalId());
+
             stmt.setString(1, rental.getRentalId());
             stmt.setString(2, rental.getRenterDlNumber());
             stmt.setString(3, rental.getCarPlateNumber());
@@ -32,7 +51,10 @@ public class RentalDAO {
             stmt.setTimestamp(7, Timestamp.valueOf(rental.getRentalDateTime()));
             stmt.setTimestamp(8, Timestamp.valueOf(rental.getPickupDateTime()));
             stmt.setTimestamp(9, Timestamp.valueOf(rental.getExpectedReturnDateTime()));
-            stmt.setTimestamp(10, Timestamp.valueOf(rental.getActualReturnDateTime()));
+
+            stmt.setTimestamp(10, rental.getActualReturnDateTime() != null ?
+                    Timestamp.valueOf(rental.getActualReturnDateTime()) : null);
+
             stmt.setBigDecimal(11, rental.getTotalPayment());
             stmt.setString(12, rental.getRentalStatus().name());
 
@@ -91,7 +113,10 @@ public class RentalDAO {
             stmt.setTimestamp(6, Timestamp.valueOf(rental.getRentalDateTime()));
             stmt.setTimestamp(7, Timestamp.valueOf(rental.getPickupDateTime()));
             stmt.setTimestamp(8, Timestamp.valueOf(rental.getExpectedReturnDateTime()));
-            stmt.setTimestamp(9, Timestamp.valueOf(rental.getActualReturnDateTime()));
+
+            stmt.setTimestamp(9, rental.getActualReturnDateTime() != null ?
+                    Timestamp.valueOf(rental.getActualReturnDateTime()) : null);
+
             stmt.setBigDecimal(10, rental.getTotalPayment());
             stmt.setString(11, rental.getRentalStatus().name());
             stmt.setString(12, rental.getRentalId());
@@ -99,24 +124,6 @@ public class RentalDAO {
             stmt.executeUpdate();
         }
     }
-
-    // Delete a rental by ID, returns true if success
-    public boolean deleteRental(String rentalId) {
-        String sql = "DELETE FROM rental_details WHERE rental_id = ?";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, rentalId);
-            int rows = stmt.executeUpdate();
-            return rows > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
 
     // Helper method to map result set to model object
     private RentalRecord mapResultSetToRentalRecord(ResultSet rs) throws SQLException {
@@ -137,6 +144,4 @@ public class RentalDAO {
                 RentalStatus.valueOf(rs.getString("rental_status").toUpperCase())
         );
     }
-
-
 }

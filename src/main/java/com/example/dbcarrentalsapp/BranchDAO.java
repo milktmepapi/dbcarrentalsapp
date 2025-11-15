@@ -157,4 +157,27 @@ public class BranchDAO {
             return false;
         }
     }
+
+    /**
+     * Retrieves all branch IDs.
+     *
+     * @return List of branch IDs for dropdown menus.
+     */
+    public List<String> getAllBranchIds() {
+        List<String> branchIds = new ArrayList<>();
+        String query = "SELECT branch_id FROM branch_record ORDER BY branch_id ASC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                branchIds.add(rs.getString("branch_id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return branchIds;
+    }
+
 }

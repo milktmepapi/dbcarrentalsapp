@@ -37,6 +37,7 @@ public class RenterController {
                 view.showAddPopup(dao, this::loadRenters)
         );
 
+
         // Modify
         view.modifyButton.setOnAction(e ->
                 view.showModifyPopup(dao,

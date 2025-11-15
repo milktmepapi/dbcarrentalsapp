@@ -25,7 +25,6 @@ public class RentalRecord {
     // No-argument constructor
     public RentalRecord() {}
 
-    // All-argument constructor
     public RentalRecord(
             String rentalId,
             String renterDlNumber,
@@ -53,6 +52,7 @@ public class RentalRecord {
         this.totalPayment = totalPayment;
         this.rentalStatus = rentalStatus;
     }
+
 
     // Getters and Setters
     public String getRentalId() { return rentalId; }

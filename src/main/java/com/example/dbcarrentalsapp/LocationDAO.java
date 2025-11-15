@@ -136,14 +136,24 @@ public class LocationDAO {
      * @return true if deleted successfully, false otherwise
      */
     public boolean deleteLocation(String id) {
-        String sql = "DELETE FROM location_record WHERE location_id = ?";
+        String checkBranches = "SELECT COUNT(*) FROM branch_record WHERE branch_location_id = ?";
+        String delete = "DELETE FROM location_record WHERE location_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement checkStmt = conn.prepareStatement(checkBranches)) {
 
-            ps.setString(1, id);
-            int rowsAffected = ps.executeUpdate();
-            return rowsAffected > 0; // true if something was deleted
+            checkStmt.setString(1, id);
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                System.out.println("Cannot delete: There are branches for this location.");
+                return false;
+            }
+
+            try (PreparedStatement deleteStmt = conn.prepareStatement(delete)) {
+                deleteStmt.setString(1, id);
+                int rowsAffected = deleteStmt.executeUpdate();
+                return rowsAffected > 0;
+            }
 
         } catch (SQLException e) {
             e.printStackTrace();
