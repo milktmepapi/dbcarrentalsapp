@@ -35,7 +35,9 @@ public class ManageTransactionsController {
 
     private void openViolations() {
         System.out.println("Opening Rental Violations...");
-        // future: navigate to RentalViolationsView
+        ViolationView violationView = new ViolationView();
+        new ViolationController(violationView, stage);
+        stage.setScene(violationView.getScene());
     }
 
     private void openReturns() {
