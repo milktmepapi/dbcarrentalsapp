@@ -5,6 +5,8 @@ import javafx.collections.ObservableList;
 import model.DepartmentRecord;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Handles CRUD operations for the department_record table.
@@ -86,5 +88,26 @@ public class DepartmentDAO {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /**
+     * Retrieves all department IDs for dropdown menus.
+     */
+    public List<String> getAllDepartmentIds() {
+        List<String> departmentIds = new ArrayList<>();
+        String query = "SELECT department_id FROM department_record ORDER BY department_id ASC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                departmentIds.add(rs.getString("department_id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return departmentIds;
     }
 }

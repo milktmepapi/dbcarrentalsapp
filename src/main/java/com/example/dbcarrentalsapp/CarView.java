@@ -163,7 +163,7 @@ public class CarView {
         Label transmissionLabel = new Label("Transmission:");
         transmissionLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         ComboBox<String> transmissionComboBox = new ComboBox<>();
-        transmissionComboBox.getItems().addAll("Manual", "Automatic", "CVT");
+        transmissionComboBox.getItems().addAll("Manual", "Automatic");
         transmissionComboBox.setPromptText("Select Transmission");
         transmissionComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
@@ -201,15 +201,19 @@ public class CarView {
         Label statusLabel = new Label("Status:");
         statusLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         ComboBox<String> statusComboBox = new ComboBox<>();
-        statusComboBox.getItems().addAll("Available", "Rented", "Maintenance");
+        statusComboBox.getItems().addAll("Available", "Rented", "Under Maintenance");
         statusComboBox.setPromptText("Select Status");
         statusComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label branchIDLabel = new Label("Branch ID:");
         branchIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField branchIDField = new TextField();
-        branchIDField.setPromptText("e.g., BEN001");
-        branchIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        ComboBox<String> branchIDComboBox = new ComboBox<>();
+        branchIDComboBox.setPromptText("Select Branch ID");
+        branchIDComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        // Populate branch IDs
+        BranchDAO branchDAO = new BranchDAO();
+        branchIDComboBox.getItems().addAll(branchDAO.getAllBranchIds());
 
         Button addBtn = new Button("Add");
         Button cancelBtn = new Button("Cancel");
@@ -230,11 +234,11 @@ public class CarView {
             String mileage = mileageField.getText().trim();
             Integer seatNumber = seatNumberComboBox.getValue();
             String status = statusComboBox.getValue();
-            String branchId = branchIDField.getText().trim();
+            String branchId = branchIDComboBox.getValue();
 
             if (plateNumber.isEmpty() || transmission == null || model.isEmpty() || brand.isEmpty() ||
                     yearManufactured.isEmpty() || mileage.isEmpty() || seatNumber == null ||
-                    status == null || branchId.isEmpty()) {
+                    status == null || branchId == null) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
@@ -247,7 +251,7 @@ public class CarView {
 
                 boolean success = dao.addCar(plateNumber, transmission, model, brand, year, distance, seat, status, branchId);
                 if (success) {
-                    reloadCallback.run(); // refresh table in controller
+                    reloadCallback.run();
                     popup.close();
                     showSuccessPopup("Success", "Car added successfully!");
                 } else {
@@ -274,7 +278,7 @@ public class CarView {
                 mileageLabel, mileageField,
                 seatNumberLabel, seatNumberComboBox,
                 statusLabel, statusComboBox,
-                branchIDLabel, branchIDField,
+                branchIDLabel, branchIDComboBox,
                 buttonBox, message
         );
         box.setPadding(new Insets(25));
@@ -353,8 +357,14 @@ public class CarView {
 
         Label branchIDLabel= new Label("Branch ID:");
         branchIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField branchIDField = new TextField(selected.getCarBranchId());
-        branchIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        ComboBox<String> branchIDComboBox = new ComboBox<>(); // CHANGED TO COMBOBOX
+        branchIDComboBox.setPromptText("Select Branch ID");
+        branchIDComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        // Populate branch IDs and set current value
+        BranchDAO branchDAO = new BranchDAO();
+        branchIDComboBox.getItems().addAll(branchDAO.getAllBranchIds());
+        branchIDComboBox.setValue(selected.getCarBranchId());
 
         Button saveBtn = new Button("Save");
         Button cancelBtn = new Button("Cancel");
@@ -376,11 +386,11 @@ public class CarView {
             String mileage = mileageField.getText().trim();
             Integer seatNumber = seatNumberComboBox.getValue();
             String status = statusComboBox.getValue();
-            String branchId = branchIDField.getText().trim();
+            String branchId = branchIDComboBox.getValue(); // CHANGED TO COMBOBOX
 
             if (plateNumber.isEmpty() || transmission == null || model.isEmpty() || brand.isEmpty() ||
                     yearManufactured.isEmpty() || mileage.isEmpty() || seatNumber == null ||
-                    status == null || branchId.isEmpty()) {
+                    status == null || branchId == null) { // CHANGED CHECK
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
@@ -420,7 +430,7 @@ public class CarView {
                 mileageLabel, mileageField,
                 seatNumberLabel, seatNumberComboBox,
                 statusLabel, statusComboBox,
-                branchIDLabel, branchIDField,
+                branchIDLabel, branchIDComboBox, // CHANGED TO COMBOBOX
                 buttonBox, message
         );
         box.setPadding(new Insets(25));

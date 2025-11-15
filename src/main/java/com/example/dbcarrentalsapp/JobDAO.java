@@ -109,4 +109,25 @@ public class JobDAO {
             return false;
         }
     }
+
+    /**
+     * Retrieves all job IDs for dropdown menus.
+     */
+    public List<String> getAllJobIds() {
+        List<String> jobIds = new ArrayList<>();
+        String query = "SELECT job_id FROM job_record ORDER BY job_id ASC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                jobIds.add(rs.getString("job_id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return jobIds;
+    }
 }

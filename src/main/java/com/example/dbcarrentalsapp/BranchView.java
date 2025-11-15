@@ -140,7 +140,7 @@ public class BranchView {
         Label idLabel = new Label("Branch ID:");
         idLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField idField = new TextField();
-        idField.setPromptText("e.g., BEN001");
+        idField.setPromptText("e.g., BRN015");
         idField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label nameLabel = new Label("Name:");
@@ -157,9 +157,13 @@ public class BranchView {
 
         Label locationIDLabel = new Label("Location ID:");
         locationIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField locationIDField = new TextField();
-        locationIDField.setPromptText("Enter Location ID");
-        locationIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        ComboBox<String> locationIDComboBox = new ComboBox<>();
+        locationIDComboBox.setPromptText("Select Location ID");
+        locationIDComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        // Populate location IDs
+        LocationDAO locationDAO = new LocationDAO();
+        locationIDComboBox.getItems().addAll(locationDAO.getAllLocationIds());
 
         Button addBtn = new Button("Add");
         Button cancelBtn = new Button("Cancel");
@@ -175,9 +179,9 @@ public class BranchView {
             String id = idField.getText().trim();
             String name = nameField.getText().trim();
             String email = emailField.getText().trim();
-            String location = locationIDField.getText().trim();
+            String location = locationIDComboBox.getValue();
 
-            if (id.isEmpty() || name.isEmpty() || email.isEmpty() || location.isEmpty()) {
+            if (id.isEmpty() || name.isEmpty() || email.isEmpty() || location == null) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
@@ -189,7 +193,7 @@ public class BranchView {
                 popup.close();
                 showSuccessPopup("Success", "Branch added successfully!");
             } else {
-                message.setText("Failed: Duplicate ID or Name + Location.");
+                message.setText("Failed: Duplicate ID or invalid location ID.");
                 message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
             }
         });
@@ -203,7 +207,7 @@ public class BranchView {
                 idLabel, idField,
                 nameLabel, nameField,
                 emailLabel, emailField,
-                locationIDLabel, locationIDField,
+                locationIDLabel, locationIDComboBox,
                 buttonBox,
                 message
         );
@@ -217,100 +221,7 @@ public class BranchView {
         );
 
         popup.setScene(popupScene);
-        popupScene.getRoot().requestFocus(); // prevent ID field auto-focus
-        popup.showAndWait();
-    }
-
-    /** Popup for modifying existing branch **/
-    public void showModifyBranchPopup(BranchDAO dao, BranchRecord selected, Runnable reloadCallback) {
-        selected = tableView.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showSuccessPopup("No Selection", "Please select a branch to modify.");
-            return;
-        }
-
-        Stage popup = new Stage();
-        popup.initModality(Modality.APPLICATION_MODAL);
-        popup.setTitle("Modify Branch");
-
-        Label idLabel = new Label("Branch ID:");
-        idLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField idField = new TextField(selected.getBranchId());
-        idField.setEditable(false);
-        idField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
-
-        Label nameLabel = new Label("Name:");
-        nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField nameField = new TextField(selected.getBranchName());
-        nameField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
-
-        Label emailLabel = new Label("Email Address:");
-        emailLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField emailField = new TextField(selected.getBranchEmailAddress());
-        emailField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
-
-        Label locationIDLabel = new Label("Location ID:");
-        locationIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField locationIDField = new TextField(selected.getBranchLocationId());
-        locationIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
-
-        Button saveBtn = new Button("Save");
-        Button cancelBtn = new Button("Cancel");
-        saveBtn.getStyleClass().add("small-button");
-        cancelBtn.getStyleClass().add("small-button");
-        saveBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
-        cancelBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
-
-        Label message = new Label();
-        message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
-
-        BranchRecord finalSelected = selected;
-        saveBtn.setOnAction(e -> {
-            String name = nameField.getText().trim();
-            String email = emailField.getText().trim();
-            String location = locationIDField.getText().trim();
-
-            if (name.isEmpty() || email.isEmpty() || location.isEmpty()) {
-                message.setText("Please fill in all fields!");
-                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
-                return;
-            }
-
-            boolean success = dao.updateBranch(finalSelected.getBranchId(), name, email, location);
-            if (success) {
-                reloadCallback.run();
-                popup.close();
-                showSuccessPopup("Updated", "Branch updated successfully!");
-            } else {
-                message.setText("Failed: Duplicate or database error.");
-                message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
-            }
-        });
-
-        cancelBtn.setOnAction(e -> popup.close());
-
-        HBox buttonBox = new HBox(15, saveBtn, cancelBtn);
-        buttonBox.setAlignment(Pos.CENTER);
-
-        VBox box = new VBox(15,
-                idLabel, idField,
-                nameLabel, nameField,
-                emailLabel, emailField,
-                locationIDLabel, locationIDField,
-                buttonBox,
-                message
-        );
-        box.setPadding(new Insets(25));
-        box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
-
-        Scene popupScene = new Scene(box, 350, 400);
-        popupScene.getStylesheets().add(
-                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
-        );
-
-        popup.setScene(popupScene);
-        popupScene.getRoot().requestFocus(); // prevent auto-selection
+        popupScene.getRoot().requestFocus();
         popup.showAndWait();
     }
 
@@ -423,6 +334,101 @@ public class BranchView {
         popup.showAndWait();
 
         return confirmed[0];
+    }
+
+    /** Popup for modifying an existing branch **/
+    public void showModifyBranchPopup(BranchDAO dao, BranchRecord selected, Runnable reloadCallback) {
+        Stage popup = new Stage();
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle("Modify Branch");
+
+        Label idLabel = new Label("Branch ID:");
+        idLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
+        TextField idField = new TextField(selected.getBranchId());
+        idField.setEditable(false);
+        idField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        Label nameLabel = new Label("Name:");
+        nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
+        TextField nameField = new TextField(selected.getBranchName());
+        nameField.setPromptText("Enter Name");
+        nameField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        Label emailLabel = new Label("Email Address:");
+        emailLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
+        TextField emailField = new TextField(selected.getBranchEmailAddress());
+        emailField.setPromptText("Enter Email Address");
+        emailField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        Label locationIDLabel = new Label("Location ID:");
+        locationIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
+        ComboBox<String> locationIDComboBox = new ComboBox<>();
+        locationIDComboBox.setPromptText("Select Location ID");
+        locationIDComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        // Populate location IDs and set current value
+        LocationDAO locationDAO = new LocationDAO();
+        locationIDComboBox.getItems().addAll(locationDAO.getAllLocationIds());
+        locationIDComboBox.setValue(selected.getBranchLocationId());
+
+        Button updateBtn = new Button("Update");
+        Button cancelBtn = new Button("Cancel");
+        updateBtn.getStyleClass().add("small-button");
+        cancelBtn.getStyleClass().add("small-button");
+        updateBtn.setStyle("-fx-background-color: #7a40ff; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        cancelBtn.setStyle("-fx-background-color: #5a5a6a; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+
+        Label message = new Label();
+        message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
+
+        updateBtn.setOnAction(e -> {
+            String id = idField.getText().trim();
+            String name = nameField.getText().trim();
+            String email = emailField.getText().trim();
+            String location = locationIDComboBox.getValue();
+
+            if (id.isEmpty() || name.isEmpty() || email.isEmpty() || location == null) {
+                message.setText("Please fill in all fields!");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
+                return;
+            }
+
+            boolean success = dao.updateBranch(id, name, email, location);
+            if (success) {
+                reloadCallback.run();
+                popup.close();
+                showSuccessPopup("Success", "Branch updated successfully!");
+            } else {
+                message.setText("Failed: Name and Location ID combination already exists.");
+                message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+            }
+        });
+
+        cancelBtn.setOnAction(e -> popup.close());
+
+        HBox buttonBox = new HBox(15, updateBtn, cancelBtn);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        VBox box = new VBox(15,
+                idLabel, idField,
+                nameLabel, nameField,
+                emailLabel, emailField,
+                locationIDLabel, locationIDComboBox,
+                buttonBox,
+                message
+        );
+        box.setPadding(new Insets(25));
+        box.setAlignment(Pos.CENTER);
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
+
+        Scene popupScene = new Scene(box, 350, 400);
+        popupScene.getStylesheets().add(
+                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
+        );
+
+        popup.setScene(popupScene);
+        popupScene.getRoot().requestFocus();
+        popup.showAndWait();
     }
 
     public Scene getScene() {

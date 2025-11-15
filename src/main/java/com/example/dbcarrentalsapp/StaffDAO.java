@@ -147,26 +147,4 @@ public class StaffDAO {
 
         return staffIds;
     }
-
-    public List<String> getStaffIdsByBranch(String branchId) {
-        List<String> list = new ArrayList<>();
-
-        String sql = "SELECT staff_id FROM staff_record WHERE staff_branch_id = ?";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, branchId);
-
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                list.add(rs.getString("staff_id"));
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
 }

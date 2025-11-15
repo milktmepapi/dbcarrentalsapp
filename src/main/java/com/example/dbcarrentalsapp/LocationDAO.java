@@ -160,4 +160,25 @@ public class LocationDAO {
             return false;
         }
     }
+
+    /**
+     * Retrieves all location IDs for dropdown menus.
+     */
+    public List<String> getAllLocationIds() {
+        List<String> locationIds = new ArrayList<>();
+        String query = "SELECT location_id FROM location_record ORDER BY location_id ASC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                locationIds.add(rs.getString("location_id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return locationIds;
+    }
 }

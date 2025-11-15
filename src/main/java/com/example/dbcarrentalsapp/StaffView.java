@@ -144,7 +144,7 @@ public class StaffView {
         Label staffIDLabel = new Label("Staff ID:");
         staffIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField staffIDField = new TextField();
-        staffIDField.setPromptText("e.g., ABC1234");
+        staffIDField.setPromptText("e.g., STF016");
         staffIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label staffFirstNameLabel = new Label("Staff First Name:");
@@ -161,15 +161,23 @@ public class StaffView {
 
         Label staffJobIDLabel = new Label("Staff Job ID:");
         staffJobIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField staffJobIDField = new TextField();
-        staffJobIDField.setPromptText("Enter Job ID");
-        staffJobIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        ComboBox<String> staffJobIDComboBox = new ComboBox<>();
+        staffJobIDComboBox.setPromptText("Select Job ID");
+        staffJobIDComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        // Populate job IDs
+        JobDAO jobDAO = new JobDAO();
+        staffJobIDComboBox.getItems().addAll(jobDAO.getAllJobIds());
 
         Label staffBranchIDLabel = new Label("Staff Branch ID:");
         staffBranchIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField staffBranchIDField = new TextField();
-        staffBranchIDField.setPromptText("e.g., BEN001");
-        staffBranchIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        ComboBox<String> staffBranchIDComboBox = new ComboBox<>();
+        staffBranchIDComboBox.setPromptText("Select Branch ID");
+        staffBranchIDComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        // Populate branch IDs
+        BranchDAO branchDAO = new BranchDAO();
+        staffBranchIDComboBox.getItems().addAll(branchDAO.getAllBranchIds());
 
         Button addBtn = new Button("Add");
         Button cancelBtn = new Button("Cancel");
@@ -185,10 +193,10 @@ public class StaffView {
             String staffID = staffIDField.getText().trim();
             String staffFirstName = staffFirstNameField.getText().trim();
             String staffLastName = staffLastNameField.getText().trim();
-            String staffJobID = staffJobIDField.getText().trim();
-            String staffBranchID = staffBranchIDField.getText().trim();
+            String staffJobID = staffJobIDComboBox.getValue();
+            String staffBranchID = staffBranchIDComboBox.getValue();
 
-            if (staffID.isEmpty() || staffFirstName.isEmpty() || staffLastName.isEmpty() || staffJobID.isEmpty() || staffBranchID.isEmpty()) {
+            if (staffID.isEmpty() || staffFirstName.isEmpty() || staffLastName.isEmpty() || staffJobID == null || staffBranchID == null) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
@@ -196,11 +204,11 @@ public class StaffView {
 
             boolean success = dao.addStaff(staffID, staffFirstName, staffLastName, staffJobID, staffBranchID);
             if (success) {
-                reloadCallback.run(); // refresh table in controller
+                reloadCallback.run();
                 popup.close();
                 showSuccessPopup("Success", "Staff added successfully!");
             } else {
-                message.setText("Failed: Duplicate ID or Branch ID.");
+                message.setText("Failed: Duplicate ID or invalid foreign key.");
                 message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
             }
         });
@@ -214,8 +222,8 @@ public class StaffView {
                 staffIDLabel, staffIDField,
                 staffFirstNameLabel, staffFirstNameField,
                 staffLastNameLabel, staffLastNameField,
-                staffJobIDLabel, staffJobIDField,
-                staffBranchIDLabel, staffBranchIDField,
+                staffJobIDLabel, staffJobIDComboBox,
+                staffBranchIDLabel, staffBranchIDComboBox,
                 buttonBox, message
         );
         box.setPadding(new Insets(25));
@@ -263,13 +271,25 @@ public class StaffView {
 
         Label staffJobIDLabel= new Label("Staff Job ID:");
         staffJobIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField staffJobIDField = new TextField(selected.getStaffJobId());
-        staffJobIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        ComboBox<String> staffJobIDComboBox = new ComboBox<>(); // CHANGED TO COMBOBOX
+        staffJobIDComboBox.setPromptText("Select Job ID");
+        staffJobIDComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        // Populate job IDs and set current value
+        JobDAO jobDAO = new JobDAO();
+        staffJobIDComboBox.getItems().addAll(jobDAO.getAllJobIds());
+        staffJobIDComboBox.setValue(selected.getStaffJobId());
 
         Label staffBranchIDLabel= new Label("Staff Branch ID:");
         staffBranchIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField staffBranchIDField = new TextField(String.valueOf(selected.getStaffBranchId()));
-        staffBranchIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        ComboBox<String> staffBranchIDComboBox = new ComboBox<>(); // CHANGED TO COMBOBOX
+        staffBranchIDComboBox.setPromptText("Select Branch ID");
+        staffBranchIDComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        // Populate branch IDs and set current value
+        BranchDAO branchDAO = new BranchDAO();
+        staffBranchIDComboBox.getItems().addAll(branchDAO.getAllBranchIds());
+        staffBranchIDComboBox.setValue(selected.getStaffBranchId());
 
         Button saveBtn = new Button("Save");
         Button cancelBtn = new Button("Cancel");
@@ -286,10 +306,11 @@ public class StaffView {
             String staffID = staffIDField.getText().trim();
             String staffFirstName = staffFirstNameField.getText().trim();
             String staffLastName = staffLastNameField.getText().trim();
-            String staffJobId = staffJobIDField.getText().trim();
-            String staffBranchId = staffBranchIDField.getText().trim();
+            String staffJobId = staffJobIDComboBox.getValue(); // CHANGED TO COMBOBOX
+            String staffBranchId = staffBranchIDComboBox.getValue(); // CHANGED TO COMBOBOX
 
-            if (staffID.isEmpty() || staffFirstName.isEmpty() || staffLastName.isEmpty() || staffJobId.isEmpty() || staffBranchId.isEmpty()) {
+            if (staffID.isEmpty() || staffFirstName.isEmpty() || staffLastName.isEmpty() ||
+                    staffJobId == null || staffBranchId == null) { // CHANGED CHECK
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
@@ -315,8 +336,8 @@ public class StaffView {
                 staffIDLabel, staffIDField,
                 staffFirstNameLabel, staffFirstNameField,
                 staffLastNameLabel, staffLastNameField,
-                staffJobIDLabel, staffJobIDField,
-                staffBranchIDLabel, staffBranchIDField,
+                staffJobIDLabel, staffJobIDComboBox, // CHANGED TO COMBOBOX
+                staffBranchIDLabel, staffBranchIDComboBox, // CHANGED TO COMBOBOX
                 buttonBox, message
         );
         box.setPadding(new Insets(25));
