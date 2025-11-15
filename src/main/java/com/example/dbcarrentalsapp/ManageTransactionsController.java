@@ -23,11 +23,9 @@ public class ManageTransactionsController {
     // ===== Button Actions =====
 
     private void openRentals() {
-        System.out.println("Opening Rentals...");
-        // Example placeholder:
-        // RentalsView rentalsView = new RentalsView(stage);
-        // RentalsController rentalsController = new RentalsController(rentalsView, stage);
-        // stage.setScene(rentalsView.getScene());
+        RentalView rentalsView = new RentalView();
+        new RentalController(rentalsView, stage);
+        stage.setScene(rentalsView.getScene());
     }
 
     private void openCancellations() {
