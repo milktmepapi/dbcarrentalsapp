@@ -5,23 +5,16 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import model.RentalRecord;
 
-import java.util.List;
-import java.util.Optional;
-
 import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
 
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
@@ -73,24 +66,40 @@ public class RentalView {
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         TableColumn<RentalRecord, String> idCol = new TableColumn<>("Rental ID");
-        idCol.setCellValueFactory(new PropertyValueFactory<>("rentalId"));
+        idCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("rentalId"));
 
         TableColumn<RentalRecord, String> renterCol = new TableColumn<>("Renter DL");
-        renterCol.setCellValueFactory(new PropertyValueFactory<>("renterDlNumber"));
+        renterCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("renterDlNumber"));
 
         TableColumn<RentalRecord, String> carCol = new TableColumn<>("Car Plate");
-        carCol.setCellValueFactory(new PropertyValueFactory<>("carPlateNumber"));
+        carCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("carPlateNumber"));
 
-        TableColumn<RentalRecord, LocalDateTime> pickupCol = new TableColumn<>("Pickup Date");
-        pickupCol.setCellValueFactory(new PropertyValueFactory<>("pickupDateTime"));
+        TableColumn<RentalRecord, LocalDateTime> createdCol = new TableColumn<>("Date Created");
+        createdCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("rentalDateTime"));
 
-        TableColumn<RentalRecord, LocalDateTime> returnCol = new TableColumn<>("Return Date");
-        returnCol.setCellValueFactory(new PropertyValueFactory<>("expectedReturnDateTime"));
+        TableColumn<RentalRecord, LocalDateTime> pickupCol = new TableColumn<>("Expected Pickup");
+        pickupCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("expectedPickupDateTime"));
+
+        TableColumn<RentalRecord, LocalDateTime> returnCol = new TableColumn<>("Expected Return");
+        returnCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("expectedReturnDateTime"));
+
+        TableColumn<RentalRecord, String> branchCol = new TableColumn<>("Branch");
+        branchCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("branchId"));
 
         TableColumn<RentalRecord, String> statusCol = new TableColumn<>("Status");
-        statusCol.setCellValueFactory(new PropertyValueFactory<>("rentalStatus"));
+        statusCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("rentalStatus"));
 
-        tableView.getColumns().addAll(idCol, renterCol, carCol, pickupCol, returnCol, statusCol);
+        tableView.getColumns().addAll(
+                idCol,
+                renterCol,
+                carCol,
+                createdCol,
+                pickupCol,
+                returnCol,
+                branchCol, // ← added here
+                statusCol
+        );
+
 
         // ===== Buttons =====
         addButton = new Button("Add");
@@ -130,6 +139,13 @@ public class RentalView {
         return scene;
     }
 
+    /**
+     * Add popup:
+     * - No staff fields
+     * - Status implicitly UPCOMING
+     * - Car & Branch dropdowns show "id — name/model"
+     * - Total payment must be entered
+     */
     public void showAddRentalPopup(RentalDAO dao, RenterDAO renterDAO, Runnable refresh) {
 
         Dialog<RentalRecord> dialog = new Dialog<>();
@@ -142,111 +158,95 @@ public class RentalView {
         // Fields
         ComboBox<String> renterDL = new ComboBox<>();
         ComboBox<String> carPlate = new ComboBox<>();
-        ComboBox<String> pickupStaff = new ComboBox<>();
-        ComboBox<String> returnStaff = new ComboBox<>();
         ComboBox<String> branchId = new ComboBox<>();
 
-        DatePicker pickupDate = new DatePicker();
+        DatePicker expectedPickupDate = new DatePicker();
+        TextField expectedPickupTime = new TextField("10:00");
+
         DatePicker expectedReturnDate = new DatePicker();
-        DatePicker actualReturnDate = new DatePicker();
-
-        TextField pickupTime = new TextField("10:00");
         TextField expectedReturnTime = new TextField("10:00");
-        TextField actualReturnTime = new TextField("10:00");
 
-        TextField paymentField = new TextField();
-        ComboBox<RentalRecord.RentalStatus> statusBox = new ComboBox<>();
+        TextField totalPaymentField = new TextField();
 
         // Fill dropdowns
         renterDL.getItems().addAll(renterDAO.getAllRenterDLs());
 
         CarDAO carDAO = new CarDAO();
-        carPlate.getItems().addAll(carDAO.getAllCarPlates());
-
-        StaffDAO staffDAO = new StaffDAO();
-        List<String> staffIds = staffDAO.getAllStaffIds();
-
-        // Populate both dropdowns
-        pickupStaff.getItems().addAll(staffIds);
-        returnStaff.getItems().addAll(staffIds);
+        carDAO.getAllCars().forEach(car ->
+                carPlate.getItems().add(car.getCarPlateNumber() + " — " + car.getCarModel())
+        );
 
         BranchDAO branchDAO = new BranchDAO();
-        branchId.getItems().addAll(branchDAO.getAllBranchIds());
-
-        statusBox.getItems().setAll(RentalRecord.RentalStatus.values());
-        statusBox.setValue(RentalRecord.RentalStatus.UPCOMING);
+        branchDAO.getAllBranches().forEach(branch ->
+                branchId.getItems().add(branch.getBranchId() + " — " + branch.getBranchName())
+        );
 
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
 
         grid.addRow(0, new Label("Renter DL:"), renterDL);
-        grid.addRow(1, new Label("Car Plate:"), carPlate);
+        grid.addRow(1, new Label("Car Plate & Model:"), carPlate);
         grid.addRow(2, new Label("Branch:"), branchId);
-        grid.addRow(3, new Label("Pickup Staff:"), pickupStaff);
-        grid.addRow(4, new Label("Return Staff:"), returnStaff);
 
-        grid.addRow(5, new Label("Pickup Date:"), pickupDate, pickupTime);
-        grid.addRow(6, new Label("Expected Return:"), expectedReturnDate, expectedReturnTime);
-        grid.addRow(7, new Label("Actual Return:"), actualReturnDate, actualReturnTime);
+        grid.addRow(3, new Label("Expected Pickup:"), expectedPickupDate, expectedPickupTime);
+        grid.addRow(4, new Label("Expected Return:"), expectedReturnDate, expectedReturnTime);
 
-        grid.addRow(8, new Label("Total Payment:"), paymentField);
-        grid.addRow(9, new Label("Status:"), statusBox);
+        grid.addRow(5, new Label("Total Payment:"), totalPaymentField);
 
         dialog.getDialogPane().setContent(grid);
 
+        // Enable add button only when mandatory fields are set
         Node addButton = dialog.getDialogPane().lookupButton(addButtonType);
         addButton.setDisable(true);
-
-        renterDL.valueProperty().addListener((obs, oldV, newV) -> validateAddFields(addButton, renterDL, carPlate));
+        // Validate: renter, car, branch, both dates set, times not blank, payment not blank
+        renterDL.valueProperty().addListener((obs, oldV, newV) -> validateAddFields(addButton, renterDL, carPlate, branchId, expectedPickupDate, expectedReturnDate, totalPaymentField));
+        carPlate.valueProperty().addListener((obs, oldV, newV) -> validateAddFields(addButton, renterDL, carPlate, branchId, expectedPickupDate, expectedReturnDate, totalPaymentField));
+        branchId.valueProperty().addListener((obs, oldV, newV) -> validateAddFields(addButton, renterDL, carPlate, branchId, expectedPickupDate, expectedReturnDate, totalPaymentField));
+        expectedPickupDate.valueProperty().addListener((obs, oldV, newV) -> validateAddFields(addButton, renterDL, carPlate, branchId, expectedPickupDate, expectedReturnDate, totalPaymentField));
+        expectedReturnDate.valueProperty().addListener((obs, oldV, newV) -> validateAddFields(addButton, renterDL, carPlate, branchId, expectedPickupDate, expectedReturnDate, totalPaymentField));
+        totalPaymentField.textProperty().addListener((obs, oldV, newV) -> validateAddFields(addButton, renterDL, carPlate, branchId, expectedPickupDate, expectedReturnDate, totalPaymentField));
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton != addButtonType) return null;
 
-            // Validate
-            if (pickupDate.getValue().isAfter(expectedReturnDate.getValue())) {
-                showSuccessPopup("Error", "Pickup date must be before expected return date.");
-                return null;
-            }
+            LocalDateTime rentalDateTime = LocalDateTime.now();
 
-            LocalDateTime rentalDateTime = LocalDateTime.now(); // AUTO GENERATED
+            String plateOnly = carPlate.getValue().split(" — ")[0];
+            String branchOnly = branchId.getValue().split(" — ")[0];
 
-            LocalDateTime pickup = LocalDateTime.of(pickupDate.getValue(), parseTime(pickupTime.getText()));
-            LocalDateTime expectedReturn = LocalDateTime.of(expectedReturnDate.getValue(), parseTime(expectedReturnTime.getText()));
+            LocalDateTime expectedPickup = LocalDateTime.of(
+                    expectedPickupDate.getValue(),
+                    parseTime(expectedPickupTime.getText())
+            );
 
-            LocalDateTime actualReturn = null;
-            if (actualReturnDate.getValue() != null && !actualReturnTime.getText().isEmpty()) {
-                actualReturn = LocalDateTime.of(actualReturnDate.getValue(), parseTime(actualReturnTime.getText()));
-            }
+            LocalDateTime expectedReturn = LocalDateTime.of(
+                    expectedReturnDate.getValue(),
+                    parseTime(expectedReturnTime.getText())
+            );
 
-            BigDecimal payment = new BigDecimal(paymentField.getText());
-
-            RentalRecord.RentalStatus status = statusBox.getValue();
-            if (status == RentalRecord.RentalStatus.COMPLETED && actualReturn == null) {
-                showSuccessPopup("Error", "Completed rentals must have an actual return datetime.");
-                return null;
-            }
+            BigDecimal totalPayment = new BigDecimal(totalPaymentField.getText().trim());
 
             return new RentalRecord(
-                    null, // AUTO
+                    null,
                     renterDL.getValue(),
-                    carPlate.getValue(),
-                    branchId.getValue(),
-                    pickupStaff.getValue(),
-                    returnStaff.getValue(),
+                    plateOnly,
+                    branchOnly,
+                    null, // pickup staff removed for ADD
+                    null, // return staff removed
                     rentalDateTime,
-                    pickup,
+                    expectedPickup,
+                    null, // actual pickup
                     expectedReturn,
-                    actualReturn,
-                    payment,
-                    status
+                    null, // actual return
+                    totalPayment,
+                    RentalRecord.RentalStatus.UPCOMING
             );
         });
 
-        Optional<?> result = dialog.showAndWait();
+        Optional<RentalRecord> result = dialog.showAndWait();
 
-        result.ifPresent(obj -> {
-            RentalRecord rental = (RentalRecord) obj;
+        result.ifPresent(rental -> {
             try {
                 dao.addRental(rental);
                 refresh.run();
@@ -258,6 +258,22 @@ public class RentalView {
         });
     }
 
+    private void validateAddFields(Node addButton,
+                                   ComboBox<String> renter,
+                                   ComboBox<String> car,
+                                   ComboBox<String> branch,
+                                   DatePicker pickupDate,
+                                   DatePicker returnDate,
+                                   TextField payment) {
+        boolean isDisabled =
+                renter.getSelectionModel().isEmpty() ||
+                        car.getSelectionModel().isEmpty() ||
+                        branch.getSelectionModel().isEmpty() ||
+                        pickupDate.getValue() == null ||
+                        returnDate.getValue() == null ||
+                        payment.getText().trim().isEmpty();
+        addButton.setDisable(isDisabled);
+    }
 
     public void showSuccessPopup(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -267,61 +283,145 @@ public class RentalView {
         alert.showAndWait();
     }
 
-    // Additional method to modify a rental
+    /**
+     * Modify popup: ONLY editable fields:
+     *   - actual pickup datetime (DatePicker + time text)
+     *   - pickup staff (dropdown) — only staff from the rental's branch, no preselect
+     *   - rental status (dropdown)
+     *
+     * Everything else is read-only.
+     *
+     * Note: this view calls dao.updateRentalPartial(updatedRental) — implement that DAO method
+     * to only update the columns: rental_actual_pickup_datetime, rental_staff_id_pickup, rental_status
+     */
     public void showModifyRentalPopup(RentalDAO dao, RentalRecord rental, Runnable refresh) {
+
+        // Block editing if rental is FINAL
+        if (rental.getRentalStatus() == RentalRecord.RentalStatus.COMPLETED ||
+                rental.getRentalStatus() == RentalRecord.RentalStatus.CANCELLED) {
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Modification Not Allowed");
+            alert.setHeaderText("This rental can no longer be modified.");
+            alert.setContentText("Rental is already " + rental.getRentalStatus() + ".");
+            alert.showAndWait();
+            return;
+        }
+
         Dialog<RentalRecord> dialog = new Dialog<>();
-        dialog.setTitle("Modify Rental");
+        dialog.setTitle("Modify Rental: " + rental.getRentalId());
 
-        TextField renterDLField = new TextField(rental.getRenterDlNumber());
-        TextField carPlateField = new TextField(rental.getCarPlateNumber());
-        DatePicker pickupDatePicker = new DatePicker(rental.getPickupDateTime().toLocalDate());
-        DatePicker returnDatePicker = new DatePicker(rental.getExpectedReturnDateTime().toLocalDate());
+        // Read-only fields (GRAYED OUT)
+        TextField rentalIdField = new TextField(rental.getRentalId());
+        disableField(rentalIdField);
 
+        TextField renterField = new TextField(rental.getRenterDlNumber());
+        disableField(renterField);
+
+        CarDAO carDAO = new CarDAO();
+        String carDisplay = rental.getCarPlateNumber();
+        try {
+            carDisplay += " — " + carDAO.getCarByPlate(rental.getCarPlateNumber()).getCarModel();
+        } catch (Exception ignored) {}
+        TextField carField = new TextField(carDisplay);
+        disableField(carField);
+
+        BranchDAO branchDAO = new BranchDAO();
+        String branchDisplay = rental.getBranchId();
+        try {
+            branchDisplay += " — " + branchDAO.getBranchById(rental.getBranchId()).getBranchName();
+        } catch (Exception ignored) {}
+        TextField branchField = new TextField(branchDisplay);
+        disableField(branchField);
+
+        TextField paymentField = new TextField(rental.getTotalPayment().toString());
+        disableField(paymentField);
+
+        // Editable fields only
+        ComboBox<RentalRecord.RentalStatus> statusBox = new ComboBox<>();
+        statusBox.getItems().setAll(
+                RentalRecord.RentalStatus.UPCOMING,
+                RentalRecord.RentalStatus.ACTIVE
+        );
+
+        if (rental.getRentalStatus() == RentalRecord.RentalStatus.UPCOMING ||
+                rental.getRentalStatus() == RentalRecord.RentalStatus.ACTIVE) {
+            statusBox.setValue(rental.getRentalStatus());
+        } else {
+            statusBox.setDisable(true);
+        }
+
+        // Pickup date/time
+        DatePicker actualPickupDate = new DatePicker();
+        TextField actualPickupTime = new TextField("10:00");
+
+        if (rental.getActualPickupDateTime() != null) {
+            actualPickupDate.setValue(rental.getActualPickupDateTime().toLocalDate());
+            actualPickupTime.setText(rental.getActualPickupDateTime().toLocalTime().toString());
+        }
+
+        // Staff dropdown
+        StaffDAO staffDAO = new StaffDAO();
+        ComboBox<String> staffBox = new ComboBox<>();
+        staffBox.getItems().addAll(staffDAO.getStaffIdsByBranch(rental.getBranchId()));
+        staffBox.setPromptText("Select Staff");
+
+        // Layout
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.add(new Label("Renter DL:"), 0, 0);
-        grid.add(renterDLField, 1, 0);
-        grid.add(new Label("Car Plate:"), 0, 1);
-        grid.add(carPlateField, 1, 1);
-        grid.add(new Label("Pickup Date:"), 0, 2);
-        grid.add(pickupDatePicker, 1, 2);
-        grid.add(new Label("Return Date:"), 0, 3);
-        grid.add(returnDatePicker, 1, 3);
+
+        grid.addRow(0, new Label("Rental ID:"), rentalIdField);
+        grid.addRow(1, new Label("Renter DL:"), renterField);
+        grid.addRow(2, new Label("Car:"), carField);
+        grid.addRow(3, new Label("Branch:"), branchField);
+        grid.addRow(4, new Label("Total Payment:"), paymentField);
+        grid.addRow(5, new Label("Rental Status:"), statusBox);
+        grid.addRow(6, new Label("Actual Pickup Date:"), actualPickupDate, actualPickupTime);
+        grid.addRow(7, new Label("Pickup Staff:"), staffBox);
 
         dialog.getDialogPane().setContent(grid);
+
         ButtonType saveButton = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(saveButton, ButtonType.CANCEL);
 
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == saveButton) {
-                rental.setRenterDlNumber(renterDLField.getText());
-                rental.setCarPlateNumber(carPlateField.getText());
-                rental.setPickupDateTime(pickupDatePicker.getValue().atStartOfDay());
-                rental.setExpectedReturnDateTime(returnDatePicker.getValue().atStartOfDay());
+        dialog.setResultConverter(button -> {
+            if (button == saveButton) {
+
+                rental.setRentalStatus(statusBox.getValue());
+
+                if (actualPickupDate.getValue() != null &&
+                        !actualPickupTime.getText().trim().isEmpty()) {
+
+                    rental.setActualPickupDateTime(
+                            actualPickupDate.getValue().atTime(parseTime(actualPickupTime.getText()))
+                    );
+                }
+
+                rental.setStaffIdPickup(staffBox.getValue());
                 return rental;
             }
             return null;
         });
 
-        dialog.showAndWait().ifPresent(updatedRental -> {
+        dialog.showAndWait().ifPresent(updated -> {
             try {
-                dao.updateRental(updatedRental);
+                dao.updateRentalPartial(updated);
                 refresh.run();
                 showSuccessPopup("Success", "Rental updated successfully.");
-            } catch (SQLException ex) {
-                ex.printStackTrace();
+            } catch (SQLException e) {
+                e.printStackTrace();
                 showSuccessPopup("Error", "Failed to update rental.");
             }
         });
     }
 
+    private void disableField(TextField field) {
+        field.setEditable(false);
+        field.setStyle("-fx-opacity: 0.6; -fx-control-inner-background: #e0e0e0;");
+    }
+
     private LocalTime parseTime(String time) {
         return LocalTime.parse(time.trim());
     }
-
-    private void validateAddFields(Node addButton, ComboBox<String> renter, ComboBox<String> car) {
-        addButton.setDisable(renter.getSelectionModel().isEmpty() || car.getSelectionModel().isEmpty());
-    }
-
 }

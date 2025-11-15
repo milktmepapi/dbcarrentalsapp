@@ -13,14 +13,14 @@ public class RentalController {
     private final RentalView view;
     private final Stage stage;
     private final RentalDAO rentalDAO;
-    private final RenterDAO renterDAO; // For renter dropdowns
+    private final RenterDAO renterDAO;
     private ObservableList<RentalRecord> masterList;
 
     public RentalController(RentalView view, Stage stage) {
         this.view = view;
         this.stage = stage;
         this.rentalDAO = new RentalDAO();
-        this.renterDAO = new RenterDAO(); // Ensure you have this class to fetch renter DL numbers
+        this.renterDAO = new RenterDAO();
 
         loadRentals();
         setupActions();
@@ -29,7 +29,7 @@ public class RentalController {
     /** Sets up all button and UI actions **/
     private void setupActions() {
 
-        // Return to Manage Transactions (main menu)
+        // Return to Manage Transactions
         view.returnButton.setOnAction(e -> {
             ManageTransactionsView manageView = new ManageTransactionsView(stage);
             new ManageTransactionsController(manageView, stage);
@@ -37,19 +37,21 @@ public class RentalController {
         });
 
         // Add Rental
-        view.addButton.setOnAction(e -> view.showAddRentalPopup(rentalDAO, renterDAO, this::loadRentals));
+        view.addButton.setOnAction(e ->
+                view.showAddRentalPopup(rentalDAO, renterDAO, this::loadRentals)
+        );
 
-        // Modify Rental
+        // Modify Rental — only permitted fields handled in popup
         view.modifyButton.setOnAction(e -> {
             RentalRecord selected = view.tableView.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                view.showModifyRentalPopup(rentalDAO, selected, this::loadRentals);
-            } else {
+            if (selected == null) {
                 view.showSuccessPopup("No Selection", "Please select a rental to modify.");
+                return;
             }
+            view.showModifyRentalPopup(rentalDAO, selected, this::loadRentals);
         });
 
-        // Filter/Search
+        // Filter & Search
         view.filterButton.setOnAction(e -> applyFilter());
         view.searchField.setOnAction(e -> applyFilter());
     }
@@ -69,15 +71,21 @@ public class RentalController {
     /** Applies text-based filtering **/
     private void applyFilter() {
         String filterText = view.searchField.getText().toLowerCase().trim();
+
         if (filterText.isEmpty()) {
             view.tableView.setItems(masterList);
             return;
         }
 
-        ObservableList<RentalRecord> filteredList = masterList.filtered(record ->
-                record.getRentalId().toLowerCase().contains(filterText)
-                        || record.getRentalStatus().name().toLowerCase().contains(filterText)
-        );
+        ObservableList<RentalRecord> filteredList = masterList.filtered(record -> {
+            boolean matchId = record.getRentalId().toLowerCase().contains(filterText);
+            boolean matchStatus = record.getRentalStatus().name().toLowerCase().contains(filterText);
+
+            boolean matchDate = record.getRentalDateTime() != null &&
+                    record.getRentalDateTime().toString().toLowerCase().contains(filterText);
+
+            return matchId || matchStatus || matchDate;
+        });
 
         view.tableView.setItems(filteredList);
     }

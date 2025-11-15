@@ -160,4 +160,33 @@ public class CarDAO {
         return plates;
     }
 
+    public CarRecord getCarByPlate(String plateNumber) {
+        String sql = "SELECT * FROM car_record WHERE car_plate_number = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, plateNumber);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return new CarRecord(
+                        rs.getString("car_plate_number"),
+                        rs.getString("car_transmission"),
+                        rs.getString("car_model"),
+                        rs.getString("car_brand"),
+                        rs.getInt("car_year_manufactured"),
+                        rs.getInt("car_mileage"),
+                        rs.getInt("car_seat_number"),
+                        rs.getString("car_status"),
+                        rs.getString("car_branch_id")
+                );
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }

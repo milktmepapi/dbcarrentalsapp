@@ -15,8 +15,9 @@ public class RentalRecord {
     private String branchId;
     private String staffIdPickup;
     private String staffIdReturn;
-    private LocalDateTime rentalDateTime;
-    private LocalDateTime pickupDateTime;
+    private LocalDateTime rentalDateTime;          // Time transaction was made
+    private LocalDateTime expectedPickupDateTime;  // Scheduled pickup
+    private LocalDateTime actualPickupDateTime;    // When car was actually picked up
     private LocalDateTime expectedReturnDateTime;
     private LocalDateTime actualReturnDateTime;
     private BigDecimal totalPayment;
@@ -33,7 +34,8 @@ public class RentalRecord {
             String staffIdPickup,
             String staffIdReturn,
             LocalDateTime rentalDateTime,
-            LocalDateTime pickupDateTime,
+            LocalDateTime expectedPickupDateTime,
+            LocalDateTime actualPickupDateTime,
             LocalDateTime expectedReturnDateTime,
             LocalDateTime actualReturnDateTime,
             BigDecimal totalPayment,
@@ -46,66 +48,68 @@ public class RentalRecord {
         this.staffIdPickup = staffIdPickup;
         this.staffIdReturn = staffIdReturn;
         this.rentalDateTime = rentalDateTime;
-        this.pickupDateTime = pickupDateTime;
+        this.expectedPickupDateTime = expectedPickupDateTime;
+        this.actualPickupDateTime = actualPickupDateTime;
         this.expectedReturnDateTime = expectedReturnDateTime;
         this.actualReturnDateTime = actualReturnDateTime;
         this.totalPayment = totalPayment;
         this.rentalStatus = rentalStatus;
     }
 
-
     // Getters and Setters
     public String getRentalId() { return rentalId; }
-
     public void setRentalId(String rentalId) { this.rentalId = rentalId; }
 
     public String getRenterDlNumber() { return renterDlNumber; }
-
     public void setRenterDlNumber(String renterDlNumber) { this.renterDlNumber = renterDlNumber; }
 
     public String getCarPlateNumber() { return carPlateNumber; }
-
     public void setCarPlateNumber(String carPlateNumber) { this.carPlateNumber = carPlateNumber; }
 
     public String getBranchId() { return branchId; }
-
     public void setBranchId(String branchId) { this.branchId = branchId; }
 
     public String getStaffIdPickup() { return staffIdPickup; }
-
     public void setStaffIdPickup(String staffIdPickup) { this.staffIdPickup = staffIdPickup; }
 
     public String getStaffIdReturn() { return staffIdReturn; }
-
     public void setStaffIdReturn(String staffIdReturn) { this.staffIdReturn = staffIdReturn; }
 
     public LocalDateTime getRentalDateTime() { return rentalDateTime; }
-
     public void setRentalDateTime(LocalDateTime rentalDateTime) { this.rentalDateTime = rentalDateTime; }
 
-    public LocalDateTime getPickupDateTime() { return pickupDateTime; }
+    public LocalDateTime getExpectedPickupDateTime() { return expectedPickupDateTime; }
+    public void setExpectedPickupDateTime(LocalDateTime expectedPickupDateTime) { this.expectedPickupDateTime = expectedPickupDateTime; }
 
-    public void setPickupDateTime(LocalDateTime pickupDateTime) { this.pickupDateTime = pickupDateTime; }
+    public LocalDateTime getActualPickupDateTime() { return actualPickupDateTime; }
+    public void setActualPickupDateTime(LocalDateTime actualPickupDateTime) { this.actualPickupDateTime = actualPickupDateTime; }
 
     public LocalDateTime getExpectedReturnDateTime() { return expectedReturnDateTime; }
-
-    public void setExpectedReturnDateTime(LocalDateTime expectedReturnDateTime) {
-        this.expectedReturnDateTime = expectedReturnDateTime;
-    }
+    public void setExpectedReturnDateTime(LocalDateTime expectedReturnDateTime) { this.expectedReturnDateTime = expectedReturnDateTime; }
 
     public LocalDateTime getActualReturnDateTime() { return actualReturnDateTime; }
-
-    public void setActualReturnDateTime(LocalDateTime actualReturnDateTime) {
-        this.actualReturnDateTime = actualReturnDateTime;
-    }
+    public void setActualReturnDateTime(LocalDateTime actualReturnDateTime) { this.actualReturnDateTime = actualReturnDateTime; }
 
     public BigDecimal getTotalPayment() { return totalPayment; }
-
     public void setTotalPayment(BigDecimal totalPayment) { this.totalPayment = totalPayment; }
 
     public RentalStatus getRentalStatus() { return rentalStatus; }
-
     public void setRentalStatus(RentalStatus rentalStatus) { this.rentalStatus = rentalStatus; }
+
+    public void setRentalStatus(String status) {
+        if (status == null) {
+            this.rentalStatus = null;
+            return;
+        }
+
+        try {
+            this.rentalStatus = RentalStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            // Optionally default or log
+            this.rentalStatus = RentalStatus.UPCOMING;
+        }
+    }
+
 
     @Override
     public String toString() {
@@ -117,7 +121,8 @@ public class RentalRecord {
                 ", staffIdPickup='" + staffIdPickup + '\'' +
                 ", staffIdReturn='" + staffIdReturn + '\'' +
                 ", rentalDateTime=" + rentalDateTime +
-                ", pickupDateTime=" + pickupDateTime +
+                ", expectedPickupDateTime=" + expectedPickupDateTime +
+                ", actualPickupDateTime=" + actualPickupDateTime +
                 ", expectedReturnDateTime=" + expectedReturnDateTime +
                 ", actualReturnDateTime=" + actualReturnDateTime +
                 ", totalPayment=" + totalPayment +

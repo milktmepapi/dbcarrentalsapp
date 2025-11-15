@@ -180,4 +180,28 @@ public class BranchDAO {
         return branchIds;
     }
 
+    public BranchRecord getBranchById(String branchId) {
+        String sql = "SELECT * FROM branch_record WHERE branch_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, branchId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return new BranchRecord(
+                        rs.getString("branch_id"),
+                        rs.getString("branch_name"),
+                        rs.getString("branch_email_address"),
+                        rs.getString("branch_location_id")
+                );
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }

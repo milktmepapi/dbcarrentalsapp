@@ -9,6 +9,10 @@ import javafx.scene.image.Image;
 public class MainApp extends Application {
 
     public static void main(String[] args) {
+        RentalDAO rentalDAO = new RentalDAO();
+        RentalScheduler scheduler = new RentalScheduler(rentalDAO);
+        scheduler.start();
+
         launch(args);
     }
 
