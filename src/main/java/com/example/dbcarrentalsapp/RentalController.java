@@ -9,11 +9,16 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import model.CarRecord;
 import model.RentalRecord;
+import model.RentalRecord.RentalStatus;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class RentalController {
 
@@ -21,6 +26,7 @@ public class RentalController {
     private final Stage stage;
     private final RentalDAO rentalDAO;
     private final RenterDAO renterDAO;
+    private final CarDAO carDAO;
     private ObservableList<RentalRecord> masterList;
 
     public RentalController(RentalView view, Stage stage) {
@@ -28,6 +34,7 @@ public class RentalController {
         this.stage = stage;
         this.rentalDAO = new RentalDAO();
         this.renterDAO = new RenterDAO();
+        this.carDAO = new CarDAO();
 
         loadRentals();
         setupActions();
@@ -42,50 +49,77 @@ public class RentalController {
             stage.setScene(manageView.getScene());
         });
 
-        /* Add Rental
+        // Add Rental: generate id, show popup, validate & insert
         view.addButton.setOnAction(e -> {
-            String newId = rentalDAO.generateNewRentalId();
-            view.showAddRentalPopup(newId, data -> {
-                try {
-                    rentalDAO.addRental(
-                            data.rentalId,
-                            data.renterDl,
-                            data.carPlate,
-                            data.pickup,
-                            data.returnDate,
-                            data.branch
-                    );
-                    loadRentals();
-                } catch (SQLException ex) {
-                    showError("Error", ex.getMessage());
-                }
-            });
+            try {
+                String newId = rentalDAO.generateNextRentalId();
+
+                // gather branch list from cars
+                List<CarRecord> allCars = CarDAO.getAllCars();
+                List<String> branches = allCars.stream()
+                        .map(CarRecord::getCarBranchId)
+                        .distinct()
+                        .sorted()
+                        .collect(Collectors.toList());
+
+                List<String> renters = renterDAO.getAllRenterDLs();
+
+                view.showAddRentalPopup(newId, data -> {
+                    try {
+                        // Basic validation
+                        if (data.pickup.isAfter(data.returnDate) || data.pickup.isEqual(data.returnDate)) {
+                            showError("Validation", "Return must be after pickup.");
+                            return;
+                        }
+
+                        if (data.totalPayment.compareTo(BigDecimal.ZERO) < 0) {
+                            showError("Validation", "Payment must be a non-negative value.");
+                            return;
+                        }
+
+                        // Car availability check
+                        if (!isCarAvailable(data.carPlate, data.pickup, data.returnDate)) {
+                            showError("Unavailable", "Selected car is not available for the chosen dates.");
+                            return;
+                        }
+
+                        // Build RentalRecord
+                        RentalRecord r = new RentalRecord(
+                                newId,                              // will be overwritten by DAO.generateNextRentalId inside addRental but set anyway
+                                data.renterDl,
+                                data.carPlate,
+                                data.branch,
+                                null, // staff pickup
+                                null, // staff return
+                                LocalDateTime.now(), // rental_datetime
+                                data.pickup,
+                                null, // actual pickup
+                                data.returnDate,
+                                null, // actual return
+                                data.totalPayment,
+                                RentalStatus.UPCOMING
+                        );
+
+                        // Persist
+                        rentalDAO.addRental(r);
+                        loadRentals();
+                        showInfo("Success", "Rental added successfully (ID: " + newId + ")");
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
+                        showError("Database Error", ex.getMessage());
+                    }
+                }, branches, renters, allCars);
+
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                showError("Database Error", "Failed to generate new Rental ID.");
+            }
         });
 
-        // Modify Rental
+        // Modify Rental (not fully implemented in this snippet)
         view.modifyButton.setOnAction(e -> {
-            RentalRecord selected = view.tableView.getSelectionModel().getSelectedItem();
-            if (selected == null) {
-                showError("No Selection", "Please select a rental to modify.");
-                return;
-            }
-
-            view.showModifyRentalPopup(selected, data -> {
-                try {
-                    rentalDAO.updateRental(
-                            data.rentalId,
-                            data.renterDl,
-                            data.carPlate,
-                            data.pickup,
-                            data.returnDate,
-                            data.branch
-                    );
-                    loadRentals();
-                } catch (SQLException ex) {
-                    showError("Database Error", ex.getMessage());
-                }
-            });
-        }); */
+            showError("Not implemented", "Modify rental is not implemented yet.");
+        });
 
         // VIEW RENTAL DETAILS
         view.viewButton.setOnAction(e -> {
@@ -134,7 +168,42 @@ public class RentalController {
     }
 
     // ================================================================
-    // VIEW RENTAL DETAILS POPUP  (dark theme, clean, modern)
+    // Car availability check: not Rented / Under Maintenance / overlapping upcoming/active rentals
+    // ================================================================
+    private boolean isCarAvailable(String plate, LocalDateTime start, LocalDateTime end) {
+        // check car status
+        CarRecord car = carDAO.getCarByPlate(plate);
+        if (car == null) return false;
+        String status = car.getCarStatus();
+        if ("Rented".equalsIgnoreCase(status) || "Under Maintenance".equalsIgnoreCase(status)) {
+            return false;
+        }
+
+        // check existing rentals for overlaps (UPCOMING or ACTIVE)
+        try {
+            List<RentalRecord> rentals = rentalDAO.getAllRentals();
+            for (RentalRecord r : rentals) {
+                if (!plate.equalsIgnoreCase(r.getCarPlateNumber())) continue;
+                RentalStatus s = r.getRentalStatus();
+                if (s == RentalStatus.UPCOMING || s == RentalStatus.ACTIVE) {
+                    LocalDateTime existingStart = r.getExpectedPickupDateTime();
+                    LocalDateTime existingEnd = r.getExpectedReturnDateTime();
+                    // overlap if start < existingEnd && existingStart < end
+                    if (start.isBefore(existingEnd) && existingStart.isBefore(end)) {
+                        return false;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    // ================================================================
+    // VIEW DETAILS POPUP (kept same as earlier)
     // ================================================================
     private void showDetailsPopup(RentalRecord r) {
 
@@ -192,10 +261,18 @@ public class RentalController {
     }
 
     // ================================================================
-    // POPUP UTILITIES
+    // Simple helpers
     // ================================================================
     private void showError(String title, String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(msg);
+        alert.showAndWait();
+    }
+
+    private void showInfo(String title, String msg) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(msg);

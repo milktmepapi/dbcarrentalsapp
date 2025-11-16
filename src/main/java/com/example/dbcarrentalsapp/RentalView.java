@@ -4,12 +4,20 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import model.RentalRecord;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class RentalView {
 
@@ -70,28 +78,28 @@ public class RentalView {
         tableView.setPadding(new Insets(5, 8, 5, 8));
 
         TableColumn<RentalRecord, String> idCol = new TableColumn<>("ID");
-        idCol.setCellValueFactory(new PropertyValueFactory<>("rentalId"));
+        idCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("rentalId"));
 
         TableColumn<RentalRecord, String> dlCol = new TableColumn<>("Renter DL");
-        dlCol.setCellValueFactory(new PropertyValueFactory<>("renterDlNumber"));
+        dlCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("renterDlNumber"));
 
         TableColumn<RentalRecord, String> plateCol = new TableColumn<>("Car Plate");
-        plateCol.setCellValueFactory(new PropertyValueFactory<>("carPlateNumber"));
+        plateCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("carPlateNumber"));
 
         TableColumn<RentalRecord, String> branchCol = new TableColumn<>("Branch");
-        branchCol.setCellValueFactory(new PropertyValueFactory<>("branchId"));
+        branchCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("branchId"));
 
         TableColumn<RentalRecord, String> pickupCol = new TableColumn<>("Pickup (Exp.)");
-        pickupCol.setCellValueFactory(new PropertyValueFactory<>("expectedPickupDateTime"));
+        pickupCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("expectedPickupDateTime"));
 
         TableColumn<RentalRecord, String> returnCol = new TableColumn<>("Return (Exp.)");
-        returnCol.setCellValueFactory(new PropertyValueFactory<>("expectedReturnDateTime"));
+        returnCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("expectedReturnDateTime"));
 
         TableColumn<RentalRecord, String> statusCol = new TableColumn<>("Status");
-        statusCol.setCellValueFactory(new PropertyValueFactory<>("rentalStatus"));
+        statusCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("rentalStatus"));
 
         TableColumn<RentalRecord, String> paymentCol = new TableColumn<>("Payment");
-        paymentCol.setCellValueFactory(new PropertyValueFactory<>("totalPayment"));
+        paymentCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("totalPayment"));
 
         tableView.getColumns().addAll(
                 idCol, dlCol, plateCol, branchCol, pickupCol, returnCol, statusCol, paymentCol
@@ -114,7 +122,6 @@ public class RentalView {
         returnButton.setPrefWidth(120);
 
         HBox buttonBox = new HBox(15, addButton, modifyButton, viewButton, returnButton);
-
         buttonBox.setAlignment(Pos.CENTER);
 
         // ===== Card Container =====
@@ -147,5 +154,166 @@ public class RentalView {
 
     public Scene getScene() {
         return scene;
+    }
+
+    // ========================================================================
+    // Add Rental popup (outline like ViolationView; white labels; branch->car cascading)
+    // ========================================================================
+    public void showAddRentalPopup(String newRentalId,
+                                   Consumer<RentalInputData> callback,
+                                   List<String> branches,
+                                   List<String> renterDLs,
+                                   List<model.CarRecord> allCars) {
+
+        Stage popup = new Stage();
+        popup.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        popup.setTitle("Add Rental");
+
+        Label idLabel = new Label("Rental ID: " + newRentalId);
+        idLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;");
+
+        Label renterLabel = new Label("Renter DL:");
+        renterLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        ComboBox<String> renterBox = new ComboBox<>();
+        renterBox.getItems().addAll(renterDLs);
+        renterBox.setPrefWidth(240);
+        renterBox.setPromptText("Select Renter DL");
+        renterBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white;");
+
+        Label branchLabel = new Label("Branch:");
+        branchLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        ComboBox<String> branchBox = new ComboBox<>();
+        branchBox.getItems().addAll(branches);
+        branchBox.setPrefWidth(240);
+        branchBox.setPromptText("Select Branch");
+        branchBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white;");
+
+        Label carLabel = new Label("Car:");
+        carLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        ComboBox<String> carBox = new ComboBox<>();
+        carBox.setPrefWidth(240);
+        carBox.setPromptText("Select Car (filtered by branch)");
+        carBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white;");
+
+        // When branch selected, populate carBox with available cars in branch
+        branchBox.setOnAction(e -> {
+            String branch = branchBox.getValue();
+            carBox.getItems().clear();
+            if (branch != null) {
+                List<String> plates = allCars.stream()
+                        .filter(c -> branch.equals(c.getCarBranchId()))
+                        .map(model.CarRecord::getCarPlateNumber)
+                        .collect(Collectors.toList());
+                carBox.getItems().addAll(plates);
+            }
+        });
+
+        Label pickupLabel = new Label("Expected Pickup Date:");
+        pickupLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        DatePicker pickupDate = new DatePicker(LocalDate.now());
+        pickupDate.setPrefWidth(240);
+        pickupDate.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white;");
+
+        Label returnLabel = new Label("Expected Return Date:");
+        returnLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        DatePicker returnDate = new DatePicker(LocalDate.now().plusDays(1));
+        returnDate.setPrefWidth(240);
+        returnDate.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white;");
+
+        Label paymentLabel = new Label("Total Payment (₱):");
+        paymentLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        TextField paymentField = new TextField();
+        paymentField.setPromptText("e.g. 1500.00");
+        paymentField.setPrefWidth(240);
+        paymentField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white;");
+
+        Label msg = new Label();
+        msg.setStyle("-fx-text-fill: orange;");
+
+        Button addBtn = new Button("Add Rental");
+        Button cancelBtn = new Button("Cancel");
+        addBtn.getStyleClass().add("small-button");
+        cancelBtn.getStyleClass().add("small-button");
+        addBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
+        cancelBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold;");
+
+        addBtn.setOnAction(e -> {
+            // Basic validation done here, deeper validation in controller too
+            if (renterBox.getValue() == null || branchBox.getValue() == null ||
+                    carBox.getValue() == null || pickupDate.getValue() == null ||
+                    returnDate.getValue() == null || paymentField.getText().trim().isEmpty()) {
+                msg.setText("Please fill in all fields.");
+                return;
+            }
+
+            LocalDateTime pickup = pickupDate.getValue().atTime(LocalTime.NOON);
+            LocalDateTime ret = returnDate.getValue().atTime(LocalTime.NOON);
+
+            BigDecimal payment;
+            try {
+                payment = new BigDecimal(paymentField.getText().trim());
+            } catch (NumberFormatException ex) {
+                msg.setText("Payment must be a valid number.");
+                return;
+            }
+
+            RentalInputData data = new RentalInputData(
+                    newRentalId,
+                    renterBox.getValue(),
+                    carBox.getValue(),
+                    pickup,
+                    ret,
+                    branchBox.getValue(),
+                    payment
+            );
+
+            callback.accept(data);
+            popup.close();
+        });
+
+        cancelBtn.setOnAction(e -> popup.close());
+
+        VBox box = new VBox(12,
+                idLabel,
+                renterLabel, renterBox,
+                branchLabel, branchBox,
+                carLabel, carBox,
+                pickupLabel, pickupDate,
+                returnLabel, returnDate,
+                paymentLabel, paymentField,
+                addBtn, cancelBtn, msg
+        );
+
+        box.setAlignment(Pos.CENTER);
+        box.setPadding(new Insets(20));
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 10; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-width: 2;");
+
+        Scene sc = new Scene(box, 420, 640);
+        sc.getStylesheets().add(getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm());
+        popup.setScene(sc);
+        popup.showAndWait();
+    }
+
+    // Support data class updated to include totalPayment
+    public static class RentalInputData {
+        public final String rentalId;
+        public final String renterDl;
+        public final String carPlate;
+        public final LocalDateTime pickup;
+        public final LocalDateTime returnDate;
+        public final String branch;
+        public final BigDecimal totalPayment;
+
+        public RentalInputData(String rentalId, String renterDl, String carPlate,
+                               LocalDateTime pickup, LocalDateTime returnDate, String branch,
+                               BigDecimal totalPayment) {
+            this.rentalId = rentalId;
+            this.renterDl = renterDl;
+            this.carPlate = carPlate;
+            this.pickup = pickup;
+            this.returnDate = returnDate;
+            this.branch = branch;
+            this.totalPayment = totalPayment;
+        }
     }
 }

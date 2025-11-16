@@ -10,7 +10,7 @@ USE DBCarRentals;
 -- Disable FK checks for clean re-creation
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS 
+DROP TABLE IF EXISTS
     return_details,
     violation_details,
     cancellation_details,
@@ -90,11 +90,20 @@ CREATE TABLE IF NOT EXISTS car_record (
     car_year_manufactured YEAR NOT NULL,
     car_mileage INT NOT NULL,
     car_seat_number INT NOT NULL,
-    car_status ENUM('Available', 'Rented', 'Under Maintenance') NOT NULL DEFAULT 'Available',
+
+    -- Rental fee per day
+    car_rental_fee DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+
+    car_status ENUM('Available', 'Rented', 'Under Maintenance')
+        NOT NULL DEFAULT 'Available',
+
     car_branch_id VARCHAR(6) NOT NULL,
+
     PRIMARY KEY (car_plate_number),
+
     FOREIGN KEY (car_branch_id) REFERENCES branch_record(branch_id)
 );
+
 
 -- =====================================================
 -- 4. Transactional tables (with IF NOT EXISTS)
@@ -138,7 +147,7 @@ CREATE TABLE IF NOT EXISTS cancellation_details (
     PRIMARY KEY (cancellation_id),
     FOREIGN KEY (cancellation_rental_id) REFERENCES rental_details(rental_id),
     FOREIGN KEY (cancellation_staff_id) REFERENCES staff_record(staff_id)
-);   
+);
 
 CREATE TABLE IF NOT EXISTS violation_details (
     violation_id VARCHAR(10) NOT NULL,
@@ -352,43 +361,46 @@ VALUES
 ('LL4455667788', 'Rafael', 'Chua', '09183456789', 'rafael.chua@email.com');
 
 # Car Record
-INSERT IGNORE INTO car_record (car_plate_number, car_transmission, car_model, car_brand, car_year_manufactured, car_mileage, car_seat_number, car_status, car_branch_id)
+INSERT IGNORE INTO car_record
+(car_plate_number, car_transmission, car_model, car_brand, car_year_manufactured,
+ car_mileage, car_seat_number, car_rental_fee, car_status, car_branch_id)
 VALUES
 -- Manila Branch
-('ABC1234', 'Automatic', 'Vios', 'Toyota', 2022, 18000, 5, 'Available', 'BRN001'),
-('DEF5678', 'Manual', 'Accent', 'Hyundai', 2021, 25000, 5, 'Rented', 'BRN001'),
+('ABC1234', 'Automatic', 'Vios', 'Toyota', 2022, 18000, 5, 2000.00, 'Available', 'BRN001'),
+('DEF5678', 'Manual', 'Accent', 'Hyundai', 2021, 25000, 5, 1800.00, 'Rented', 'BRN001'),
 
 -- Makati Branch
-('GHI9012', 'Automatic', 'Civic', 'Honda', 2023, 12000, 5, 'Available', 'BRN002'),
-('JKL3456', 'Automatic', 'Almera', 'Nissan', 2022, 20000, 5, 'Under Maintenance', 'BRN002'),
+('GHI9012', 'Automatic', 'Civic', 'Honda', 2023, 12000, 5, 2500.00, 'Available', 'BRN002'),
+('JKL3456', 'Automatic', 'Almera', 'Nissan', 2022, 20000, 5, 1800.00, 'Under Maintenance', 'BRN002'),
 
 -- Quezon City Branch
-('MNO7890', 'Manual', 'Mirage', 'Mitsubishi', 2020, 35000, 5, 'Available', 'BRN003'),
+('MNO7890', 'Manual', 'Mirage', 'Mitsubishi', 2020, 35000, 5, 1500.00, 'Available', 'BRN003'),
 
 -- Cebu City Branch
-('PQR2345', 'Automatic', 'Fortuner', 'Toyota', 2023, 8000, 7, 'Rented', 'BRN004'),
-('STU6789', 'Manual', 'Wigo', 'Toyota', 2021, 22000, 5, 'Available', 'BRN004'),
+('PQR2345', 'Automatic', 'Fortuner', 'Toyota', 2023, 8000, 7, 4500.00, 'Rented', 'BRN004'),
+('STU6789', 'Manual', 'Wigo', 'Toyota', 2021, 22000, 5, 1500.00, 'Available', 'BRN004'),
 
 -- Mandaue Branch
-('VWX1122', 'Automatic', 'City', 'Honda', 2022, 15000, 5, 'Available', 'BRN005'),
+('VWX1122', 'Automatic', 'City', 'Honda', 2022, 15000, 5, 2200.00, 'Available', 'BRN005'),
 
 -- Lapu-Lapu City Branch
-('YZA3344', 'Automatic', 'CR-V', 'Honda', 2023, 6000, 7, 'Rented', 'BRN006'),
+('YZA3344', 'Automatic', 'CR-V', 'Honda', 2023, 6000, 7, 4000.00, 'Rented', 'BRN006'),
 
 -- Davao City Branch
-('BCD5566', 'Manual', 'Ranger', 'Ford', 2021, 28000, 5, 'Available', 'BRN007'),
+('BCD5566', 'Manual', 'Ranger', 'Ford', 2021, 28000, 5, 3800.00, 'Available', 'BRN007'),
 
 -- Iloilo City Branch
-('EFG7788', 'Automatic', 'Corolla Cross', 'Toyota', 2023, 9000, 5, 'Available', 'BRN008'),
+('EFG7788', 'Automatic', 'Corolla Cross', 'Toyota', 2023, 9000, 5, 3500.00, 'Available', 'BRN008'),
 
 -- Baguio City Branch
-('HIJ9900', 'Manual', 'Jimny', 'Suzuki', 2020, 40000, 4, 'Under Maintenance', 'BRN009'),
+('HIJ9900', 'Manual', 'Jimny', 'Suzuki', 2020, 40000, 4, 3000.00, 'Under Maintenance', 'BRN009'),
 
 -- Puerto Princesa Branch
-('KLM2233', 'Automatic', 'Everest', 'Ford', 2022, 17000, 7, 'Available', 'BRN010'),
+('KLM2233', 'Automatic', 'Everest', 'Ford', 2022, 17000, 7, 4800.00, 'Available', 'BRN010'),
 
 -- Tagaytay Branch
-('NOP4455', 'Automatic', 'Terra', 'Nissan', 2023, 7000, 7, 'Available', 'BRN011');
+('NOP4455', 'Automatic', 'Terra', 'Nissan', 2023, 7000, 7, 4500.00, 'Available', 'BRN011');
+
 INSERT IGNORE INTO rental_details (
     rental_id,
     rental_renter_dl_number,
@@ -409,82 +421,38 @@ VALUES
 ('RNT001', 'MC1234567890', 'ABC1234', 'BRN001', 'STF016', 'STF016',
  '2025-11-01 09:00:00', '2025-11-01 09:10:00', '2025-11-01 09:15:00',
  '2025-11-05 09:00:00', '2025-11-05 08:50:00',
- 15000.00, 'COMPLETED'),
+ 8000.00, 'COMPLETED'),
 
 -- Active rental (Manila branch by STF016)
 ('RNT002', 'LL0000000001', 'DEF5678', 'BRN001', 'STF016', NULL,
  '2025-11-06 10:00:00', '2025-11-06 10:10:00', '2025-11-06 10:20:00',
  '2025-11-10 10:00:00', NULL,
- 18000.00, 'ACTIVE'),
+ 7200.00, 'ACTIVE'),
 
 -- Upcoming rental (Makati branch by STF017)
 ('RNT003', 'MC9876543210', 'GHI9012', 'BRN002', 'STF017', NULL,
  '2025-11-07 08:00:00', '2025-11-10 08:00:00', NULL,
  '2025-11-15 08:00:00', NULL,
- 20000.00, 'UPCOMING'),
+ 12500.00, 'UPCOMING'),
 
 -- Completed rental (Makati branch by STF017)
 ('RNT004', 'LL1122334455', 'JKL3456', 'BRN002', 'STF017', 'STF017',
  '2025-10-25 14:00:00', '2025-10-25 14:10:00', '2025-10-25 14:15:00',
  '2025-10-30 14:00:00', '2025-10-30 13:50:00',
- 22000.00, 'COMPLETED'),
+ 9000.00, 'COMPLETED'),
 
 -- Upcoming rental (Quezon City branch by STF018)
 ('RNT005', 'MC1029384756', 'MNO7890', 'BRN003', 'STF018', NULL,
  '2025-11-07 11:00:00', '2025-11-09 11:00:00', NULL,
  '2025-11-14 11:00:00', NULL,
- 17000.00, 'UPCOMING'),
+ 7500.00, 'UPCOMING'),
 
 -- Active rental (Cebu City branch by STF019)
 ('RNT006', 'LL2233445566', 'PQR2345', 'BRN004', 'STF019', NULL,
  '2025-11-05 09:30:00', '2025-11-05 09:40:00', '2025-11-05 09:45:00',
  '2025-11-12 09:30:00', NULL,
- 25000.00, 'ACTIVE');
- 
- -- =====================================================
--- Sample Violation Data Insertion
--- =====================================================
+ 31500.00, 'ACTIVE');
 
--- Insert sample violation records
-INSERT IGNORE INTO violation_details (
-    violation_id,
-    violation_rental_id,
-    violation_staff_id,
-    violation_type,
-    violation_penalty_fee,
-    violation_reason,
-    violation_duration_hours,
-    violation_timestamp
-) VALUES
--- Late Return Violation (RNT001 - Completed rental that was returned late)
-('VLN001', 'RNT001', 'STF016', 'Late Return', 1200.00, 
- 'Vehicle returned 6 hours past expected return time. Customer encountered heavy traffic due to road construction.', 
- 6, '2025-11-05 15:00:00'),
-
--- Car Damage Violation (RNT004 - Completed rental with damage)
-('VLN002', 'RNT004', 'STF017', 'Car Damage', 3500.00, 
- 'Minor scratch on rear bumper and dent on passenger side door. Customer admitted to parking incident.', 
- 0, '2025-10-30 16:30:00'),
-
--- Cleaning Fee Violation (RNT001 - Additional violation for same rental)
-('VLN003', 'RNT001', 'STF016', 'Cleaning Fee', 800.00, 
- 'Excessive interior stains and food debris. Required professional cleaning service.', 
- 0, '2025-11-05 15:15:00'),
-
--- Traffic Violation (RNT006 - Active rental that received traffic ticket)
-('VLN004', 'RNT006', 'STF019', 'Traffic Violation', 1500.00, 
- 'Speeding violation captured by traffic camera in Cebu City. Fine receipt provided.', 
- 0, '2025-11-08 11:20:00'),
-
--- Late Return Violation (Future violation for upcoming rental RNT003)
-('VLN005', 'RNT003', 'STF017', 'Late Return', 800.00, 
- 'Returned 4 hours late due to flight delay. Customer provided airline documentation.', 
- 4, '2025-11-15 12:00:00'),
-
--- Other Violation (RNT004 - Additional miscellaneous violation)
-('VLN006', 'RNT004', 'STF017', 'Other', 500.00, 
- 'Unauthorized additional driver detected during rental period.', 
- 0, '2025-10-30 17:00:00');
 
 -- Mark cars not currently rented as 'Available', but keep 'Under Maintenance' unchanged
 SET SQL_SAFE_UPDATES = 0;
