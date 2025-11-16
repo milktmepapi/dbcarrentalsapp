@@ -15,6 +15,28 @@ import java.util.List;
 public class ViolationDAO {
 
     /**
+     * Generates the next sequential violation ID
+     */
+    public String generateNextViolationId() {
+        String sql = "SELECT violation_id FROM violation_details ORDER BY violation_id DESC LIMIT 1";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                String lastId = rs.getString("violation_id"); // e.g., "VLN001"
+                int number = Integer.parseInt(lastId.substring(3)); // Extract "001" -> 1
+                number++;
+                return String.format("VLN%03d", number); // "VLN002"
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "VLN001"; // Start with first ID
+    }
+
+    /**
      * Retrieves rental details by rental ID
      */
     public RentalDetails getRentalById(String rentalId) {
@@ -35,7 +57,7 @@ public class ViolationDAO {
                         rs.getString("rental_staff_id_pickup"),
                         rs.getString("rental_staff_id_return"),
                         rs.getTimestamp("rental_datetime"),
-                        rs.getTimestamp("rental_pickup_datetime"),
+                        rs.getTimestamp("rental_expected_pickup_datetime"),
                         rs.getTimestamp("rental_expected_return_datetime"),
                         rs.getTimestamp("rental_actual_return_datetime"),
                         rs.getDouble("rental_total_payment"),
@@ -214,7 +236,7 @@ public class ViolationDAO {
                         rs.getDouble("violation_penalty_fee"),
                         rs.getString("violation_reason"),
                         rs.getInt("violation_duration_hours"),
-                        rs.getTimestamp("violation_timestamp")  // Make sure this matches your DB
+                        rs.getTimestamp("violation_timestamp")
                 ));
             }
 

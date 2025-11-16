@@ -211,9 +211,12 @@ public class ViolationView {
                 durationHours = (int) ((diffMs / (1000 * 60 * 60)) + 1);
             }
 
+            // Generate auto-incrementing violation ID
+            String violationId = dao.generateNextViolationId();
+
             // Create violation record
             ViolationRecord violation = new ViolationRecord(
-                    generateViolationId(),
+                    violationId, // Auto-generated ID
                     rental.getRentalId(),
                     staffField.getText().trim(),
                     typeComboBox.getValue(),
@@ -230,7 +233,7 @@ public class ViolationView {
                 reloadCallback.run();
                 popup.close();
                 generateViolationReceipt(rental, violation);
-                showSuccessPopup("Success", "Violation recorded successfully!");
+                showSuccessPopup("Success", "Violation recorded successfully!\nViolation ID: " + violationId);
             } else {
                 message.setText("Failed to record violation.");
                 message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
@@ -315,6 +318,7 @@ public class ViolationView {
         StringBuilder receipt = new StringBuilder();
         receipt.append("VIOLATION RECEIPT\n");
         receipt.append("=").append(repeat("=", 30)).append("\n");
+        receipt.append("Violation ID: ").append(violation.getViolationId()).append("\n");
         receipt.append("Rental ID: ").append(rental.getRentalId()).append("\n");
         receipt.append("Renter DL: ").append(rental.getRenterDlNumber()).append("\n");
         receipt.append("Car Plate: ").append(rental.getCarPlateNumber()).append("\n");
@@ -342,10 +346,6 @@ public class ViolationView {
     }
 
     // Utility methods
-    private String generateViolationId() {
-        return "VLN" + String.format("%03d", (int)(Math.random() * 1000));
-    }
-
     private String repeat(String str, int times) {
         return new String(new char[times]).replace("\0", str);
     }
