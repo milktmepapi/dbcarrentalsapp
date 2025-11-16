@@ -41,8 +41,9 @@ public class ManageTransactionsController {
     }
 
     private void openReturns() {
-       System.out.println("Opening Rental Returns...");
+        System.out.println("Opening Rental Returns...");
         ReturnView returnView = new ReturnView();
+        new ReturnController(returnView, stage);
         stage.setScene(returnView.getScene());
     }
 
@@ -54,4 +55,5 @@ public class ManageTransactionsController {
         stage.setScene(userView.getScene());
     }
 }
+
 
