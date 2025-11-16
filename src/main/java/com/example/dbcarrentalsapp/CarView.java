@@ -14,6 +14,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.CarRecord;
 
+import java.time.Year;
+
 public class CarView {
     public Button addButton, modifyButton, deleteButton, returnButton, filterButton;
     public TextField searchField;
@@ -181,9 +183,16 @@ public class CarView {
 
         Label yearManufacturedLabel = new Label("Year Manufactured:");
         yearManufacturedLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField yearManufacturedField = new TextField();
-        yearManufacturedField.setPromptText("Enter Year");
-        yearManufacturedField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        ComboBox<Integer> yearManufacturedComboBox = new ComboBox<>();
+        yearManufacturedComboBox.setPromptText("Select Year");
+        yearManufacturedComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        // Add years from 2025 to 2020
+        for (int year = 2025; year >= 2020; year--) {
+            yearManufacturedComboBox.getItems().add(year);
+        }
+        yearManufacturedComboBox.setValue(2025); // Optional default value
 
         Label mileageLabel = new Label("Mileage:");
         mileageLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
@@ -198,12 +207,13 @@ public class CarView {
         seatNumberComboBox.setPromptText("Select Seats");
         seatNumberComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
-        Label statusLabel = new Label("Status:");
+        /*Label statusLabel = new Label("Status:");
         statusLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         ComboBox<String> statusComboBox = new ComboBox<>();
         statusComboBox.getItems().addAll("Available", "Rented", "Under Maintenance");
         statusComboBox.setPromptText("Select Status");
         statusComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        */
 
         Label branchIDLabel = new Label("Branch ID:");
         branchIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
@@ -230,26 +240,26 @@ public class CarView {
             String transmission = transmissionComboBox.getValue();
             String model = modelField.getText().trim();
             String brand = brandField.getText().trim();
-            String yearManufactured = yearManufacturedField.getText().trim();
+            Integer yearManufactured = yearManufacturedComboBox.getValue();
             String mileage = mileageField.getText().trim();
             Integer seatNumber = seatNumberComboBox.getValue();
-            String status = statusComboBox.getValue();
+            //String status = statusComboBox.getValue();
             String branchId = branchIDComboBox.getValue();
 
             if (plateNumber.isEmpty() || transmission == null || model.isEmpty() || brand.isEmpty() ||
-                    yearManufactured.isEmpty() || mileage.isEmpty() || seatNumber == null ||
-                    status == null || branchId == null) {
+                    yearManufactured == null || mileage.isEmpty() || seatNumber == null ||
+                    branchId == null) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
             try {
-                int year = Integer.parseInt(yearManufactured);
+                int year = yearManufactured;
                 int distance = Integer.parseInt(mileage);
                 int seat = seatNumber;
 
-                boolean success = dao.addCar(plateNumber, transmission, model, brand, year, distance, seat, status, branchId);
+                boolean success = dao.addCar(plateNumber, transmission, model, brand, year, distance, seat, "Available", branchId);
                 if (success) {
                     reloadCallback.run();
                     popup.close();
@@ -274,10 +284,9 @@ public class CarView {
                 transmissionLabel, transmissionComboBox,
                 modelLabel, modelField,
                 brandLabel, brandField,
-                yearManufacturedLabel, yearManufacturedField,
+                yearManufacturedLabel, yearManufacturedComboBox,
                 mileageLabel, mileageField,
                 seatNumberLabel, seatNumberComboBox,
-                statusLabel, statusComboBox,
                 branchIDLabel, branchIDComboBox,
                 buttonBox, message
         );
@@ -331,10 +340,16 @@ public class CarView {
         TextField brandField = new TextField(selected.getCarBrand());
         brandField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
-        Label yearManufacturedLabel= new Label("Year Manufactured:");
+
+        Label yearManufacturedLabel = new Label("Year Manufactured:");
         yearManufacturedLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField yearManufacturedField = new TextField(String.valueOf(selected.getCarYearManufactured()));
-        yearManufacturedField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        ComboBox<Integer> yearManufacturedComboBox = new ComboBox<>();
+        for (int year = 2025; year >= 2020; year--) {
+            yearManufacturedComboBox.getItems().add(year);
+        }
+        yearManufacturedComboBox.setValue(selected.getCarYearManufactured());
+        yearManufacturedComboBox.setPromptText("Select Year");
+        yearManufacturedComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label mileageLabel= new Label("Mileage:");
         mileageLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
@@ -382,14 +397,14 @@ public class CarView {
             String transmission = transmissionComboBox.getValue();
             String model = modelField.getText().trim();
             String brand = brandField.getText().trim();
-            String yearManufactured = yearManufacturedField.getText().trim();
+            Integer yearManufactured = yearManufacturedComboBox.getValue();
             String mileage = mileageField.getText().trim();
             Integer seatNumber = seatNumberComboBox.getValue();
-            String status = statusComboBox.getValue();
+            String status = "Available";
             String branchId = branchIDComboBox.getValue(); // CHANGED TO COMBOBOX
 
             if (plateNumber.isEmpty() || transmission == null || model.isEmpty() || brand.isEmpty() ||
-                    yearManufactured.isEmpty() || mileage.isEmpty() || seatNumber == null ||
+                    String.valueOf(yearManufactured).isEmpty() || mileage.isEmpty() || seatNumber == null ||
                     status == null || branchId == null) { // CHANGED CHECK
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
@@ -397,7 +412,7 @@ public class CarView {
             }
 
             try {
-                int year = Integer.parseInt(yearManufactured);
+                int year = yearManufactured;
                 int distance = Integer.parseInt(mileage);
                 int seat = seatNumber;
 
@@ -426,10 +441,9 @@ public class CarView {
                 transmissionLabel, transmissionComboBox,
                 modelLabel, modelField,
                 brandLabel, brandField,
-                yearManufacturedLabel, yearManufacturedField,
+                yearManufacturedLabel, yearManufacturedComboBox,
                 mileageLabel, mileageField,
                 seatNumberLabel, seatNumberComboBox,
-                statusLabel, statusComboBox,
                 branchIDLabel, branchIDComboBox, // CHANGED TO COMBOBOX
                 buttonBox, message
         );

@@ -31,41 +31,26 @@ public class JobDAO {
         return jobs;
     }
 
-    /**
-     * Adds a new job if the ID are unique.
-     * @param jobId new id of job in branch
-     * @param jobTitle title of job
-     * @param jobDepartmentId department of job
-     * @param jobSalary salary of job
-     * @return true if added successfully, false otherwise
-     */
     public boolean addJob(String jobId, String jobTitle, String jobDepartmentId, double jobSalary) {
-        String checkIdSql = "SELECT COUNT(*) FROM job_record WHERE job_id = ?";
         String insertSql = "INSERT INTO job_record (job_id, job_title, job_department_id, job_salary) VALUES (?, ?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection()) {
-            // === Check if job ID already exists ===
-            try (PreparedStatement psCheckId = conn.prepareStatement(checkIdSql)) {
-                psCheckId.setString(1, jobId);
-                ResultSet rs = psCheckId.executeQuery();
-                if (rs.next() && rs.getInt(1) > 0) {
-                    System.out.println("Error: Job ID already exists.");
-                    return false;
-                }
-            }
-            // === If checks pass, insert the record ===
-            try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
-                pstmt.setString(1, jobId);
-                pstmt.setString(2, jobTitle);
-                pstmt.setString(3, jobDepartmentId);
-                pstmt.setDouble(4, jobSalary);
-                int rows = pstmt.executeUpdate();
-                return rows > 0;
-            }
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+
+            pstmt.setString(1, jobId);
+            pstmt.setString(2, jobTitle);
+            pstmt.setString(3, jobDepartmentId);
+            pstmt.setDouble(4, jobSalary);
+
+            int rows = pstmt.executeUpdate();
+            return rows > 0;
+
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
     }
+
 
     /**
      * Updates a job.
@@ -129,5 +114,48 @@ public class JobDAO {
         }
 
         return jobIds;
+    }
+
+    public String generateNextJobId(String jobDepartmentId) {
+        // Extract prefix after "DEPT_"
+        String[] parts = jobDepartmentId.split("_");
+        String prefix = parts.length > 1 ? parts[1] : jobDepartmentId;
+
+        String selectSql = "SELECT last_number FROM job_id_sequence WHERE department_id = ?";
+        String insertSql = "INSERT INTO job_id_sequence (department_id, last_number) VALUES (?, 1)";
+        String updateSql = "UPDATE job_id_sequence SET last_number = last_number + 1 WHERE department_id = ?";
+
+        try (Connection conn = DBConnection.getConnection()) {
+
+            // 1. Check if prefix exists
+            try (PreparedStatement ps = conn.prepareStatement(selectSql)) {
+                ps.setString(1, prefix);
+                ResultSet rs = ps.executeQuery();
+
+                if (rs.next()) {
+                    int nextNumber = rs.getInt(1) + 1;
+
+                    // 2. Update the sequence
+                    try (PreparedStatement ups = conn.prepareStatement(updateSql)) {
+                        ups.setString(1, prefix);
+                        ups.executeUpdate();
+                    }
+
+                    return String.format("%s%03d", prefix, nextNumber);
+                }
+            }
+
+            // 3. If not found → create first ID
+            try (PreparedStatement ips = conn.prepareStatement(insertSql)) {
+                ips.setString(1, prefix);
+                ips.executeUpdate();
+            }
+
+            return String.format("%s001", prefix);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

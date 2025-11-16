@@ -171,23 +171,29 @@ public class StaffDAO {
     }
 
     public String generateNextStaffId() {
-        String sql = "SELECT staff_id FROM staff_record ORDER BY staff_id DESC LIMIT 1";
+        String nextId = "STF001"; // default fallback
+        String query = "SELECT last_number FROM staff_id_sequence WHERE id_type = 'STAFF'";
+
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+             PreparedStatement pstmt = conn.prepareStatement(query);
+             ResultSet rs = pstmt.executeQuery()) {
 
             if (rs.next()) {
-                String lastId = rs.getString("staff_id"); // e.g. "STF005"
-                int number = Integer.parseInt(lastId.substring(3)); // Extract "005" -> 5
-                number++; // Increment to next ID
-                return String.format("STF%03d", number); // Format back to "STF006"
+                int lastNumber = rs.getInt("last_number") + 1;
+                nextId = String.format("STF%03d", lastNumber);
+
+                // Update the sequence immediately
+                String updateSeq = "UPDATE staff_id_sequence SET last_number = ? WHERE id_type = 'STAFF'";
+                try (PreparedStatement updateStmt = conn.prepareStatement(updateSeq)) {
+                    updateStmt.setInt(1, lastNumber);
+                    updateStmt.executeUpdate();
+                }
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        // If no staff exists yet, start with STF001
-        return "STF001";
+        return nextId;
     }
 }

@@ -43,7 +43,7 @@ public class CarDAO {
      */
     public boolean addCar(String plateNumber, String transmission, String model,
                           String brand, int yearManufactured, int mileage,
-                          int seatNumber, String status, String branchId) {
+                          int seatNumber, String ignoredStatus, String branchId) {
 
         String checkSql = "SELECT COUNT(*) FROM car_record WHERE car_plate_number = ?";
         String insertSql = "INSERT INTO car_record (car_plate_number, car_transmission, car_model, car_brand, " +
@@ -62,7 +62,7 @@ public class CarDAO {
                 }
             }
 
-            // Insert the new car
+            // Insert the new car with default "Available" status
             try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
                 pstmt.setString(1, plateNumber);
                 pstmt.setString(2, transmission);
@@ -71,7 +71,7 @@ public class CarDAO {
                 pstmt.setInt(5, yearManufactured);
                 pstmt.setInt(6, mileage);
                 pstmt.setInt(7, seatNumber);
-                pstmt.setString(8, status);
+                pstmt.setString(8, "Available"); // Default status
                 pstmt.setString(9, branchId);
 
                 int rows = pstmt.executeUpdate();

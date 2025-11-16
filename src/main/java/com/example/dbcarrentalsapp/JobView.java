@@ -138,11 +138,13 @@ public class JobView {
         popup.initModality(Modality.APPLICATION_MODAL);
         popup.setTitle("Add New Job");
 
-        Label jobIDLabel = new Label("Job ID:");
+        /*Label jobIDLabel = new Label("Job ID:");
         jobIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField jobIDField = new TextField();
-        jobIDField.setPromptText("e.g., ADM004");
-        jobIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        jobIDField.setEditable(false);
+        jobIDField.setFocusTraversable(false);
+        jobIDField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        */
 
         Label jobTitleLabel = new Label("Job Title:");
         jobTitleLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
@@ -156,9 +158,27 @@ public class JobView {
         jobDepartmentIDComboBox.setPromptText("Select Department ID");
         jobDepartmentIDComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
-        // Populate department IDs
+        // AUTO-GENERATE JOB ID WHEN DEPARTMENT IS SELECTED
+        final String[] generatedJobId = { null };
+
+        // Load departments
         DepartmentDAO departmentDAO = new DepartmentDAO();
         jobDepartmentIDComboBox.getItems().addAll(departmentDAO.getAllDepartmentIds());
+
+        // OPTIONAL: Preselect first department for convenience
+        if (!jobDepartmentIDComboBox.getItems().isEmpty()) {
+            jobDepartmentIDComboBox.setValue(jobDepartmentIDComboBox.getItems().get(0));
+            generatedJobId[0] = dao.generateNextJobId(jobDepartmentIDComboBox.getValue());
+        }
+
+        jobDepartmentIDComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                generatedJobId[0] = dao.generateNextJobId(newVal);
+            } else {
+                generatedJobId[0] = null;
+            }
+        });
+
 
         Label jobSalaryLabel = new Label("Job Salary:");
         jobSalaryLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
@@ -177,20 +197,24 @@ public class JobView {
         message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
 
         addBtn.setOnAction(e -> {
-            String jobID = jobIDField.getText().trim();
+            String jobID = generatedJobId[0];
             String jobTitle = jobTitleField.getText().trim();
-            String jobDepartmentID = jobDepartmentIDComboBox.getValue();
-            String jobSalaryText = jobSalaryField.getText().trim();
+            String jobDeptID = jobDepartmentIDComboBox.getValue();
+            String salaryText = jobSalaryField.getText().trim();
 
-            if (jobID.isEmpty() || jobTitle.isEmpty() || jobDepartmentID == null || jobSalaryText.isEmpty()) {
+            if (jobID == null || jobID.isEmpty() ||
+                    jobTitle.isEmpty() ||
+                    jobDeptID == null ||
+                    salaryText.isEmpty()) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
             try {
-                double jobSalary = Double.parseDouble(jobSalaryText);
-                boolean success = dao.addJob(jobID, jobTitle, jobDepartmentID, jobSalary);
+                double salary = Double.parseDouble(salaryText);
+
+                boolean success = dao.addJob(jobID, jobTitle, jobDeptID, salary);
                 if (success) {
                     reloadCallback.run();
                     popup.close();
@@ -199,6 +223,7 @@ public class JobView {
                     message.setText("Failed: Duplicate ID or invalid department ID.");
                     message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                 }
+
             } catch (NumberFormatException ex) {
                 message.setText("Please enter a valid salary number!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
@@ -211,7 +236,6 @@ public class JobView {
         buttonBox.setAlignment(Pos.CENTER);
 
         VBox box = new VBox(15,
-                jobIDLabel, jobIDField,
                 jobTitleLabel, jobTitleField,
                 jobDepartmentIDLabel, jobDepartmentIDComboBox,
                 jobSalaryLabel, jobSalaryField,
@@ -230,11 +254,11 @@ public class JobView {
         popup.showAndWait();
     }
 
+
     /**
      * Show Modify Job popup — allows editing jobs only.
      **/
     public void showModifyJobPopup(JobDAO dao, JobRecord selected, Runnable reloadCallback) {
-        selected = tableView.getSelectionModel().getSelectedItem();
         if (selected == null) {
             showSuccessPopup("No Selection", "Please select a job to modify.");
             return;
@@ -244,32 +268,30 @@ public class JobView {
         popup.initModality(Modality.APPLICATION_MODAL);
         popup.setTitle("Modify Job");
 
-        Label jobIDLabel = new Label("Job ID:");
-        jobIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField jobIDField = new TextField(selected.getJobId());
-        jobIDField.setEditable(false);
-        jobIDField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        Label jobIdLabel = new Label("Job ID:");
+        jobIdLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
+
+        TextField jobIdField = new TextField(selected.getJobId());
+        jobIdField.setEditable(false);
+        jobIdField.setFocusTraversable(false);
+        jobIdField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label jobTitleLabel = new Label("Job Title:");
         jobTitleLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField jobTitleField = new TextField(selected.getJobTitle());
         jobTitleField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
-        Label jobDepartmentIDLabel= new Label("Job Department ID:");
+        Label jobDepartmentIDLabel = new Label("Job Department ID:");
         jobDepartmentIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        ComboBox<String> jobDepartmentIDComboBox = new ComboBox<>(); // CHANGED TO COMBOBOX
-        jobDepartmentIDComboBox.setPromptText("Select Department ID");
-        jobDepartmentIDComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
-        // Populate department IDs and set current value
-        DepartmentDAO departmentDAO = new DepartmentDAO();
-        jobDepartmentIDComboBox.getItems().addAll(departmentDAO.getAllDepartmentIds());
-        jobDepartmentIDComboBox.setValue(selected.getJobDepartmentId());
+        TextField jobDepartmentIDField = new TextField(selected.getJobDepartmentId());
+        jobDepartmentIDField.setEditable(false);
+        jobDepartmentIDField.setFocusTraversable(false);
+        jobDepartmentIDField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
-        Label jobSalaryLabel= new Label("Job Salary:");
+        Label jobSalaryLabel = new Label("Job Salary:");
         jobSalaryLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField jobSalaryField = new TextField();
-        jobSalaryField.setText(Double.toString(selected.getJobSalary()));
+        TextField jobSalaryField = new TextField(Double.toString(selected.getJobSalary()));
         jobSalaryField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Button saveBtn = new Button("Save");
@@ -282,25 +304,24 @@ public class JobView {
         Label message = new Label();
         message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
 
-        JobRecord finalSelected = selected;
         saveBtn.setOnAction(e -> {
-            String jobID = jobIDField.getText().trim();
             String jobTitle = jobTitleField.getText().trim();
-            String jobDepartmentID = jobDepartmentIDComboBox.getValue(); // CHANGED TO COMBOBOX
             String jobSalaryText = jobSalaryField.getText().trim();
 
-            if (jobID.isEmpty() || jobTitle.isEmpty() || jobDepartmentID == null || jobSalaryText.isEmpty()) { // CHANGED CHECK
+            if (jobTitle.isEmpty() || jobSalaryText.isEmpty()) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
-            // Parse salary as double with error handling
             try {
                 double jobSalary = Double.parseDouble(jobSalaryText);
-                boolean success = dao.updateJob(finalSelected.getJobId(), jobTitle, jobDepartmentID, jobSalary);
+                boolean success = dao.updateJob(
+                        selected.getJobId(), jobTitle, selected.getJobDepartmentId(), jobSalary
+                );
+
                 if (success) {
-                    reloadCallback.run(); // refresh the table
+                    reloadCallback.run();
                     popup.close();
                     showSuccessPopup("Updated", "Job updated successfully!");
                 } else {
@@ -319,9 +340,9 @@ public class JobView {
         buttonBox.setAlignment(Pos.CENTER);
 
         VBox box = new VBox(15,
-                jobIDLabel, jobIDField,
+                jobIdLabel, jobIdField,
                 jobTitleLabel, jobTitleField,
-                jobDepartmentIDLabel, jobDepartmentIDComboBox, // CHANGED TO COMBOBOX
+                jobDepartmentIDLabel, jobDepartmentIDField,
                 jobSalaryLabel, jobSalaryField,
                 buttonBox, message
         );

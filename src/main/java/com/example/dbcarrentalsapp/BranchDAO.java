@@ -38,37 +38,19 @@ public class BranchDAO {
         return branches;
     }
 
-    /**
-     * Adds a new branch if both ID and Location are unique.
-     *
-     * @param id       the location ID (cannot be changed)
-     * @param name     the new city name
-     * @param email_address the new province name
-     * @param branch_location_id the branch location ID
-     * @return true if added successfully, false otherwise
-     */
-    public boolean addBranch(String id, String name, String email_address, String branch_location_id) {
-        String checkIdSql = "SELECT COUNT(*) FROM branch_record WHERE branch_id = ?";
+    public boolean addBranch(String name, String emailAddress, String branchLocationId) {
+        String id = generateNextBranchId(); // auto-generate ID here
+
         String checkComboSql = "SELECT COUNT(*) FROM branch_record WHERE branch_name = ? AND branch_email_address = ? AND branch_location_id = ?";
         String insertSql = "INSERT INTO branch_record (branch_id, branch_name, branch_email_address, branch_location_id) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection()) {
 
-            // === Check if ID already exists ===
-            try (PreparedStatement psCheckId = conn.prepareStatement(checkIdSql)) {
-                psCheckId.setString(1, id);
-                ResultSet rs = psCheckId.executeQuery();
-                if (rs.next() && rs.getInt(1) > 0) {
-                    System.out.println("Error: Branch ID already exists.");
-                    return false;
-                }
-            }
-
-            // === Check if (city, province) already exists ===
+            // Check for duplicate (name, email, location)
             try (PreparedStatement psCheckCombo = conn.prepareStatement(checkComboSql)) {
                 psCheckCombo.setString(1, name);
-                psCheckCombo.setString(2, email_address);
-                psCheckCombo.setString(3, branch_location_id);
+                psCheckCombo.setString(2, emailAddress);
+                psCheckCombo.setString(3, branchLocationId);
                 ResultSet rs = psCheckCombo.executeQuery();
                 if (rs.next() && rs.getInt(1) > 0) {
                     System.out.println("Error: Name and Location ID combination already exists.");
@@ -76,12 +58,12 @@ public class BranchDAO {
                 }
             }
 
-            // === If both checks pass, insert the record ===
+            // Insert new branch
             try (PreparedStatement psInsert = conn.prepareStatement(insertSql)) {
                 psInsert.setString(1, id);
                 psInsert.setString(2, name);
-                psInsert.setString(3, email_address);
-                psInsert.setString(4, branch_location_id);
+                psInsert.setString(3, emailAddress);
+                psInsert.setString(4, branchLocationId);
                 psInsert.executeUpdate();
                 return true;
             }
@@ -203,5 +185,34 @@ public class BranchDAO {
         }
 
         return null;
+    }
+
+    public String generateNextBranchId() {
+        String prefix = "BRN";
+        String nextId = prefix + "001"; // Default fallback
+
+        String selectSql = "SELECT last_number FROM branch_id_sequence WHERE id_type = 'BRANCH'";
+        String updateSql = "UPDATE branch_id_sequence SET last_number = ? WHERE id_type = 'BRANCH'";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement selectStmt = conn.prepareStatement(selectSql);
+             ResultSet rs = selectStmt.executeQuery()) {
+
+            if (rs.next()) {
+                int lastNumber = rs.getInt("last_number") + 1;
+                nextId = String.format("%s%03d", prefix, lastNumber);
+
+                // Update the sequence table
+                try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                    updateStmt.setInt(1, lastNumber);
+                    updateStmt.executeUpdate();
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return nextId;
     }
 }

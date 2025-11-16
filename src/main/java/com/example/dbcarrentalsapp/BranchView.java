@@ -132,6 +132,7 @@ public class BranchView {
     }
 
     /** Popup for adding a new branch **/
+    /** Popup for adding a new branch **/
     public void showAddBranchPopup(BranchDAO dao, Runnable reloadCallback) {
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
@@ -139,9 +140,12 @@ public class BranchView {
 
         Label idLabel = new Label("Branch ID:");
         idLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField idField = new TextField();
-        idField.setPromptText("e.g., BRN015");
-        idField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        // Generate auto-ID here
+        TextField idField = new TextField("Auto-generated");
+        idField.setEditable(false);
+        
+        idField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label nameLabel = new Label("Name:");
         nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
@@ -176,24 +180,23 @@ public class BranchView {
         message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
 
         addBtn.setOnAction(e -> {
-            String id = idField.getText().trim();
             String name = nameField.getText().trim();
             String email = emailField.getText().trim();
             String location = locationIDComboBox.getValue();
 
-            if (id.isEmpty() || name.isEmpty() || email.isEmpty() || location == null) {
+            if (name.isEmpty() || email.isEmpty() || location == null) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
-            boolean success = dao.addBranch(id, name, email, location);
+            boolean success = dao.addBranch(name, email, location); // ID is auto-generated in DAO
             if (success) {
                 reloadCallback.run();
                 popup.close();
                 showSuccessPopup("Success", "Branch added successfully!");
             } else {
-                message.setText("Failed: Duplicate ID or invalid location ID.");
+                message.setText("Failed: Name and Location ID combination already exists.");
                 message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
             }
         });

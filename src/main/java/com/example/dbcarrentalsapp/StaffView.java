@@ -1,5 +1,6 @@
 package com.example.dbcarrentalsapp;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -236,6 +237,8 @@ public class StaffView {
         );
 
         popup.setScene(popupScene);
+        Platform.runLater(() -> popupScene.getRoot().requestFocus());
+
         popup.showAndWait();
     }
 
