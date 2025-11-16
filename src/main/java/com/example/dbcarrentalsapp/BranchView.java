@@ -182,15 +182,18 @@ public class BranchView {
         addBtn.setOnAction(e -> {
             String name = nameField.getText().trim();
             String email = emailField.getText().trim();
-            String location = locationIDComboBox.getValue();
+            String locationDisplay = locationIDComboBox.getValue(); // e.g. "CEB001 — Cebu City, Cebu"
 
-            if (name.isEmpty() || email.isEmpty() || location == null) {
+            if (name.isEmpty() || email.isEmpty() || locationDisplay == null) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
             }
 
-            boolean success = dao.addBranch(name, email, location); // ID is auto-generated in DAO
+            // Extract only the location ID from the display (before the '—')
+            String locationId = locationDisplay.split(" — ")[0];
+
+            boolean success = dao.addBranch(name, email, locationId); // Pass only the ID to the DAO
             if (success) {
                 reloadCallback.run();
                 popup.close();

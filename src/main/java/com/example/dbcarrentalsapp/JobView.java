@@ -137,6 +137,7 @@ public class JobView {
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
         popup.setTitle("Add New Job");
+        final String[] generatedJobId = {null};
 
         /*Label jobIDLabel = new Label("Job ID:");
         jobIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
@@ -158,24 +159,52 @@ public class JobView {
         jobDepartmentIDComboBox.setPromptText("Select Department ID");
         jobDepartmentIDComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
-        // AUTO-GENERATE JOB ID WHEN DEPARTMENT IS SELECTED
-        final String[] generatedJobId = { null };
-
-        // Load departments
         DepartmentDAO departmentDAO = new DepartmentDAO();
         jobDepartmentIDComboBox.getItems().addAll(departmentDAO.getAllDepartmentDisplayValues());
 
-        // OPTIONAL: Preselect first department for convenience
+// Auto-select first item + generate ID
         if (!jobDepartmentIDComboBox.getItems().isEmpty()) {
             jobDepartmentIDComboBox.setValue(jobDepartmentIDComboBox.getItems().get(0));
-            generatedJobId[0] = dao.generateNextJobId(jobDepartmentIDComboBox.getValue());
+
+            String deptCode = jobDepartmentIDComboBox.getValue()
+                    .split(" — ")[0]     // "DEPT_ADM"
+                    .split("_")[1];       // "ADM"
+
+            generatedJobId[0] = dao.generateJobID(deptCode);
         }
+
+        // Regenerate ID when changing department selection
+        jobDepartmentIDComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                String deptCode = newVal.split(" — ")[0].split("_")[1];
+                generatedJobId[0] = dao.generateJobID(deptCode);
+            } else {
+                generatedJobId[0] = null;
+            }
+        });
+
+        /* OPTIONAL: Preselect first department for convenience
+        if (!jobDepartmentIDComboBox.getItems().isEmpty()) {
+
+        } */
 
         jobDepartmentIDComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
-                generatedJobId[0] = dao.generateNextJobId(newVal);
+                // "DEPT_ADM — Administration"
+                String fullDept = newVal.split(" — ")[0]; // "DEPT_ADM"
+                String deptCode = fullDept.split("_")[1]; // "ADM"
             } else {
-                generatedJobId[0] = null;
+                //generatedJobId[0] = null;
+            }
+        });
+
+        jobDepartmentIDComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                // "DEPT_ADM — Administration"
+                String fullDept = newVal.split(" — ")[0]; // "DEPT_ADM"
+                String deptCode = fullDept.split("_")[1]; // "ADM"
+            } else {
+               // generatedJobId[0] = null;
             }
         });
 
@@ -199,7 +228,8 @@ public class JobView {
         addBtn.setOnAction(e -> {
             String jobID = generatedJobId[0];
             String jobTitle = jobTitleField.getText().trim();
-            String jobDeptID = jobDepartmentIDComboBox.getValue();
+            String jobDeptDisplay = jobDepartmentIDComboBox.getValue();
+            String jobDeptID = jobDeptDisplay.split(" — ")[0]; // store full ID (DEPT_ADM)
             String salaryText = jobSalaryField.getText().trim();
 
             if (jobID == null || jobID.isEmpty() ||

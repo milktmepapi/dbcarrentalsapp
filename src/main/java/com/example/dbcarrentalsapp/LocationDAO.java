@@ -208,7 +208,12 @@ public class LocationDAO {
 
     public List<String> getAvailableLocationDisplayValues() {
         List<String> availableLocations = new ArrayList<>();
-        String sql = "SELECT location_id, location_name FROM location_record WHERE location_id NOT IN (SELECT branch_location_id FROM branch_record)";
+        String sql = """
+        SELECT location_id, location_city, location_province 
+        FROM location_record 
+        WHERE location_id NOT IN (SELECT branch_location_id FROM branch_record)
+        ORDER BY location_id ASC
+    """;
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -216,8 +221,9 @@ public class LocationDAO {
 
             while (rs.next()) {
                 String id = rs.getString("location_id");
-                String name = rs.getString("location_name");
-                availableLocations.add(id + " — " + name);
+                String city = rs.getString("location_city");
+                String province = rs.getString("location_province");
+                availableLocations.add(String.format("%s — %s, %s", id, city, province));
             }
         } catch (SQLException e) {
             e.printStackTrace();

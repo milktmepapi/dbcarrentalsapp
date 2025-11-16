@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JobDAO {
+
     /**
      * Retrieves all job records, ordered by id.
      *
@@ -14,9 +15,11 @@ public class JobDAO {
     public static List<JobRecord> getAllJobs() {
         List<JobRecord> jobs = new ArrayList<>();
         String query = "SELECT * FROM job_record ORDER BY job_id ASC;";
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
              ResultSet rs = stmt.executeQuery()) {
+
             while (rs.next()) {
                 jobs.add(new JobRecord(
                         rs.getString("job_id"),
@@ -28,6 +31,7 @@ public class JobDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         return jobs;
     }
 
@@ -51,26 +55,29 @@ public class JobDAO {
         }
     }
 
-
     /**
      * Updates a job.
      *
-     * @param jobId id of job to update
-     * @param jobTitle title of job
+     * @param jobId           id of job to update
+     * @param jobTitle        title of job
      * @param jobDepartmentId department of job
-     * @param jobSalary salary of job
+     * @param jobSalary       salary of job
      * @return true if updated successfully, false otherwise
      */
     public boolean updateJob(String jobId, String jobTitle, String jobDepartmentId, double jobSalary) {
         String updateSql = "UPDATE job_record SET job_title=?, job_department_id=?, job_salary=? WHERE job_id=?";
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+
             pstmt.setString(1, jobTitle);
             pstmt.setString(2, jobDepartmentId);
             pstmt.setDouble(3, jobSalary);
             pstmt.setString(4, jobId);
+
             int rows = pstmt.executeUpdate();
             return rows > 0;
+
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -79,16 +86,21 @@ public class JobDAO {
 
     /**
      * Deletes a job by its id
+     *
      * @param jobId the job ID to delete
      * @return true if deleted successfully, false otherwise
      */
     public boolean deleteJob(String jobId) {
         String sql = "DELETE FROM job_record WHERE job_id=?";
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, jobId);
+
             int rows = pstmt.executeUpdate();
             return rows > 0;
+
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -109,6 +121,7 @@ public class JobDAO {
             while (rs.next()) {
                 jobIds.add(rs.getString("job_id"));
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -116,46 +129,36 @@ public class JobDAO {
         return jobIds;
     }
 
-    public String generateNextJobId(String jobDepartmentId) {
-        // Extract prefix after "DEPT_"
-        String[] parts = jobDepartmentId.split("_");
-        String prefix = parts.length > 1 ? parts[1] : jobDepartmentId;
-
+    public String generateJobID(String departmentCode) {
         String selectSql = "SELECT last_number FROM job_id_sequence WHERE department_id = ?";
-        String insertSql = "INSERT INTO job_id_sequence (department_id, last_number) VALUES (?, 1)";
-        String updateSql = "UPDATE job_id_sequence SET last_number = last_number + 1 WHERE department_id = ?";
+        String insertOrUpdateSql = "INSERT INTO job_id_sequence (department_id, last_number) VALUES (?, ?) " +
+                "ON DUPLICATE KEY UPDATE last_number = ?";
 
-        try (Connection conn = DBConnection.getConnection()) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement selectStmt = conn.prepareStatement(selectSql);
+             PreparedStatement updateStmt = conn.prepareStatement(insertOrUpdateSql)) {
 
-            // 1. Check if prefix exists
-            try (PreparedStatement ps = conn.prepareStatement(selectSql)) {
-                ps.setString(1, prefix);
-                ResultSet rs = ps.executeQuery();
+            // Check current sequence
+            selectStmt.setString(1, departmentCode);
+            ResultSet rs = selectStmt.executeQuery();
 
-                if (rs.next()) {
-                    int nextNumber = rs.getInt(1) + 1;
-
-                    // 2. Update the sequence
-                    try (PreparedStatement ups = conn.prepareStatement(updateSql)) {
-                        ups.setString(1, prefix);
-                        ups.executeUpdate();
-                    }
-
-                    return String.format("%s%03d", prefix, nextNumber);
-                }
+            int nextNumber = 1;
+            if (rs.next()) {
+                nextNumber = rs.getInt("last_number") + 1;
             }
 
-            // 3. If not found → create first ID
-            try (PreparedStatement ips = conn.prepareStatement(insertSql)) {
-                ips.setString(1, prefix);
-                ips.executeUpdate();
-            }
+            // Update or insert sequence
+            updateStmt.setString(1, departmentCode);
+            updateStmt.setInt(2, nextNumber);
+            updateStmt.setInt(3, nextNumber);
+            updateStmt.executeUpdate();
 
-            return String.format("%s001", prefix);
+            // Generate new ID
+            return departmentCode + String.format("%03d", nextNumber);
 
         } catch (SQLException e) {
             e.printStackTrace();
-            return null;
+            return departmentCode + "001"; // Fallback
         }
     }
 
@@ -170,9 +173,11 @@ public class JobDAO {
             while (rs.next()) {
                 list.add(rs.getString("job_id") + " — " + rs.getString("job_title"));
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         return list;
     }
 }

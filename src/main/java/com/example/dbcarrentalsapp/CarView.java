@@ -244,7 +244,8 @@ public class CarView {
             String mileage = mileageField.getText().trim();
             Integer seatNumber = seatNumberComboBox.getValue();
             //String status = statusComboBox.getValue();
-            String branchId = branchIDComboBox.getValue();
+            String selectedBranch = branchIDComboBox.getValue();
+            String branchId = selectedBranch.split(" — ")[0];
 
             if (plateNumber.isEmpty() || transmission == null || model.isEmpty() || brand.isEmpty() ||
                     yearManufactured == null || mileage.isEmpty() || seatNumber == null ||
@@ -401,7 +402,9 @@ public class CarView {
             String mileage = mileageField.getText().trim();
             Integer seatNumber = seatNumberComboBox.getValue();
             String status = "Available";
-            String branchId = branchIDComboBox.getValue(); // CHANGED TO COMBOBOX
+
+            String selectedBranch = branchIDComboBox.getValue();
+            String branchId = selectedBranch.split(" — ")[0];
 
             if (plateNumber.isEmpty() || transmission == null || model.isEmpty() || brand.isEmpty() ||
                     String.valueOf(yearManufactured).isEmpty() || mileage.isEmpty() || seatNumber == null ||
