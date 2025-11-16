@@ -84,6 +84,7 @@ public class ViolationController {
     /**
      * Loads all violation records from the database and populates the table.
      * This method is called during initialization and after data modifications.
+     * Automatically sorts the table by Violation ID after loading.
      */
     public void loadViolations() {
         try {
@@ -92,6 +93,9 @@ public class ViolationController {
             // Convert to observable list for TableView binding
             masterList = FXCollections.observableArrayList(violations);
             view.tableView.setItems(masterList);
+
+            // Sort the table by Violation ID after loading
+            sortByViolationId();
         } catch (SQLException e) {
             e.printStackTrace();
             view.showSuccessPopup("Database Error", "Failed to load violations.");
@@ -102,6 +106,7 @@ public class ViolationController {
      * Applies text-based filtering to the violation records in the table.
      * Filters records based on violation ID, rental ID, type, or reason.
      * Case-insensitive search across multiple fields.
+     * Maintains sorting after filtering.
      */
     private void applyFilter() {
         String filterText = view.searchField.getText().toLowerCase().trim();
@@ -109,6 +114,8 @@ public class ViolationController {
         // If search is empty, show all records
         if (filterText.isEmpty()) {
             view.tableView.setItems(masterList);
+            // Reapply sorting when showing all records
+            sortByViolationId();
             return;
         }
 
@@ -126,5 +133,56 @@ public class ViolationController {
 
         // Update table with filtered results
         view.tableView.setItems(filteredList);
+        // Reapply sorting to filtered results
+        sortByViolationId();
+    }
+
+    /**
+     * Sorts the table by Violation ID in ascending order.
+     * This method can be called after any data modification to maintain consistent sorting.
+     */
+    private void sortByViolationId() {
+        view.tableView.getSortOrder().clear();
+
+        // Find the violation ID column
+        for (javafx.scene.control.TableColumn<ViolationRecord, ?> column : view.tableView.getColumns()) {
+            if ("Violation ID".equals(column.getText())) {
+                view.tableView.getSortOrder().add(column);
+                column.setSortType(javafx.scene.control.TableColumn.SortType.ASCENDING);
+                break;
+            }
+        }
+
+        view.tableView.sort();
+    }
+
+    /**
+     * Enhanced method to refresh violations with automatic sorting.
+     * Useful for external calls that need to refresh the data.
+     */
+    public void refreshViolations() {
+        loadViolations();
+    }
+
+    /**
+     * Alternative method that allows specifying sort order.
+     *
+     * @param ascending true for ascending order, false for descending
+     */
+    public void sortByViolationId(boolean ascending) {
+        view.tableView.getSortOrder().clear();
+
+        // Find the violation ID column
+        for (javafx.scene.control.TableColumn<ViolationRecord, ?> column : view.tableView.getColumns()) {
+            if ("Violation ID".equals(column.getText())) {
+                view.tableView.getSortOrder().add(column);
+                column.setSortType(ascending ?
+                        javafx.scene.control.TableColumn.SortType.ASCENDING :
+                        javafx.scene.control.TableColumn.SortType.DESCENDING);
+                break;
+            }
+        }
+
+        view.tableView.sort();
     }
 }

@@ -302,6 +302,24 @@ public class ViolationView {
     }
 
     /**
+     * Sorts the table by violation ID in ascending order
+     */
+    public void sortByViolationId() {
+        tableView.getSortOrder().clear();
+
+        // Find the violation ID column
+        for (TableColumn<ViolationRecord, ?> column : tableView.getColumns()) {
+            if ("Violation ID".equals(column.getText())) {
+                tableView.getSortOrder().add(column);
+                column.setSortType(TableColumn.SortType.ASCENDING);
+                break;
+            }
+        }
+
+        tableView.sort();
+    }
+
+    /**
      * Sets a custom ButtonCell for a ComboBox to ensure its text (both prompt and selected)
      * is displayed in white, overriding any conflicting CSS.
      *
