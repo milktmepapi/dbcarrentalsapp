@@ -105,21 +105,29 @@ CREATE TABLE IF NOT EXISTS rental_details (
     rental_renter_dl_number VARCHAR(20) NOT NULL,
     rental_car_plate_number VARCHAR(7) NOT NULL,
     rental_branch_id VARCHAR(6) NOT NULL,
-    rental_staff_id_pickup VARCHAR(6) NOT NULL,
-    rental_staff_id_return VARCHAR(6) NOT NULL,
+    rental_staff_id_pickup VARCHAR(6),
+    rental_staff_id_return VARCHAR(6),
     rental_datetime DATETIME NOT NULL,
-    rental_pickup_datetime DATETIME NOT NULL,
+
+    rental_expected_pickup_datetime DATETIME NOT NULL,
+    rental_actual_pickup_datetime DATETIME,
+
     rental_expected_return_datetime DATETIME NOT NULL,
-    rental_actual_return_datetime DATETIME NOT NULL,
+    rental_actual_return_datetime DATETIME,
+
     rental_total_payment DECIMAL(10, 2) NOT NULL,
-    rental_status ENUM('Upcoming', 'Active', 'Completed', 'Cancelled') NOT NULL,
+
+    rental_status ENUM('UPCOMING', 'ACTIVE', 'COMPLETED', 'CANCELLED') NOT NULL DEFAULT 'UPCOMING',
+
     PRIMARY KEY (rental_id),
+
     FOREIGN KEY (rental_renter_dl_number) REFERENCES renter_record(renter_dl_number),
     FOREIGN KEY (rental_car_plate_number) REFERENCES car_record(car_plate_number),
     FOREIGN KEY (rental_branch_id) REFERENCES branch_record(branch_id),
     FOREIGN KEY (rental_staff_id_pickup) REFERENCES staff_record(staff_id),
     FOREIGN KEY (rental_staff_id_return) REFERENCES staff_record(staff_id)
 );
+
 
 CREATE TABLE IF NOT EXISTS cancellation_details (
     cancellation_id VARCHAR(10) NOT NULL,
@@ -130,14 +138,17 @@ CREATE TABLE IF NOT EXISTS cancellation_details (
     PRIMARY KEY (cancellation_id),
     FOREIGN KEY (cancellation_rental_id) REFERENCES rental_details(rental_id),
     FOREIGN KEY (cancellation_staff_id) REFERENCES staff_record(staff_id)
-);
+);   
 
 CREATE TABLE IF NOT EXISTS violation_details (
     violation_id VARCHAR(10) NOT NULL,
     violation_rental_id VARCHAR(10) NOT NULL,
     violation_staff_id VARCHAR(6) NOT NULL,
-    violation_type ENUM('Late Return', 'Car Damage') NOT NULL,
+    violation_type ENUM('Late Return', 'Car Damage', 'Traffic Violation', 'Cleaning Fee', 'Other') NOT NULL,
     violation_penalty_fee DECIMAL(10, 2) NOT NULL,
+    violation_reason VARCHAR(255) NOT NULL,
+    violation_duration_hours INT NOT NULL DEFAULT 0,
+    violation_timestamp DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (violation_id),
     FOREIGN KEY (violation_rental_id) REFERENCES rental_details(rental_id),
     FOREIGN KEY (violation_staff_id) REFERENCES staff_record(staff_id)
@@ -293,6 +304,23 @@ VALUES
 ('STF014', 'Carla', 'Gomez', 'CST003', 'BRN010'), -- Front Desk Clerk
 ('STF015', 'Mia', 'Villanueva', 'CST002', 'BRN011'); -- Customer Service Representative
 
+INSERT IGNORE INTO staff_record (staff_id, staff_first_name, staff_last_name, staff_job_id, staff_branch_id)
+VALUES
+('STF016', 'Olivia', 'Cruz', 'OPS001', 'BRN001'),
+('STF017', 'Oscar', 'Mendoza', 'OPS002', 'BRN002'),
+('STF018', 'Owen', 'Santos', 'OPS003', 'BRN003'),
+('STF019', 'Olga', 'Tan', 'OPS001', 'BRN004'),
+('STF020', 'Omar', 'Reyes', 'OPS002', 'BRN005'),
+('STF021', 'Opal', 'Lim', 'OPS003', 'BRN006'),
+('STF022', 'Oriel', 'Gomez', 'OPS001', 'BRN007'),
+('STF023', 'Oda', 'Chua', 'OPS002', 'BRN008'),
+('STF024', 'Otto', 'Villanueva', 'OPS003', 'BRN009'),
+('STF025', 'Oona', 'Lopez', 'OPS001', 'BRN010'),
+('STF026', 'Owen', 'Dela Cruz', 'OPS002', 'BRN011'),
+('STF027', 'Odessa', 'Garcia', 'OPS003', 'BRN012'),
+('STF028', 'Osiris', 'Luna', 'OPS001', 'BRN013'),
+('STF029', 'Onyx', 'Martinez', 'OPS002', 'BRN014');
+
 # Renter Record    
 INSERT IGNORE INTO renter_record (renter_dl_number, renter_first_name, renter_last_name, renter_phone_number, renter_email_address)
 VALUES
@@ -345,8 +373,6 @@ VALUES
 
 -- Tagaytay Branch
 ('NOP4455', 'Automatic', 'Terra', 'Nissan', 2023, 7000, 7, 'Available', 'BRN011');
-
-# Rental Details
 INSERT IGNORE INTO rental_details (
     rental_id,
     rental_renter_dl_number,
@@ -355,33 +381,58 @@ INSERT IGNORE INTO rental_details (
     rental_staff_id_pickup,
     rental_staff_id_return,
     rental_datetime,
-    rental_pickup_datetime,
+    rental_expected_pickup_datetime,
+    rental_actual_pickup_datetime,
     rental_expected_return_datetime,
     rental_actual_return_datetime,
     rental_total_payment,
     rental_status
 )
 VALUES
--- Completed rental
-('RNT001', 'MC1234567890', 'ABC1234', 'BRN001', 'STF005', 'STF005', 
- '2025-11-01 09:00:00', '2025-11-01 09:15:00', '2025-11-05 09:00:00', '2025-11-05 08:50:00', 15000.00, 'Completed'),
+-- Completed rental (Manila branch by STF016)
+('RNT001', 'MC1234567890', 'ABC1234', 'BRN001', 'STF016', 'STF016',
+ '2025-11-01 09:00:00', '2025-11-01 09:10:00', '2025-11-01 09:15:00',
+ '2025-11-05 09:00:00', '2025-11-05 08:50:00',
+ 15000.00, 'COMPLETED'),
 
--- Active rental
-('RNT002', 'LL0000000001', 'DEF5678', 'BRN001', 'STF006', 'STF006', 
- '2025-11-06 10:00:00', '2025-11-06 10:20:00', '2025-11-10 10:00:00', '2025-11-07 12:00:00', 18000.00, 'Active'),
+-- Active rental (Manila branch by STF016)
+('RNT002', 'LL0000000001', 'DEF5678', 'BRN001', 'STF016', NULL,
+ '2025-11-06 10:00:00', '2025-11-06 10:10:00', '2025-11-06 10:20:00',
+ '2025-11-10 10:00:00', NULL,
+ 18000.00, 'ACTIVE'),
 
--- Upcoming rental
-('RNT003', 'MC9876543210', 'GHI9012', 'BRN002', 'STF005', 'STF005', 
- '2025-11-07 08:00:00', '2025-11-10 08:00:00', '2025-11-15 08:00:00', '2025-11-15 08:00:00', 20000.00, 'Upcoming'),
+-- Upcoming rental (Makati branch by STF017)
+('RNT003', 'MC9876543210', 'GHI9012', 'BRN002', 'STF017', NULL,
+ '2025-11-07 08:00:00', '2025-11-10 08:00:00', NULL,
+ '2025-11-15 08:00:00', NULL,
+ 20000.00, 'UPCOMING'),
 
--- Completed rental
-('RNT004', 'LL1122334455', 'JKL3456', 'BRN002', 'STF006', 'STF006', 
- '2025-10-25 14:00:00', '2025-10-25 14:15:00', '2025-10-30 14:00:00', '2025-10-30 13:50:00', 22000.00, 'Completed'),
+-- Completed rental (Makati branch by STF017)
+('RNT004', 'LL1122334455', 'JKL3456', 'BRN002', 'STF017', 'STF017',
+ '2025-10-25 14:00:00', '2025-10-25 14:10:00', '2025-10-25 14:15:00',
+ '2025-10-30 14:00:00', '2025-10-30 13:50:00',
+ 22000.00, 'COMPLETED'),
 
--- Upcoming rental
-('RNT005', 'MC1029384756', 'MNO7890', 'BRN003', 'STF005', 'STF005', 
- '2025-11-07 11:00:00', '2025-11-09 11:00:00', '2025-11-14 11:00:00', '2025-11-14 11:00:00', 17000.00, 'Upcoming'),
+-- Upcoming rental (Quezon City branch by STF018)
+('RNT005', 'MC1029384756', 'MNO7890', 'BRN003', 'STF018', NULL,
+ '2025-11-07 11:00:00', '2025-11-09 11:00:00', NULL,
+ '2025-11-14 11:00:00', NULL,
+ 17000.00, 'UPCOMING'),
 
--- Active rental
-('RNT006', 'LL2233445566', 'PQR2345', 'BRN004', 'STF009', 'STF009', 
- '2025-11-05 09:30:00', '2025-11-05 09:45:00', '2025-11-12 09:30:00', '2025-11-07 09:00:00', 25000.00, 'Active');
+-- Active rental (Cebu City branch by STF019)
+('RNT006', 'LL2233445566', 'PQR2345', 'BRN004', 'STF019', NULL,
+ '2025-11-05 09:30:00', '2025-11-05 09:40:00', '2025-11-05 09:45:00',
+ '2025-11-12 09:30:00', NULL,
+ 25000.00, 'ACTIVE');
+
+-- Mark cars not currently rented as 'Available', but keep 'Under Maintenance' unchanged
+SET SQL_SAFE_UPDATES = 0;
+UPDATE car_record
+SET car_status = 'Available'
+WHERE car_plate_number NOT IN (
+    SELECT rental_car_plate_number
+    FROM rental_details
+    WHERE rental_status = 'ACTIVE'
+)
+AND car_status != 'Under Maintenance';
+SET SQL_SAFE_UPDATES = 1;
