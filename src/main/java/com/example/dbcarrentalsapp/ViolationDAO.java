@@ -1,271 +1,251 @@
-// ViolationDAO.java
 package com.example.dbcarrentalsapp;
 
 import model.ViolationRecord;
-import model.RentalDetails;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Data Access Object for handling violation-related database operations.
- * Provides methods for retrieving rental details, checking for late returns,
- * calculating penalties, recording violations, and generating reports.
+ * Data Access Object (DAO) for handling all database operations related to violations.
+ * This class provides CRUD operations for the violation_details table and follows
+ * the DAO pattern to separate data access logic from business logic.
+ *
+ * Responsibilities:
+ * - Generate unique violation IDs
+ * - Perform CRUD operations on violation records
+ * - Retrieve lists of related entities (rentals, staff)
+ * - Handle database connections and SQL exceptions
+ *
  */
 public class ViolationDAO {
 
     /**
-     * Generates the next sequential violation ID
+     * Generates the next sequential violation ID by querying the database
+     * for the highest existing ID and incrementing it.
+     *
+     * @return Next available violation ID in format "VLNXXX" (e.g., "VLN001", "VLN002")
+     * @throws SQLException If database access error occurs
      */
-    public String generateNextViolationId() {
-        String sql = "SELECT violation_id FROM violation_details ORDER BY violation_id DESC LIMIT 1";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+    public String generateNextViolationId() throws SQLException {
+        // SQL query to get the highest existing violation ID
+        String sql = "SELECT violation_id FROM violation_details WHERE violation_id LIKE 'VLN%' ORDER BY violation_id DESC LIMIT 1";
 
+        try (Connection conn = DBConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            // If records exist, parse the number and increment
             if (rs.next()) {
-                String lastId = rs.getString("violation_id"); // e.g., "VLN001"
-                int number = Integer.parseInt(lastId.substring(3)); // Extract "001" -> 1
-                number++;
-                return String.format("VLN%03d", number); // "VLN002"
+                String lastId = rs.getString("violation_id");
+                int num = Integer.parseInt(lastId.substring(3)) + 1; // Extract number part
+                return String.format("VLN%03d", num); // Format as VLN001, VLN002, etc.
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return "VLN001"; // Start with first ID
+        // If no records exist, start with VLN001
+        return "VLN001";
     }
 
     /**
-     * Retrieves rental details by rental ID
+     * Inserts a new violation record into the database.
+     *
+     * @param violation The ViolationRecord object containing all violation data
+     * @throws SQLException If database access error occurs or constraint violation
      */
-    public RentalDetails getRentalById(String rentalId) {
-        String sql = "SELECT * FROM rental_details WHERE rental_id = ?";
+    public void addViolation(ViolationRecord violation) throws SQLException {
+        // SQL INSERT statement with parameter placeholders
+        String sql = """
+            INSERT INTO violation_details (
+                violation_id, violation_rental_id, violation_staff_id,
+                violation_type, violation_penalty_fee, violation_reason,
+                violation_duration_hours, violation_timestamp
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """;
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            ps.setString(1, rentalId);
-            ResultSet rs = ps.executeQuery();
+            // Set parameters for the prepared statement
+            stmt.setString(1, violation.getViolationId());
+            stmt.setString(2, violation.getRentalId());
+            stmt.setString(3, violation.getStaffId());
+            stmt.setString(4, violation.getViolationType());
+            stmt.setDouble(5, violation.getPenaltyFee());
+            stmt.setString(6, violation.getReason());
+            stmt.setInt(7, violation.getDurationHours());
+            stmt.setTimestamp(8, Timestamp.valueOf(violation.getTimestamp()));
 
-            if (rs.next()) {
-                return new RentalDetails(
-                        rs.getString("rental_id"),
-                        rs.getString("rental_renter_dl_number"),
-                        rs.getString("rental_car_plate_number"),
-                        rs.getString("rental_branch_id"),
-                        rs.getString("rental_staff_id_pickup"),
-                        rs.getString("rental_staff_id_return"),
-                        rs.getTimestamp("rental_datetime"),
-                        rs.getTimestamp("rental_expected_pickup_datetime"),
-                        rs.getTimestamp("rental_expected_return_datetime"),
-                        rs.getTimestamp("rental_actual_return_datetime"),
-                        rs.getDouble("rental_total_payment"),
-                        rs.getString("rental_status")
-                );
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+            // Execute the insert operation
+            stmt.executeUpdate();
         }
-
-        return null;
     }
 
     /**
-     * Checks if car was returned late
+     * Updates an existing violation record in the database.
+     *
+     * @param violation The ViolationRecord object with updated data
+     * @throws SQLException If database access error occurs or record not found
      */
-    public boolean isReturnLate(String rentalId) {
-        String sql = "SELECT rental_expected_return_datetime, rental_actual_return_datetime " +
-                "FROM rental_details WHERE rental_id = ?";
+    public void updateViolation(ViolationRecord violation) throws SQLException {
+        // SQL UPDATE statement to modify existing record
+        String sql = """
+            UPDATE violation_details 
+            SET violation_rental_id = ?, violation_staff_id = ?, violation_type = ?,
+                violation_penalty_fee = ?, violation_reason = ?, violation_duration_hours = ?,
+                violation_timestamp = ?
+            WHERE violation_id = ?
+            """;
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            ps.setString(1, rentalId);
-            ResultSet rs = ps.executeQuery();
+            // Set update parameters
+            stmt.setString(1, violation.getRentalId());
+            stmt.setString(2, violation.getStaffId());
+            stmt.setString(3, violation.getViolationType());
+            stmt.setDouble(4, violation.getPenaltyFee());
+            stmt.setString(5, violation.getReason());
+            stmt.setInt(6, violation.getDurationHours());
+            stmt.setTimestamp(7, Timestamp.valueOf(violation.getTimestamp()));
+            stmt.setString(8, violation.getViolationId());
 
-            if (rs.next()) {
-                Timestamp expectedReturn = rs.getTimestamp("rental_expected_return_datetime");
-                Timestamp actualReturn = rs.getTimestamp("rental_actual_return_datetime");
-
-                return actualReturn != null && actualReturn.after(expectedReturn);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
-    /**
-     * Calculates late return penalty based on hours late
-     */
-    public double calculateLatePenalty(String rentalId, double hourlyRate) {
-        String sql = "SELECT rental_expected_return_datetime, rental_actual_return_datetime " +
-                "FROM rental_details WHERE rental_id = ?";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, rentalId);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                Timestamp expectedReturn = rs.getTimestamp("rental_expected_return_datetime");
-                Timestamp actualReturn = rs.getTimestamp("rental_actual_return_datetime");
-
-                if (actualReturn != null && actualReturn.after(expectedReturn)) {
-                    long diffMs = actualReturn.getTime() - expectedReturn.getTime();
-                    long diffHours = (diffMs / (1000 * 60 * 60)) + 1; // Round up to nearest hour
-
-                    return diffHours * hourlyRate;
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return 0.0;
-    }
-
-    /**
-     * Records violation details in the database
-     */
-    public boolean recordViolation(ViolationRecord violation) {
-        String sql = "INSERT INTO violation_details " +
-                "(violation_id, violation_rental_id, violation_staff_id, " +
-                "violation_type, violation_penalty_fee, violation_reason, " +
-                "violation_duration_hours, violation_timestamp) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, violation.getViolationId());
-            ps.setString(2, violation.getRentalId());
-            ps.setString(3, violation.getStaffId());
-            ps.setString(4, violation.getViolationType());
-            ps.setDouble(5, violation.getPenaltyFee());
-            ps.setString(6, violation.getReason());
-            ps.setInt(7, violation.getDurationHours());
-            ps.setTimestamp(8, new Timestamp(violation.getTimestamp().getTime()));
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+            // Execute the update operation
+            stmt.executeUpdate();
         }
     }
 
     /**
-     * Updates car status to Available
+     * Retrieves all violation records from the database, ordered by most recent first.
+     *
+     * @return List of all ViolationRecord objects in the database
+     * @throws SQLException If database access error occurs
      */
-    public boolean updateCarStatus(String plateNumber, String status) {
-        String sql = "UPDATE car_record SET car_status = ? WHERE car_plate_number = ?";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, status);
-            ps.setString(2, plateNumber);
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    /**
-     * Gets all violations for reporting
-     */
-    public List<ViolationRecord> getAllViolations() {
-        List<ViolationRecord> violations = new ArrayList<>();
+    public List<ViolationRecord> getAllViolations() throws SQLException {
+        List<ViolationRecord> list = new ArrayList<>();
+        // SQL query to get all violations, newest first
         String sql = "SELECT * FROM violation_details ORDER BY violation_timestamp DESC";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
+            // Convert each ResultSet row to ViolationRecord object
             while (rs.next()) {
-                violations.add(new ViolationRecord(
-                        rs.getString("violation_id"),
-                        rs.getString("violation_rental_id"),
-                        rs.getString("violation_staff_id"),
-                        rs.getString("violation_type"),
-                        rs.getDouble("violation_penalty_fee"),
-                        rs.getString("violation_reason"),
-                        rs.getInt("violation_duration_hours"),
-                        rs.getTimestamp("violation_timestamp")
-                ));
+                list.add(mapResultSetToViolationRecord(rs));
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-
-        return violations;
+        return list;
     }
 
     /**
-     * Gets violations by branch
+     * Retrieves a specific violation record by its ID.
+     *
+     * @param id The violation ID to search for
+     * @return ViolationRecord object if found, null otherwise
+     * @throws SQLException If database access error occurs
      */
-    public List<ViolationRecord> getViolationsByBranch(String branchId) {
-        List<ViolationRecord> violations = new ArrayList<>();
-        String sql = "SELECT vd.* FROM violation_details vd " +
-                "JOIN rental_details rd ON vd.violation_rental_id = rd.rental_id " +
-                "WHERE rd.rental_branch_id = ? ORDER BY vd.violation_timestamp DESC";
+    public ViolationRecord getViolationById(String id) throws SQLException {
+        // Parameterized SQL query to find specific violation
+        String sql = "SELECT * FROM violation_details WHERE violation_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            ps.setString(1, branchId);
-            ResultSet rs = ps.executeQuery();
+            stmt.setString(1, id);
+            ResultSet rs = stmt.executeQuery();
 
-            while (rs.next()) {
-                violations.add(new ViolationRecord(
-                        rs.getString("violation_id"),
-                        rs.getString("violation_rental_id"),
-                        rs.getString("violation_staff_id"),
-                        rs.getString("violation_type"),
-                        rs.getDouble("violation_penalty_fee"),
-                        rs.getString("violation_reason"),
-                        rs.getInt("violation_duration_hours"),
-                        rs.getTimestamp("violation_timestamp")
-                ));
+            // Return violation if found
+            if (rs.next()) {
+                return mapResultSetToViolationRecord(rs);
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-
-        return violations;
+        return null; // Return null if no violation found
     }
 
     /**
-     * Gets all branch IDs for filtering
+     * Deletes a violation record from the database.
+     *
+     * @param violationId The ID of the violation to delete
+     * @return true if deletion was successful, false otherwise
+     * @throws SQLException If database access error occurs
      */
-    public List<String> getAllBranchIds() {
-        List<String> branchIds = new ArrayList<>();
-        String sql = "SELECT branch_id FROM branch_record ORDER BY branch_id";
+    public boolean deleteViolation(String violationId) throws SQLException {
+        // SQL DELETE statement with parameter
+        String sql = "DELETE FROM violation_details WHERE violation_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, violationId);
+            // Return true if at least one row was affected
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Retrieves all rental IDs from the database for dropdown population.
+     *
+     * @return List of all rental IDs as strings
+     * @throws SQLException If database access error occurs
+     */
+    public List<String> getAllRentalIds() throws SQLException {
+        List<String> rentalIds = new ArrayList<>();
+        String sql = "SELECT rental_id FROM rental_details ORDER BY rental_id";
+
+        try (Connection conn = DBConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                branchIds.add(rs.getString("branch_id"));
+                rentalIds.add(rs.getString("rental_id"));
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
+        return rentalIds;
+    }
 
-        return branchIds;
+    /**
+     * Retrieves all staff IDs from the database for dropdown population.
+     *
+     * @return List of all staff IDs as strings
+     * @throws SQLException If database access error occurs
+     */
+    public List<String> getAllStaffIds() throws SQLException {
+        List<String> staffIds = new ArrayList<>();
+        String sql = "SELECT staff_id FROM staff_record ORDER BY staff_id";
+
+        try (Connection conn = DBConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                staffIds.add(rs.getString("staff_id"));
+            }
+        }
+        return staffIds;
+    }
+
+    /**
+     * Helper method to map a ResultSet row to a ViolationRecord object.
+     * This method centralizes the conversion logic between database and object.
+     *
+     * @param rs The ResultSet containing violation data
+     * @return ViolationRecord object populated with ResultSet data
+     * @throws SQLException If error reading from ResultSet
+     */
+    private ViolationRecord mapResultSetToViolationRecord(ResultSet rs) throws SQLException {
+        // Extract timestamp from ResultSet
+        Timestamp timestamp = rs.getTimestamp("violation_timestamp");
+
+        // Create and return new ViolationRecord with extracted data
+        return new ViolationRecord(
+                rs.getString("violation_id"),
+                rs.getString("violation_rental_id"),
+                rs.getString("violation_staff_id"),
+                rs.getString("violation_type"),
+                rs.getDouble("violation_penalty_fee"),
+                rs.getString("violation_reason"),
+                rs.getInt("violation_duration_hours"),
+                timestamp != null ? timestamp.toLocalDateTime() : LocalDateTime.now()
+        );
     }
 }
