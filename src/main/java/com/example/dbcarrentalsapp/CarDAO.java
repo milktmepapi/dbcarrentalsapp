@@ -189,4 +189,24 @@ public class CarDAO {
 
         return null;
     }
+
+     /**
+     * Updates the status of a car (e.g., Available, Rented).
+     */
+    public boolean updateCarStatus(String plateNumber, String status) {
+        String sql = "UPDATE car_record SET car_status=? WHERE car_plate_number=?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, status);
+            pstmt.setString(2, plateNumber);
+
+            int rows = pstmt.executeUpdate();
+            return rows > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
