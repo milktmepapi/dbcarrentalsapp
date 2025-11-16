@@ -167,8 +167,8 @@ public class BranchView {
 
         // Populate location IDs
         LocationDAO locationDAO = new LocationDAO();
-        locationIDComboBox.getItems().addAll(locationDAO.getAllLocationDisplayValues());
-        
+        locationIDComboBox.getItems().addAll(locationDAO.getAvailableLocationDisplayValues());
+
         Button addBtn = new Button("Add");
         Button cancelBtn = new Button("Cancel");
         addBtn.getStyleClass().add("small-button");

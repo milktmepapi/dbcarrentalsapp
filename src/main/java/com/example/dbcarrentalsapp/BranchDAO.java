@@ -42,11 +42,25 @@ public class BranchDAO {
         String id = generateNextBranchId(); // auto-generate ID here
 
         String checkComboSql = "SELECT COUNT(*) FROM branch_record WHERE branch_name = ? AND branch_email_address = ? AND branch_location_id = ?";
+        String checkLocationSql = "SELECT COUNT(*) FROM branch_record WHERE branch_location_id = ?";
         String insertSql = "INSERT INTO branch_record (branch_id, branch_name, branch_email_address, branch_location_id) VALUES (?, ?, ?, ?)";
+        String updateSeqSql = "UPDATE branch_id_sequence SET last_number = last_number + 1 WHERE id_type = 'BRANCH'";
 
         try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
 
-            // Check for duplicate (name, email, location)
+            // Check if the location is already used
+            try (PreparedStatement psCheckLocation = conn.prepareStatement(checkLocationSql)) {
+                psCheckLocation.setString(1, branchLocationId);
+                ResultSet rs = psCheckLocation.executeQuery();
+                if (rs.next() && rs.getInt(1) > 0) {
+                    System.out.println("Error: This location already has a branch.");
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            // Check for duplicate (name+email+location)
             try (PreparedStatement psCheckCombo = conn.prepareStatement(checkComboSql)) {
                 psCheckCombo.setString(1, name);
                 psCheckCombo.setString(2, emailAddress);
@@ -54,6 +68,7 @@ public class BranchDAO {
                 ResultSet rs = psCheckCombo.executeQuery();
                 if (rs.next() && rs.getInt(1) > 0) {
                     System.out.println("Error: Name and Location ID combination already exists.");
+                    conn.rollback();
                     return false;
                 }
             }
@@ -65,8 +80,15 @@ public class BranchDAO {
                 psInsert.setString(3, emailAddress);
                 psInsert.setString(4, branchLocationId);
                 psInsert.executeUpdate();
-                return true;
             }
+
+            // Update sequence
+            try (PreparedStatement psUpdateSeq = conn.prepareStatement(updateSeqSql)) {
+                psUpdateSeq.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -98,6 +120,19 @@ public class BranchDAO {
                 ResultSet rs = psCheck.executeQuery();
                 if (rs.next() && rs.getInt(1) > 0) {
                     System.out.println("Error: City and province combination already exists.");
+                    return false;
+                }
+            }
+
+            // Check if the location is already used by another branch
+            String checkLocationSql = "SELECT COUNT(*) FROM branch_record WHERE branch_location_id = ? AND branch_id <> ?";
+
+            try (PreparedStatement psCheckLocation = conn.prepareStatement(checkLocationSql)) {
+                psCheckLocation.setString(1, branch_location_id);
+                psCheckLocation.setString(2, id);
+                ResultSet rs = psCheckLocation.executeQuery();
+                if (rs.next() && rs.getInt(1) > 0) {
+                    System.out.println("Error: This location is already assigned to another branch.");
                     return false;
                 }
             }
@@ -192,7 +227,6 @@ public class BranchDAO {
         String nextId = prefix + "001"; // Default fallback
 
         String selectSql = "SELECT last_number FROM branch_id_sequence WHERE id_type = 'BRANCH'";
-        String updateSql = "UPDATE branch_id_sequence SET last_number = ? WHERE id_type = 'BRANCH'";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement selectStmt = conn.prepareStatement(selectSql);
@@ -201,12 +235,6 @@ public class BranchDAO {
             if (rs.next()) {
                 int lastNumber = rs.getInt("last_number") + 1;
                 nextId = String.format("%s%03d", prefix, lastNumber);
-
-                // Update the sequence table
-                try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
-                    updateStmt.setInt(1, lastNumber);
-                    updateStmt.executeUpdate();
-                }
             }
 
         } catch (SQLException e) {

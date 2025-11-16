@@ -194,8 +194,8 @@ public class StaffView {
             String staffID = staffIDField.getText().trim();
             String staffFirstName = staffFirstNameField.getText().trim();
             String staffLastName = staffLastNameField.getText().trim();
-            String staffJobID = staffJobIDComboBox.getValue();
-            String staffBranchID = staffBranchIDComboBox.getValue();
+            String staffJobID = extractId(staffJobIDComboBox.getValue());
+            String staffBranchID = extractId(staffBranchIDComboBox.getValue());
 
             if (staffID.isEmpty() || staffFirstName.isEmpty() || staffLastName.isEmpty() || staffJobID == null || staffBranchID == null) {
                 message.setText("Please fill in all fields!");
@@ -309,8 +309,8 @@ public class StaffView {
             String staffID = staffIDField.getText().trim();
             String staffFirstName = staffFirstNameField.getText().trim();
             String staffLastName = staffLastNameField.getText().trim();
-            String staffJobId = staffJobIDComboBox.getValue(); // CHANGED TO COMBOBOX
-            String staffBranchId = staffBranchIDComboBox.getValue(); // CHANGED TO COMBOBOX
+            String staffJobId = extractId(staffJobIDComboBox.getValue());
+            String staffBranchId = extractId(staffBranchIDComboBox.getValue());
 
             if (staffID.isEmpty() || staffFirstName.isEmpty() || staffLastName.isEmpty() ||
                     staffJobId == null || staffBranchId == null) { // CHANGED CHECK
@@ -473,6 +473,16 @@ public class StaffView {
         popup.showAndWait();
 
         return confirmed[0];
+    }
+
+    /**
+     * Extracts the actual ID from a string formatted like "BRN001 — Forza Rentals Manila".
+     */
+    private String extractId(String displayValue) {
+        if (displayValue == null || !displayValue.contains(" — ")) {
+            return displayValue;
+        }
+        return displayValue.split(" — ")[0].trim();
     }
 
     public Scene getScene() {

@@ -205,4 +205,23 @@ public class LocationDAO {
         }
         return list;
     }
+
+    public List<String> getAvailableLocationDisplayValues() {
+        List<String> availableLocations = new ArrayList<>();
+        String sql = "SELECT location_id, location_name FROM location_record WHERE location_id NOT IN (SELECT branch_location_id FROM branch_record)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                String id = rs.getString("location_id");
+                String name = rs.getString("location_name");
+                availableLocations.add(id + " — " + name);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return availableLocations;
+    }
 }

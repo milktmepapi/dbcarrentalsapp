@@ -50,7 +50,9 @@ public class StaffDAO {
     public boolean addStaff(String staffId, String firstName, String lastName, String jobId, String branchId){
         String checkIdSql = "SELECT COUNT(*) FROM staff_record WHERE staff_id = ?";
         String insertSql = "INSERT INTO staff_record (staff_id, staff_first_name, staff_last_name, staff_job_id, staff_branch_id) VALUES (?, ?, ?, ?, ?)";
+
         try (Connection conn = DBConnection.getConnection()) {
+
             // Check if staff ID already exists
             try (PreparedStatement psCheckId = conn.prepareStatement(checkIdSql)) {
                 psCheckId.setString(1, staffId);
@@ -69,6 +71,15 @@ public class StaffDAO {
                 pstmt.setString(4, jobId);
                 pstmt.setString(5, branchId);
                 int rows = pstmt.executeUpdate();
+
+                if (rows > 0) {
+                    // Update the ID sequence now that add was successful
+                    String updateSeq = "UPDATE staff_id_sequence SET last_number = last_number + 1 WHERE id_type = 'STAFF'";
+                    try (PreparedStatement psUpdate = conn.prepareStatement(updateSeq)) {
+                        psUpdate.executeUpdate();
+                    }
+                }
+
                 return rows > 0;
             }
         } catch (SQLException e){
@@ -76,6 +87,7 @@ public class StaffDAO {
             return false;
         }
     }
+
 
     /**
      * Updates a new staff member.
@@ -181,13 +193,6 @@ public class StaffDAO {
             if (rs.next()) {
                 int lastNumber = rs.getInt("last_number") + 1;
                 nextId = String.format("STF%03d", lastNumber);
-
-                // Update the sequence immediately
-                String updateSeq = "UPDATE staff_id_sequence SET last_number = ? WHERE id_type = 'STAFF'";
-                try (PreparedStatement updateStmt = conn.prepareStatement(updateSeq)) {
-                    updateStmt.setInt(1, lastNumber);
-                    updateStmt.executeUpdate();
-                }
             }
 
         } catch (SQLException e) {
