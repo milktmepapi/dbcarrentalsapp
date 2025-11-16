@@ -168,7 +168,7 @@ public class StaffView {
 
         // Populate job IDs
         JobDAO jobDAO = new JobDAO();
-        staffJobIDComboBox.getItems().addAll(jobDAO.getAllJobIds());
+        staffJobIDComboBox.getItems().addAll(jobDAO.getAllJobDisplayValues());
 
         Label staffBranchIDLabel = new Label("Staff Branch ID:");
         staffBranchIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
@@ -178,7 +178,7 @@ public class StaffView {
 
         // Populate branch IDs
         BranchDAO branchDAO = new BranchDAO();
-        staffBranchIDComboBox.getItems().addAll(branchDAO.getAllBranchIds());
+        staffBranchIDComboBox.getItems().addAll(branchDAO.getAllBranchDisplayValues());
 
         Button addBtn = new Button("Add");
         Button cancelBtn = new Button("Cancel");
@@ -280,7 +280,7 @@ public class StaffView {
 
         // Populate job IDs and set current value
         JobDAO jobDAO = new JobDAO();
-        staffJobIDComboBox.getItems().addAll(jobDAO.getAllJobIds());
+        staffJobIDComboBox.getItems().addAll(jobDAO.getAllJobDisplayValues());
         staffJobIDComboBox.setValue(selected.getStaffJobId());
 
         Label staffBranchIDLabel= new Label("Staff Branch ID:");
@@ -291,7 +291,7 @@ public class StaffView {
 
         // Populate branch IDs and set current value
         BranchDAO branchDAO = new BranchDAO();
-        staffBranchIDComboBox.getItems().addAll(branchDAO.getAllBranchIds());
+        staffBranchIDComboBox.getItems().addAll(branchDAO.getAllBranchDisplayValues());
         staffBranchIDComboBox.setValue(selected.getStaffBranchId());
 
         Button saveBtn = new Button("Save");

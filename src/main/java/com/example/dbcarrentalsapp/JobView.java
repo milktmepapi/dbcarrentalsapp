@@ -163,7 +163,7 @@ public class JobView {
 
         // Load departments
         DepartmentDAO departmentDAO = new DepartmentDAO();
-        jobDepartmentIDComboBox.getItems().addAll(departmentDAO.getAllDepartmentIds());
+        jobDepartmentIDComboBox.getItems().addAll(departmentDAO.getAllDepartmentDisplayValues());
 
         // OPTIONAL: Preselect first department for convenience
         if (!jobDepartmentIDComboBox.getItems().isEmpty()) {

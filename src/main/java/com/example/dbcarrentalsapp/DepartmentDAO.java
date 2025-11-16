@@ -110,4 +110,28 @@ public class DepartmentDAO {
 
         return departmentIds;
     }
+
+    /**
+     * Retrieves all department IDs and names formatted for dropdowns,
+     * e.g. "DPT001 — Sales".
+     */
+    public List<String> getAllDepartmentDisplayValues() {
+        List<String> displayList = new ArrayList<>();
+        String query = "SELECT department_id, department_name FROM department_record ORDER BY department_id ASC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                String id = rs.getString("department_id");
+                String name = rs.getString("department_name");
+                displayList.add(id + " — " + name);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return displayList;
+    }
 }

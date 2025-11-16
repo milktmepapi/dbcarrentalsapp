@@ -181,4 +181,28 @@ public class LocationDAO {
 
         return locationIds;
     }
+
+    /**
+     * Retrieves all location IDs and city/province for dropdown display,
+     * e.g. "MNL001 — Manila, Metro Manila"
+     */
+    public List<String> getAllLocationDisplayValues() {
+        List<String> list = new ArrayList<>();
+        String sql = "SELECT location_id, location_city, location_province FROM location_record ORDER BY location_id ASC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                String id = rs.getString("location_id");
+                String city = rs.getString("location_city");
+                String province = rs.getString("location_province");
+                list.add(String.format("%s — %s, %s", id, city, province));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

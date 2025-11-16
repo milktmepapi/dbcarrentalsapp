@@ -144,7 +144,7 @@ public class BranchView {
         // Generate auto-ID here
         TextField idField = new TextField("Auto-generated");
         idField.setEditable(false);
-        
+
         idField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label nameLabel = new Label("Name:");
@@ -167,8 +167,8 @@ public class BranchView {
 
         // Populate location IDs
         LocationDAO locationDAO = new LocationDAO();
-        locationIDComboBox.getItems().addAll(locationDAO.getAllLocationIds());
-
+        locationIDComboBox.getItems().addAll(locationDAO.getAllLocationDisplayValues());
+        
         Button addBtn = new Button("Add");
         Button cancelBtn = new Button("Cancel");
         addBtn.getStyleClass().add("small-button");

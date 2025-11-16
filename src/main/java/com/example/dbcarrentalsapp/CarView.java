@@ -223,7 +223,7 @@ public class CarView {
 
         // Populate branch IDs
         BranchDAO branchDAO = new BranchDAO();
-        branchIDComboBox.getItems().addAll(branchDAO.getAllBranchIds());
+        branchIDComboBox.getItems().addAll(branchDAO.getAllBranchDisplayValues());
 
         Button addBtn = new Button("Add");
         Button cancelBtn = new Button("Cancel");
@@ -378,7 +378,7 @@ public class CarView {
 
         // Populate branch IDs and set current value
         BranchDAO branchDAO = new BranchDAO();
-        branchIDComboBox.getItems().addAll(branchDAO.getAllBranchIds());
+        branchIDComboBox.getItems().addAll(branchDAO.getAllBranchDisplayValues());
         branchIDComboBox.setValue(selected.getCarBranchId());
 
         Button saveBtn = new Button("Save");

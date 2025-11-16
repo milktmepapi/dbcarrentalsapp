@@ -158,4 +158,21 @@ public class JobDAO {
             return null;
         }
     }
+
+    public List<String> getAllJobDisplayValues() {
+        List<String> list = new ArrayList<>();
+        String sql = "SELECT job_id, job_title FROM job_record ORDER BY job_id";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(rs.getString("job_id") + " — " + rs.getString("job_title"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

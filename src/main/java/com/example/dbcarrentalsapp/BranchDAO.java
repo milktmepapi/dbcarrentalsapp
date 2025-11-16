@@ -215,4 +215,24 @@ public class BranchDAO {
 
         return nextId;
     }
+
+    public List<String> getAllBranchDisplayValues() {
+        List<String> list = new ArrayList<>();
+
+        String sql = "SELECT branch_id, branch_name FROM branch_record ORDER BY branch_id";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                String id = rs.getString("branch_id");
+                String name = rs.getString("branch_name");
+                list.add(id + " — " + name);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }
