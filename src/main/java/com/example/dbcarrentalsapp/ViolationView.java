@@ -400,13 +400,37 @@ public class ViolationView {
         // Populate dropdowns with data from database
         try {
             rentalId.getItems().addAll(dao.getAllRentalIds());
-            staffId.getItems().addAll(dao.getAllStaffIds());
+            // Don't populate staffId here - it will be populated dynamically based on rental selection
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         // Set violation type options
         violationType.getItems().addAll("Late Return", "Car Damage", "Traffic Violation", "Cleaning Fee", "Other");
+
+        // Dynamic staff loading based on rental selection
+        rentalId.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                try {
+                    // Get the branch of the selected rental
+                    String branchId = dao.getRentalBranchId(newVal);
+                    // Get Operations staff from that branch
+                    List<String> operationsStaff = dao.getOperationsStaffByBranch(branchId);
+
+                    staffId.getItems().clear();
+                    staffId.getItems().addAll(operationsStaff);
+
+                    if (operationsStaff.isEmpty()) {
+                        showSuccessPopup("No Staff Available",
+                                "No Operations staff available in branch " + branchId +
+                                        " for rental " + newVal + ". Please select a different rental.");
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    showSuccessPopup("Error", "Error loading staff for selected rental: " + ex.getMessage());
+                }
+            }
+        });
 
         // Buttons
         Button addBtn = new Button("Add");
@@ -438,6 +462,13 @@ public class ViolationView {
                 if (penalty < 0 || duration < 0) {
                     message.setText("Penalty and duration must be positive values!");
                     message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
+                    return;
+                }
+
+                // NEW: Validate staff assignment
+                if (!dao.validateStaffForViolation(staffId.getValue(), rentalId.getValue())) {
+                    message.setText("Invalid staff selection! Staff must be from Operations department and same branch as rental.");
+                    message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                     return;
                 }
 
@@ -564,7 +595,7 @@ public class ViolationView {
         // Populate dropdowns with current data
         try {
             rentalId.getItems().addAll(dao.getAllRentalIds());
-            staffId.getItems().addAll(dao.getAllStaffIds());
+            // Don't populate staffId here - it will be populated dynamically based on rental selection
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -573,8 +604,48 @@ public class ViolationView {
 
         // Set current values in fields
         rentalId.setValue(violation.getRentalId());
-        staffId.setValue(violation.getStaffId());
         violationType.setValue(violation.getViolationType());
+
+        // Dynamic staff loading based on rental selection
+        rentalId.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                try {
+                    // Get the branch of the selected rental
+                    String branchId = dao.getRentalBranchId(newVal);
+                    // Get Operations staff from that branch
+                    List<String> operationsStaff = dao.getOperationsStaffByBranch(branchId);
+
+                    staffId.getItems().clear();
+                    staffId.getItems().addAll(operationsStaff);
+
+                    // Set the current staff ID if it's in the list, otherwise clear it
+                    if (operationsStaff.contains(violation.getStaffId())) {
+                        staffId.setValue(violation.getStaffId());
+                    } else {
+                        staffId.setValue(null);
+                    }
+
+                    if (operationsStaff.isEmpty()) {
+                        showSuccessPopup("No Staff Available",
+                                "No Operations staff available in branch " + branchId +
+                                        " for rental " + newVal + ". Please select a different rental.");
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    showSuccessPopup("Error", "Error loading staff for selected rental: " + ex.getMessage());
+                }
+            }
+        });
+
+        // Initialize staff dropdown with current rental's branch staff
+        try {
+            String branchId = dao.getRentalBranchId(violation.getRentalId());
+            List<String> operationsStaff = dao.getOperationsStaffByBranch(branchId);
+            staffId.getItems().addAll(operationsStaff);
+            staffId.setValue(violation.getStaffId());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         // Buttons
         Button saveBtn = new Button("Save");
@@ -606,6 +677,13 @@ public class ViolationView {
                 if (penalty < 0 || duration < 0) {
                     message.setText("Penalty and duration must be positive values!");
                     message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
+                    return;
+                }
+
+                // NEW: Validate staff assignment
+                if (!dao.validateStaffForViolation(staffId.getValue(), rentalId.getValue())) {
+                    message.setText("Invalid staff selection! Staff must be from Operations department and same branch as rental.");
+                    message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                     return;
                 }
 

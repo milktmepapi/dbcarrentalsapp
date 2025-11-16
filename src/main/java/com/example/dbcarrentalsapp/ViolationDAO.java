@@ -225,6 +225,77 @@ public class ViolationDAO {
     }
 
     /**
+     * Validates if a staff member belongs to the same branch as the rental
+     * and is from the Operations department.
+     *
+     * @param staffId The staff ID to validate
+     * @param rentalId The rental ID to check against
+     * @return true if staff is valid for processing this violation
+     * @throws SQLException If database access error occurs
+     */
+    public boolean validateStaffForViolation(String staffId, String rentalId) throws SQLException {
+        String sql = """
+            SELECT sr.staff_id, br.branch_id, jr.job_department_id
+            FROM staff_record sr
+            JOIN job_record jr ON sr.staff_job_id = jr.job_id
+            JOIN rental_details rd ON rd.rental_branch_id = sr.staff_branch_id
+            WHERE sr.staff_id = ? AND rd.rental_id = ? AND jr.job_department_id = 'DEPT_OPS'
+            """;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, staffId);
+            stmt.setString(2, rentalId);
+            ResultSet rs = stmt.executeQuery();
+
+            return rs.next(); // Returns true if staff is valid
+        }
+    }
+
+    /**
+     * Gets the branch ID of a rental
+     */
+    public String getRentalBranchId(String rentalId) throws SQLException {
+        String sql = "SELECT rental_branch_id FROM rental_details WHERE rental_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, rentalId);
+            ResultSet rs = stmt.executeQuery();
+
+            return rs.next() ? rs.getString("rental_branch_id") : null;
+        }
+    }
+
+    /**
+     * Gets Operations staff members from a specific branch
+     */
+    public List<String> getOperationsStaffByBranch(String branchId) throws SQLException {
+        List<String> staffIds = new ArrayList<>();
+        String sql = """
+            SELECT sr.staff_id 
+            FROM staff_record sr
+            JOIN job_record jr ON sr.staff_job_id = jr.job_id
+            WHERE sr.staff_branch_id = ? AND jr.job_department_id = 'DEPT_OPS'
+            ORDER BY sr.staff_id
+            """;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, branchId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                staffIds.add(rs.getString("staff_id"));
+            }
+        }
+        return staffIds;
+    }
+
+    /**
      * Helper method to map a ResultSet row to a ViolationRecord object.
      * This method centralizes the conversion logic between database and object.
      *
