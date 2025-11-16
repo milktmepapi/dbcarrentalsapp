@@ -75,7 +75,7 @@ public class RentalRecord {
     public String getStaffIdReturn() { return staffIdReturn; }
     public void setStaffIdReturn(String staffIdReturn) { this.staffIdReturn = staffIdReturn; }
 
-    public LocalDateTime getRentalDateTime() { return rentalDateTime; }
+    public String getRentalDateTime() { return String.valueOf(rentalDateTime); }
     public void setRentalDateTime(LocalDateTime rentalDateTime) { this.rentalDateTime = rentalDateTime; }
 
     public LocalDateTime getExpectedPickupDateTime() { return expectedPickupDateTime; }
