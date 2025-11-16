@@ -1,6 +1,8 @@
 package com.example.dbcarrentalsapp;
 
 import model.BranchRecord;
+
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
