@@ -42,10 +42,11 @@ public class StaffController {
             stage.setScene(manageView.getScene());
         });
 
-        // Add Staff
-        view.addButton.setOnAction(e ->
-                view.showAddStaffPopup(dao, this::loadStaff)
-        );
+        // Add Staff with auto-generated ID
+        view.addButton.setOnAction(e -> {
+            String newStaffId = dao.generateNextStaffId();
+            view.showAddStaffPopup(newStaffId, dao, this::loadStaff);
+        });
 
 
         // ===== Modify Staff =====

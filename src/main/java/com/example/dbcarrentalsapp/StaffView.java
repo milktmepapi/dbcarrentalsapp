@@ -136,16 +136,16 @@ public class StaffView {
     /**
      * Show Add Staff popup — accepts DAO + callback
      **/
-    public void showAddStaffPopup(StaffDAO dao, Runnable reloadCallback) {
+    public void showAddStaffPopup(String staffId, StaffDAO dao, Runnable reloadCallback) {
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
         popup.setTitle("Add New Staff");
 
         Label staffIDLabel = new Label("Staff ID:");
         staffIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        TextField staffIDField = new TextField();
-        staffIDField.setPromptText("e.g., STF016");
-        staffIDField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        TextField staffIDField = new TextField(staffId);
+        staffIDField.setEditable(false); // prevent editing
+        staffIDField.setStyle("-fx-background-color: #3a3a4a; -fx-text-fill: #cccccc; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label staffFirstNameLabel = new Label("Staff First Name:");
         staffFirstNameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");

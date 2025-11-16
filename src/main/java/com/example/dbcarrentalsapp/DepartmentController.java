@@ -60,16 +60,22 @@ public class DepartmentController {
             primaryStage.setScene(manageView.getScene());
         });
 
-        // Search / Filter
-        view.filterButton.setOnAction(e -> {
-            String keyword = view.searchField.getText().trim().toLowerCase();
-            String og = view.searchField.getText().trim();
+        // Search / Filter on button click
+        view.filterButton.setOnAction(e -> applyFilter());
 
-            ObservableList<DepartmentRecord> filtered = departmentList.filtered(
-                    d -> d.getDepartmentId().contains(og) ||
-                            d.getDepartmentName().toLowerCase().contains(keyword)
-            );
-            view.tableView.setItems(filtered);
-        });
+        // Trigger search when Enter is pressed in the search field
+        view.searchField.setOnAction(e -> applyFilter());
+    }
+
+    // Filtering logic extracted to a method
+    private void applyFilter() {
+        String keyword = view.searchField.getText().trim().toLowerCase();
+        String og = view.searchField.getText().trim();
+
+        ObservableList<DepartmentRecord> filtered = departmentList.filtered(
+                d -> d.getDepartmentId().contains(og) ||
+                        d.getDepartmentName().toLowerCase().contains(keyword)
+        );
+        view.tableView.setItems(filtered);
     }
 }

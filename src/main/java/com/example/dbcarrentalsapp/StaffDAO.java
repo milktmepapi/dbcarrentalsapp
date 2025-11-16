@@ -169,4 +169,25 @@ public class StaffDAO {
 
         return list;
     }
+
+    public String generateNextStaffId() {
+        String sql = "SELECT staff_id FROM staff_record ORDER BY staff_id DESC LIMIT 1";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                String lastId = rs.getString("staff_id"); // e.g. "STF005"
+                int number = Integer.parseInt(lastId.substring(3)); // Extract "005" -> 5
+                number++; // Increment to next ID
+                return String.format("STF%03d", number); // Format back to "STF006"
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // If no staff exists yet, start with STF001
+        return "STF001";
+    }
 }
