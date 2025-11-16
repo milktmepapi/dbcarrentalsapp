@@ -43,7 +43,7 @@ public class ReturnView {
         root.getChildren().add(title);
 
         // ===== Back Button =====
-        backButton = new Button("Back");
+        backButton = new Button("Return");
 
         // ===== Search Bar =====
         searchField = new TextField();
@@ -95,9 +95,9 @@ public class ReturnView {
         // ===== Buttons =====
         addButton = new Button("Add");
         modifyButton = new Button("Modify");
-        returnButton = new Button("Return");
+        returnButton = new Button("Select");
 
-        HBox buttonBox = new HBox(15, addButton, modifyButton, returnButton, backButton);
+        HBox buttonBox = new HBox(15, returnButton, backButton);
         buttonBox.setAlignment(Pos.CENTER);
 
         // ===== Card Container =====
@@ -229,3 +229,4 @@ public class ReturnView {
         tableView.getItems().setAll(returnDAO.getAllReturns());
     }
 }
+
