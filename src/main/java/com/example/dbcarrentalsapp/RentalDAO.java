@@ -291,4 +291,21 @@ public class RentalDAO {
         }
     }
 
+     // Update rental status
+    public boolean updateRentalStatus(RentalRecord rental) {
+        String sql = "UPDATE rental_details SET rental_status = ? WHERE rental_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, rental.getRentalStatus().name());
+            ps.setString(2, rental.getRentalId());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

@@ -16,6 +16,7 @@ import javafx.stage.Stage;
 import model.ViolationRecord;
 import model.RentalDetails;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -93,29 +94,26 @@ public class ViolationView {
 
         TableColumn<ViolationRecord, String> idCol = new TableColumn<>("Violation ID");
         idCol.setCellValueFactory(new PropertyValueFactory<>("violationId"));
-        idCol.setPrefWidth(120);
 
         TableColumn<ViolationRecord, String> rentalCol = new TableColumn<>("Rental ID");
         rentalCol.setCellValueFactory(new PropertyValueFactory<>("rentalId"));
-        rentalCol.setPrefWidth(100);
 
         TableColumn<ViolationRecord, String> typeCol = new TableColumn<>("Violation Type");
         typeCol.setCellValueFactory(new PropertyValueFactory<>("violationType"));
-        typeCol.setPrefWidth(150);
 
         TableColumn<ViolationRecord, Double> penaltyCol = new TableColumn<>("Penalty Fee");
         penaltyCol.setCellValueFactory(new PropertyValueFactory<>("penaltyFee"));
-        penaltyCol.setPrefWidth(100);
 
         TableColumn<ViolationRecord, String> reasonCol = new TableColumn<>("Reason");
         reasonCol.setCellValueFactory(new PropertyValueFactory<>("reason"));
-        reasonCol.setPrefWidth(200);
 
-        TableColumn<ViolationRecord, String> dateCol = new TableColumn<>("Date");
+        TableColumn<ViolationRecord, Integer> durationCol = new TableColumn<>("Duration Hours");
+        durationCol.setCellValueFactory(new PropertyValueFactory<>("durationHours"));
+
+        TableColumn<ViolationRecord, Date> dateCol = new TableColumn<>("Date");
         dateCol.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
-        dateCol.setPrefWidth(150);
 
-        tableView.getColumns().addAll(idCol, rentalCol, typeCol, penaltyCol, reasonCol, dateCol);
+        tableView.getColumns().addAll(idCol, rentalCol, typeCol, penaltyCol, reasonCol, durationCol, dateCol);
 
         // Return Button
         returnButton = new Button("Return");

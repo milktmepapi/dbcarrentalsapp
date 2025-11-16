@@ -1,6 +1,7 @@
 package model;
 
 import java.util.Date;
+import javafx.beans.property.*;
 
 /**
  * The {@code ViolationRecord} class represents a violation entry in the Car Rental system.
@@ -138,6 +139,35 @@ public class ViolationRecord {
     /** @param timestamp sets the timestamp */
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
+    }
+
+    //For table view
+    public StringProperty violationIdProperty() {
+        return new SimpleStringProperty(violationId);
+    }
+
+    public StringProperty rentalIdProperty() {
+        return new SimpleStringProperty(rentalId);
+    }
+
+    public StringProperty violationTypeProperty() {
+        return new SimpleStringProperty(violationType);
+    }
+
+    public DoubleProperty penaltyFeeProperty() {
+        return new SimpleDoubleProperty(penaltyFee);
+    }
+
+    public StringProperty reasonProperty() {
+        return new SimpleStringProperty(reason);
+    }
+
+    public IntegerProperty durationHoursProperty() {
+        return new SimpleIntegerProperty(durationHours);
+    }
+
+    public ObjectProperty<Date> timestampProperty() {
+        return new SimpleObjectProperty<>(timestamp);
     }
 
     /**
