@@ -62,10 +62,11 @@ public class ReturnDetails {
 
     @Override
     public String toString() {
-        return "ReturnRecord{" +
+        return "ReturnDetails{" +
                 "returnId='" + returnID + '\'' +
                 ", returnRentalID='" + returnRentalID + '\'' +
                 ", returnStaffID='" + returnStaffID +
                 '}';
     }
 }
+
