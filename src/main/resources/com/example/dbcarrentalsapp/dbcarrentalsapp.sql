@@ -163,6 +163,22 @@ CREATE TABLE IF NOT EXISTS return_details (
     FOREIGN KEY (return_staff_id) REFERENCES staff_record(staff_id)
 );
 
+# Helper tables
+CREATE TABLE IF NOT EXISTS job_id_sequence (
+    department_id VARCHAR(10) PRIMARY KEY,
+    last_number INT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS staff_id_sequence (
+  id_type VARCHAR(50) PRIMARY KEY,   -- e.g. 'STAFF' or 'JOB'
+  last_number INT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS branch_id_sequence (
+    id_type VARCHAR(20) PRIMARY KEY,
+    last_number INT NOT NULL
+);
+
 -- =====================================================
 -- 5. Default data insertion (safe inserts)
 -- =====================================================
@@ -321,7 +337,7 @@ VALUES
 ('STF028', 'Osiris', 'Luna', 'OPS001', 'BRN013'),
 ('STF029', 'Onyx', 'Martinez', 'OPS002', 'BRN014');
 
-# Renter Record    
+# Renter Record
 INSERT IGNORE INTO renter_record (renter_dl_number, renter_first_name, renter_last_name, renter_phone_number, renter_email_address)
 VALUES
 ('MC1234567890', 'Angela', 'Cruz', '09171234567', 'angela.cruz@email.com'),
@@ -436,3 +452,20 @@ WHERE car_plate_number NOT IN (
 )
 AND car_status != 'Under Maintenance';
 SET SQL_SAFE_UPDATES = 1;
+
+INSERT INTO job_id_sequence (department_id, last_number)
+SELECT
+    SUBSTRING(job_id, 1, LENGTH(job_id) - 3) AS prefix,
+    MAX(CAST(SUBSTRING(job_id, LENGTH(job_id) - 2) AS UNSIGNED)) AS last_num
+FROM job_record
+GROUP BY SUBSTRING(job_id, 1, LENGTH(job_id) - 3)
+ON DUPLICATE KEY UPDATE last_number =
+    VALUES(last_number);
+
+-- Suppose result is 29 then:
+INSERT INTO staff_id_sequence (id_type, last_number) VALUES ('STAFF', 29)
+  ON DUPLICATE KEY UPDATE last_number = GREATEST(last_number, 29);
+
+INSERT INTO branch_id_sequence (id_type, last_number)
+VALUES ('BRANCH', 14)
+ON DUPLICATE KEY UPDATE last_number = GREATEST(last_number, 14);
