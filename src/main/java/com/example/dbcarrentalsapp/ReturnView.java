@@ -7,6 +7,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import model.RentalRecord;
 import model.ReturnRecord;
 
@@ -16,7 +17,7 @@ import java.util.Optional;
 
 public class ReturnView {
 
-    public Button addButton, modifyButton, deleteButton, returnButton, filterButton;
+    public Button backButton, addButton, modifyButton, deleteButton, returnButton, filterButton;
     public TextField searchField;
     public TableView<ReturnRecord> tableView;
     private final Scene scene;
@@ -40,6 +41,9 @@ public class ReturnView {
         StackPane.setAlignment(title, Pos.TOP_CENTER);
         StackPane.setMargin(title, new Insets(50, 0, 0, 0));
         root.getChildren().add(title);
+
+        // ===== Back Button =====
+        backButton = new Button("Back");
 
         // ===== Search Bar =====
         searchField = new TextField();
@@ -93,7 +97,7 @@ public class ReturnView {
         modifyButton = new Button("Modify");
         returnButton = new Button("Return");
 
-        HBox buttonBox = new HBox(15, addButton, modifyButton, returnButton);
+        HBox buttonBox = new HBox(15, addButton, modifyButton, returnButton, backButton);
         buttonBox.setAlignment(Pos.CENTER);
 
         // ===== Card Container =====
@@ -140,6 +144,7 @@ public class ReturnView {
                 String currentStaffId = "STAFF001"; // Replace with logged-in staff ID
                 processReturn(selected.getReturnRentalID(), currentStaffId);
                 refreshTable();
+
             } catch (Exception ex) {
                 ex.printStackTrace();
                 showPopup("Error", "Failed to process return.");
@@ -220,8 +225,7 @@ public class ReturnView {
     }
 
     private void refreshTable() {
-        // Reload TableView data from ReturnDAO
-        // Example:
-        // tableView.setItems(FXCollections.observableArrayList(returnDAO.getAllReturns()));
+        ReturnDAO returnDAO = new ReturnDAO();
+        tableView.getItems().setAll(returnDAO.getAllReturns());
     }
 }
