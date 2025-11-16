@@ -263,4 +263,22 @@ public class BranchDAO {
         }
         return list;
     }
+
+    public boolean addTransaction(String branchId, BigDecimal amount) {
+        String sql = "UPDATE branch_record SET branch_total_transactions = branch_total_transactions + ? " +
+                "WHERE branch_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setBigDecimal(1, amount);
+            ps.setString(2, branchId);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }
