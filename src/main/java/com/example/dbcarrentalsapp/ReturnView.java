@@ -66,7 +66,27 @@ public class ReturnView {
         TableColumn<ReturnRecord, String> staffIdCol = new TableColumn<>("Staff ID");
         staffIdCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("staffID"));
 
-        tableView.getColumns().addAll(idCol, rentalIDCol, staffIdCol);
+        TableColumn<ReturnRecord, Void> receiptCol = new TableColumn<>("Receipt");
+        receiptCol.setCellFactory(col -> new TableCell<>() {
+            private final Button btn = new Button("View Receipt");
+            {
+                btn.setOnAction(e -> {
+                    ReturnRecord record = getTableView().getItems().get(getIndex());
+                    showReturnReceipt(record);
+                });
+            }
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(btn);
+                }
+            }
+        });
+
+        tableView.getColumns().addAll(idCol, rentalIDCol, staffIdCol, receiptCol);
 
         // ===== Buttons =====
         addButton = new Button("Add");
@@ -157,25 +177,38 @@ public class ReturnView {
         ReturnRecord returnRecord = new ReturnRecord(null,  rental.getRentalId(), staffId);
         returnDAO.addReturn(returnRecord);
 
-        // Step 5: Update branch transaction
-        branchDAO.addTransaction(rental.getBranchId(), rental.getTotalPayment());
-
-        // Step 6: Update rental status
+        // Step 5: Update rental status
         rental.setRentalStatus(RentalRecord.RentalStatus.COMPLETED);
         rentalDAO.updateRentalStatus(rental);
 
-        // Step 7: Generate receipt popup
-        Alert receipt = new Alert(Alert.AlertType.INFORMATION);
-        receipt.setTitle("Return Receipt");
-        receipt.setHeaderText("Car Returned Successfully!");
-        receipt.setContentText(
-                "Rental ID: " + rental.getRentalId() + "\n" +
-                        "Renter DL: " + rental.getRenterDlNumber() + "\n" +
-                        "Car Plate: " + rental.getCarPlateNumber() + "\n" +
-                        "Return Date & Time: " + LocalDateTime.now() + "\n" +
-                        "Total Payment: " + rental.getTotalPayment()
-        );
-        receipt.showAndWait();
+        // Step 6: Show automatic receipt
+        showReturnReceipt(returnRecord);
+    }
+    // ===== Show Receipt Popup =====
+    private void showReturnReceipt(ReturnRecord record) {
+        try {
+            RentalDAO rentalDAO = new RentalDAO();
+            RentalRecord rental = rentalDAO.getRentalById(record.getReturnRentalID());
+            if (rental == null) {
+                showPopup("Error", "Rental details not found.");
+                return;
+            }
+
+            Alert receipt = new Alert(Alert.AlertType.INFORMATION);
+            receipt.setTitle("Return Receipt");
+            receipt.setHeaderText("Car Returned Successfully!");
+            receipt.setContentText(
+                    "Rental ID: " + rental.getRentalId() + "\n" +
+                            "Renter DL: " + rental.getRenterDlNumber() + "\n" +
+                            "Car Plate: " + rental.getCarPlateNumber() + "\n" +
+                            "Return Date & Time: " + LocalDateTime.now() + "\n" +
+                            "Total Payment: " + rental.getTotalPayment()
+            );
+            receipt.showAndWait();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            showPopup("Error", "Failed to generate receipt.");
+        }
     }
 
     private void showPopup(String title, String message) {
