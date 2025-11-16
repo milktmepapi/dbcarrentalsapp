@@ -172,6 +172,51 @@ CREATE TABLE IF NOT EXISTS return_details (
     FOREIGN KEY (return_staff_id) REFERENCES staff_record(staff_id)
 );
 
+-- =====================================================
+-- Sample Violation Data Insertion
+-- =====================================================
+
+-- Insert sample violation records
+INSERT IGNORE INTO violation_details (
+    violation_id,
+    violation_rental_id,
+    violation_staff_id,
+    violation_type,
+    violation_penalty_fee,
+    violation_reason,
+    violation_duration_hours,
+    violation_timestamp
+) VALUES
+-- Late Return Violation (RNT001 - Completed rental that was returned late)
+('VLN001', 'RNT001', 'STF016', 'Late Return', 1200.00, 
+ 'Vehicle returned 6 hours past expected return time. Customer encountered heavy traffic due to road construction.', 
+ 6, '2025-11-05 15:00:00'),
+
+-- Car Damage Violation (RNT004 - Completed rental with damage)
+('VLN002', 'RNT004', 'STF017', 'Car Damage', 3500.00, 
+ 'Minor scratch on rear bumper and dent on passenger side door. Customer admitted to parking incident.', 
+ 0, '2025-10-30 16:30:00'),
+
+-- Cleaning Fee Violation (RNT001 - Additional violation for same rental)
+('VLN003', 'RNT001', 'STF016', 'Cleaning Fee', 800.00, 
+ 'Excessive interior stains and food debris. Required professional cleaning service.', 
+ 0, '2025-11-05 15:15:00'),
+
+-- Traffic Violation (RNT006 - Active rental that received traffic ticket)
+('VLN004', 'RNT006', 'STF019', 'Traffic Violation', 1500.00, 
+ 'Speeding violation captured by traffic camera in Cebu City. Fine receipt provided.', 
+ 0, '2025-11-08 11:20:00'),
+
+-- Late Return Violation (Future violation for upcoming rental RNT003)
+('VLN005', 'RNT003', 'STF017', 'Late Return', 800.00, 
+ 'Returned 4 hours late due to flight delay. Customer provided airline documentation.', 
+ 4, '2025-11-15 12:00:00'),
+
+-- Other Violation (RNT004 - Additional miscellaneous violation)
+('VLN006', 'RNT004', 'STF017', 'Other', 500.00, 
+ 'Unauthorized additional driver detected during rental period.', 
+ 0, '2025-10-30 17:00:00');
+ 
 # Helper tables
 CREATE TABLE IF NOT EXISTS job_id_sequence (
     department_id VARCHAR(10) PRIMARY KEY,
@@ -482,3 +527,4 @@ INSERT INTO staff_id_sequence (id_type, last_number) VALUES ('STAFF', 29)
 INSERT INTO branch_id_sequence (id_type, last_number)
 VALUES ('BRANCH', 14)
 ON DUPLICATE KEY UPDATE last_number = GREATEST(last_number, 14);
+
