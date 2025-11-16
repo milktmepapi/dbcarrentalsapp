@@ -14,8 +14,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.CarRecord;
 
-import java.time.Year;
-
 public class CarView {
     public Button addButton, modifyButton, deleteButton, returnButton, filterButton;
     public TextField searchField;
@@ -100,7 +98,21 @@ public class CarView {
         TableColumn<CarRecord, String> branchIDCol = new TableColumn<>("Branch ID");
         branchIDCol.setCellValueFactory(new PropertyValueFactory<>("carBranchId"));
 
-        tableView.getColumns().addAll(plateNumberCol, transmissionCol, modelCol, brandCol, yearManufacturedCol, mileageCol, seatNumberCol, statusCol, branchIDCol);
+        TableColumn<CarRecord, Double> rentalFeeCol = new TableColumn<>("Rental Fee");
+        rentalFeeCol.setCellValueFactory(new PropertyValueFactory<>("carRentalFee"));
+
+        tableView.getColumns().addAll(
+                plateNumberCol,
+                transmissionCol,
+                modelCol,
+                brandCol,
+                yearManufacturedCol,
+                mileageCol,
+                seatNumberCol,
+                statusCol,
+                branchIDCol,
+                rentalFeeCol // Add
+        );
 
         // ===== Buttons =====
         addButton = new Button("Add");
@@ -207,13 +219,11 @@ public class CarView {
         seatNumberComboBox.setPromptText("Select Seats");
         seatNumberComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
-        /*Label statusLabel = new Label("Status:");
-        statusLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        ComboBox<String> statusComboBox = new ComboBox<>();
-        statusComboBox.getItems().addAll("Available", "Rented", "Under Maintenance");
-        statusComboBox.setPromptText("Select Status");
-        statusComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
-        */
+        Label rentalFeeLabel = new Label("Rental Fee (per day):");
+        rentalFeeLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
+        TextField rentalFeeField = new TextField();
+        rentalFeeField.setPromptText("Enter Daily Rental Fee (e.g. 1500.00)");
+        rentalFeeField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label branchIDLabel = new Label("Branch ID:");
         branchIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
@@ -243,13 +253,24 @@ public class CarView {
             Integer yearManufactured = yearManufacturedComboBox.getValue();
             String mileage = mileageField.getText().trim();
             Integer seatNumber = seatNumberComboBox.getValue();
-            //String status = statusComboBox.getValue();
+            String rentalFeeString = rentalFeeField.getText().trim();
             String selectedBranch = branchIDComboBox.getValue();
-            String branchId = selectedBranch.split(" — ")[0];
+
+            // extract branchId safely (supports "ID — Name" or plain "ID")
+            String branchId = null;
+            if (selectedBranch != null) {
+                if (selectedBranch.contains("—")) {
+                    branchId = selectedBranch.split("—")[0].trim();
+                } else if (selectedBranch.contains(" - ")) {
+                    branchId = selectedBranch.split(" - ")[0].trim();
+                } else {
+                    branchId = selectedBranch.trim();
+                }
+            }
 
             if (plateNumber.isEmpty() || transmission == null || model.isEmpty() || brand.isEmpty() ||
                     yearManufactured == null || mileage.isEmpty() || seatNumber == null ||
-                    branchId == null) {
+                    branchId == null || rentalFeeString.isEmpty()) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
@@ -259,8 +280,18 @@ public class CarView {
                 int year = yearManufactured;
                 int distance = Integer.parseInt(mileage);
                 int seat = seatNumber;
+                double rentalFee = Double.parseDouble(rentalFeeString);
 
-                boolean success = dao.addCar(plateNumber, transmission, model, brand, year, distance, seat, "Available", branchId);
+                if (rentalFee < 0) {
+                    message.setText("Rental fee cannot be negative!");
+                    message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
+                    return;
+                }
+
+                // Call addCar with rentalFee (matches your DAO signature)
+                boolean success = dao.addCar(plateNumber, transmission, model, brand,
+                        year, distance, seat, rentalFee, "Available", branchId);
+
                 if (success) {
                     reloadCallback.run();
                     popup.close();
@@ -270,7 +301,7 @@ public class CarView {
                     message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                 }
             } catch (NumberFormatException ex) {
-                message.setText("Please enter valid numbers for year and mileage!");
+                message.setText("Please enter valid numbers for mileage and rental fee!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
             }
         });
@@ -288,6 +319,7 @@ public class CarView {
                 yearManufacturedLabel, yearManufacturedComboBox,
                 mileageLabel, mileageField,
                 seatNumberLabel, seatNumberComboBox,
+                rentalFeeLabel, rentalFeeField,
                 branchIDLabel, branchIDComboBox,
                 buttonBox, message
         );
@@ -295,7 +327,7 @@ public class CarView {
         box.setAlignment(Pos.CENTER);
         box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene popupScene = new Scene(box, 380, 750);
+        Scene popupScene = new Scene(box, 380, 820);
         popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );
@@ -341,7 +373,6 @@ public class CarView {
         TextField brandField = new TextField(selected.getCarBrand());
         brandField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
-
         Label yearManufacturedLabel = new Label("Year Manufactured:");
         yearManufacturedLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         ComboBox<Integer> yearManufacturedComboBox = new ComboBox<>();
@@ -367,9 +398,14 @@ public class CarView {
         Label statusLabel= new Label("Status:");
         statusLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         ComboBox<String> statusComboBox = new ComboBox<>();
-        statusComboBox.getItems().addAll("Available", "Rented", "Maintenance");
+        statusComboBox.getItems().addAll("Available", "Rented", "Under Maintenance", "Maintenance");
         statusComboBox.setValue(selected.getCarStatus());
         statusComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+
+        Label rentalFeeLabel = new Label("Rental Fee (per day):");
+        rentalFeeLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
+        TextField rentalFeeField = new TextField(String.valueOf(selected.getCarRentalFee()));
+        rentalFeeField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label branchIDLabel= new Label("Branch ID:");
         branchIDLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
@@ -380,7 +416,19 @@ public class CarView {
         // Populate branch IDs and set current value
         BranchDAO branchDAO = new BranchDAO();
         branchIDComboBox.getItems().addAll(branchDAO.getAllBranchDisplayValues());
-        branchIDComboBox.setValue(selected.getCarBranchId());
+        // set to selected branch id (if branch display values are "ID — Name", try to find matching item)
+        String currentBranch = selected.getCarBranchId();
+        if (currentBranch != null) {
+            for (String item : branchIDComboBox.getItems()) {
+                if (item.startsWith(currentBranch) || item.equals(currentBranch)) {
+                    branchIDComboBox.setValue(item);
+                    break;
+                }
+            }
+            if (branchIDComboBox.getValue() == null) {
+                branchIDComboBox.setValue(currentBranch); // fallback plain id
+            }
+        }
 
         Button saveBtn = new Button("Save");
         Button cancelBtn = new Button("Cancel");
@@ -401,14 +449,25 @@ public class CarView {
             Integer yearManufactured = yearManufacturedComboBox.getValue();
             String mileage = mileageField.getText().trim();
             Integer seatNumber = seatNumberComboBox.getValue();
-            String status = "Available";
-
+            String status = statusComboBox.getValue();
+            String rentalFeeString = rentalFeeField.getText().trim();
             String selectedBranch = branchIDComboBox.getValue();
-            String branchId = selectedBranch.split(" — ")[0];
+
+            // safe branch id extraction
+            String branchId = null;
+            if (selectedBranch != null) {
+                if (selectedBranch.contains("—")) {
+                    branchId = selectedBranch.split("—")[0].trim();
+                } else if (selectedBranch.contains(" - ")) {
+                    branchId = selectedBranch.split(" - ")[0].trim();
+                } else {
+                    branchId = selectedBranch.trim();
+                }
+            }
 
             if (plateNumber.isEmpty() || transmission == null || model.isEmpty() || brand.isEmpty() ||
-                    String.valueOf(yearManufactured).isEmpty() || mileage.isEmpty() || seatNumber == null ||
-                    status == null || branchId == null) { // CHANGED CHECK
+                    yearManufactured == null || mileage.isEmpty() || seatNumber == null ||
+                    status == null || branchId == null || rentalFeeString.isEmpty()) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
                 return;
@@ -418,8 +477,17 @@ public class CarView {
                 int year = yearManufactured;
                 int distance = Integer.parseInt(mileage);
                 int seat = seatNumber;
+                double rentalFee = Double.parseDouble(rentalFeeString);
 
-                boolean success = dao.updateCar(finalSelected.getCarPlateNumber(), transmission, model, brand, year, distance, seat, status, branchId);
+                if (rentalFee < 0) {
+                    message.setText("Rental fee cannot be negative!");
+                    message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
+                    return;
+                }
+
+                boolean success = dao.updateCar(finalSelected.getCarPlateNumber(), transmission, model, brand,
+                        year, distance, seat, rentalFee, status, branchId);
+
                 if (success) {
                     reloadCallback.run(); // refresh the table
                     popup.close();
@@ -429,7 +497,7 @@ public class CarView {
                     message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                 }
             } catch (NumberFormatException ex) {
-                message.setText("Please enter valid numbers for year and mileage!");
+                message.setText("Please enter valid numbers for mileage and rental fee!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
             }
         });
@@ -447,14 +515,16 @@ public class CarView {
                 yearManufacturedLabel, yearManufacturedComboBox,
                 mileageLabel, mileageField,
                 seatNumberLabel, seatNumberComboBox,
-                branchIDLabel, branchIDComboBox, // CHANGED TO COMBOBOX
+                statusLabel, statusComboBox,
+                rentalFeeLabel, rentalFeeField,
+                branchIDLabel, branchIDComboBox,
                 buttonBox, message
         );
         box.setPadding(new Insets(25));
         box.setAlignment(Pos.CENTER);
         box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
 
-        Scene popupScene = new Scene(box, 380, 750);
+        Scene popupScene = new Scene(box, 380, 900);
         popupScene.getStylesheets().add(
                 getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
         );

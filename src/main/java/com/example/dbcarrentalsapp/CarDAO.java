@@ -27,6 +27,7 @@ public class CarDAO {
                         rs.getInt("car_year_manufactured"),
                         rs.getInt("car_mileage"),
                         rs.getInt("car_seat_number"),
+                        rs.getDouble("car_rental_fee"),   // NEW FIELD
                         rs.getString("car_status"),
                         rs.getString("car_branch_id")
                 ));
@@ -43,13 +44,12 @@ public class CarDAO {
      */
     public boolean addCar(String plateNumber, String transmission, String model,
                           String brand, int yearManufactured, int mileage,
-                          int seatNumber, String ignoredStatus, String branchId) {
+                          int seatNumber, double rentalFee, String ignoredStatus, String branchId) {
 
         String checkSql = "SELECT COUNT(*) FROM car_record WHERE car_plate_number = ?";
         String insertSql = "INSERT INTO car_record (car_plate_number, car_transmission, car_model, car_brand, " +
-                "car_year_manufactured, car_mileage, car_seat_number, car_status, car_branch_id) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
+                "car_year_manufactured, car_mileage, car_seat_number, car_rental_fee, car_status, car_branch_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection()) {
 
             // Check if plate number already exists
@@ -71,8 +71,9 @@ public class CarDAO {
                 pstmt.setInt(5, yearManufactured);
                 pstmt.setInt(6, mileage);
                 pstmt.setInt(7, seatNumber);
-                pstmt.setString(8, "Available"); // Default status
-                pstmt.setString(9, branchId);
+                pstmt.setDouble(8, rentalFee);   // NEW
+                pstmt.setString(9, "Available");
+                pstmt.setString(10, branchId);
 
                 int rows = pstmt.executeUpdate();
                 return rows > 0;
@@ -89,11 +90,11 @@ public class CarDAO {
      */
     public boolean updateCar(String plateNumber, String transmission, String model,
                              String brand, int yearManufactured, int mileage,
-                             int seatNumber, String status, String branchId) {
+                             int seatNumber, double rentalFee, String status, String branchId) {
 
         String updateSql = "UPDATE car_record SET car_transmission=?, car_model=?, car_brand=?, " +
-                "car_year_manufactured=?, car_mileage=?, car_seat_number=?, car_status=?, car_branch_id=? " +
-                "WHERE car_plate_number=?";
+                "car_year_manufactured=?, car_mileage=?, car_seat_number=?, car_rental_fee=?, " +
+                "car_status=?, car_branch_id=? WHERE car_plate_number=?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
@@ -104,11 +105,10 @@ public class CarDAO {
             pstmt.setInt(4, yearManufactured);
             pstmt.setInt(5, mileage);
             pstmt.setInt(6, seatNumber);
-            pstmt.setString(7, status);
-            pstmt.setString(8, branchId);
-
-            // WHERE condition
-            pstmt.setString(9, plateNumber);
+            pstmt.setDouble(7, rentalFee);   // ✅ CORRECT
+            pstmt.setString(8, status);      // ✅ CORRECT
+            pstmt.setString(9, branchId);    // ✅ CORRECT
+            pstmt.setString(10, plateNumber); // WHERE
 
             int rows = pstmt.executeUpdate();
             return rows > 0;
@@ -178,6 +178,7 @@ public class CarDAO {
                         rs.getInt("car_year_manufactured"),
                         rs.getInt("car_mileage"),
                         rs.getInt("car_seat_number"),
+                        rs.getDouble("car_rental_fee"),   // NEW
                         rs.getString("car_status"),
                         rs.getString("car_branch_id")
                 );
@@ -190,7 +191,7 @@ public class CarDAO {
         return null;
     }
 
-     /**
+    /**
      * Updates the status of a car (e.g., Available, Rented).
      */
     public boolean updateCarStatus(String plateNumber, String status) {

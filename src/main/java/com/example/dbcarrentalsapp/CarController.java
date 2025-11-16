@@ -92,7 +92,7 @@ public class CarController {
     /** Applies text-based filtering **/
     private void applyFilter() {
         String filterText = view.searchField.getText().toLowerCase().trim();
-        String og = view.searchField.getText().trim(); // For non lowercase fields
+        String og = view.searchField.getText().trim(); // For numeric or exact-case fields
 
         if (filterText.isEmpty()) {
             view.tableView.setItems(masterList);
@@ -100,15 +100,15 @@ public class CarController {
         }
 
         ObservableList<CarRecord> filteredList = masterList.filtered(record ->
-                        record.getCarModel().toLowerCase().contains(filterText) ||
+                record.getCarModel().toLowerCase().contains(filterText) ||
                         record.getCarBrand().toLowerCase().contains(filterText) ||
                         record.getCarPlateNumber().contains(og) ||
                         record.getCarStatus().toLowerCase().contains(filterText) ||
-                                record.getCarTransmission().toLowerCase().contains(filterText) ||
-                                record.getCarPlateNumber().contains(og) ||
-                                record.getStringVersionOfCarMileage().contains(og) ||
-                                record.getStringVersionOfCarSeatNumber().contains(og) ||
-                                record.getStringVersionOfYearManufactured().contains(og)
+                        record.getCarTransmission().toLowerCase().contains(filterText) ||
+                        record.getStringVersionOfCarMileage().contains(og) ||
+                        record.getStringVersionOfCarSeatNumber().contains(og) ||
+                        record.getStringVersionOfYearManufactured().contains(og) ||
+                        record.getStringVersionOfCarRentalFee().contains(og)   // ✅ ADDED
         );
 
         view.tableView.setItems(filteredList);
