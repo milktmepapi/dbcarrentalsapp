@@ -4,6 +4,7 @@ import model.RentalRecord;
 import model.RentalRecord.RentalStatus;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,43 +24,47 @@ public class RentalDAO {
                                          LocalDateTime expectedPickup, LocalDateTime expectedReturn)
             throws SQLException {
 
-        // 1️⃣ Check car basic status + branch
+        String error = null;
+
         String carSql = """
-            SELECT car_status, car_branch_id
-            FROM car_record
-            WHERE car_plate_number = ?
-            """;
+        SELECT car_status, car_branch_id
+        FROM car_record
+        WHERE car_plate_number = ?
+        """;
 
         try (PreparedStatement ps = conn.prepareStatement(carSql)) {
             ps.setString(1, carPlate);
             ResultSet rs = ps.executeQuery();
 
             if (!rs.next())
-                throw new SQLException("Car does not exist.");
+                error = "Car does not exist.";
+            else {
+                String status = rs.getString("car_status");
+                String carBranch = rs.getString("car_branch_id");
 
-            String status = rs.getString("car_status");
-            String carBranch = rs.getString("car_branch_id");
-
-            if (!carBranch.equals(branchId))
-                throw new SQLException("Car does not belong to the selected branch.");
-
-            if (status.equals("Under Maintenance"))
-                throw new SQLException("Car is under maintenance and cannot be rented.");
-
-            if (status.equals("Rented"))
-                throw new SQLException("Car is currently rented.");
+                if (!carBranch.equals(branchId))
+                    error = "Car does not belong to the selected branch.";
+                else if (status.equals("Under Maintenance"))
+                    error = "Car is under maintenance.";
+                else if (status.equals("Rented"))
+                    error = "Car is currently rented.";
+            }
         }
 
-        // 2️⃣ Check if car already has an UPCOMING rental during that time window
+        if (error != null) throw new SQLException(error);
+
+        // --- second query ---
         String overlapSql = """
-            SELECT 1 FROM rental_details
-            WHERE rental_car_plate_number = ?
-              AND rental_status = 'UPCOMING'
-              AND (
-                    (rental_expected_pickup_datetime <= ? AND rental_expected_return_datetime >= ?)
-                )
-            LIMIT 1
-            """;
+        SELECT 1 FROM rental_details
+        WHERE rental_car_plate_number = ?
+          AND rental_status = 'UPCOMING'
+          AND (
+                (rental_expected_pickup_datetime <= ? AND rental_expected_return_datetime >= ?)
+            )
+        LIMIT 1
+        """;
+
+        error = null;
 
         try (PreparedStatement ps = conn.prepareStatement(overlapSql)) {
             ps.setString(1, carPlate);
@@ -67,17 +72,17 @@ public class RentalDAO {
             ps.setTimestamp(3, Timestamp.valueOf(expectedPickup));
 
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                throw new SQLException("Car has an upcoming reservation in that timeslot.");
-            }
+            if (rs.next()) error = "Car has an upcoming reservation in that timeslot.";
         }
+
+        if (error != null) throw new SQLException(error);
     }
 
     private void validateRentalTimes(LocalDateTime pickup, LocalDateTime expectedReturn)
             throws SQLException {
 
-        if (pickup.isBefore(LocalDateTime.now()))
-            throw new SQLException("Pickup date/time cannot be in the past.");
+        if (pickup.toLocalDate().isBefore(LocalDate.now()))
+            throw new SQLException("Pickup date cannot be in the past.");
 
         if (!expectedReturn.isAfter(pickup))
             throw new SQLException("Return time must be after pickup time.");
@@ -86,20 +91,24 @@ public class RentalDAO {
     /**
      * Generate next rental id in format RNT### (always).
      */
-    public String generateNextRentalId() throws SQLException {
+    public String generateNextRentalId(Connection conn) throws SQLException {
         String sql = "SELECT rental_id FROM rental_details WHERE rental_id LIKE 'RNT%' ORDER BY rental_id DESC LIMIT 1";
 
-        try (Connection conn = DBConnection.getConnection();
-             Statement stmt = conn.createStatement();
+        try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-
             if (rs.next()) {
-                String lastId = rs.getString("rental_id");
+                String lastId = rs.getString(1);
                 int num = Integer.parseInt(lastId.substring(3)) + 1;
                 return String.format("RNT%03d", num);
             }
         }
         return "RNT001";
+    }
+
+    public String generateNextRentalId() throws SQLException {
+        try (Connection conn = DBConnection.getConnection()) {
+            return generateNextRentalId(conn); // call the connection-required version
+        }
     }
 
     /**
@@ -108,7 +117,31 @@ public class RentalDAO {
      */
     public void addRental(RentalRecord rental) throws SQLException {
 
-        String sql = """
+        // Validate times BEFORE starting transaction
+        validateRentalTimes(
+                rental.getExpectedPickupDateTime(),
+                rental.getExpectedReturnDateTime()
+        );
+
+        try (Connection conn = DBConnection.getConnection()) {
+
+            conn.setAutoCommit(false);
+
+            // 1. Generate ID USING SAME CONNECTION
+            String newRentalId = generateNextRentalId(conn);
+            rental.setRentalId(newRentalId);
+
+            // 2. Validate car availability BEFORE insert
+            validateCarAvailability(
+                    conn,
+                    rental.getCarPlateNumber(),
+                    rental.getBranchId(),
+                    rental.getExpectedPickupDateTime(),
+                    rental.getExpectedReturnDateTime()
+            );
+
+            // 3. Perform insert using same connection
+            String sql = """
             INSERT INTO rental_details (
                 rental_id,
                 rental_renter_dl_number,
@@ -126,50 +159,25 @@ public class RentalDAO {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
-        try (Connection conn = DBConnection.getConnection()) {
-
-            conn.setAutoCommit(false);
-
-            // Validate timestamps
-            validateRentalTimes(
-                    rental.getExpectedPickupDateTime(),
-                    rental.getExpectedReturnDateTime()
-            );
-
-            // Validate car availability
-            validateCarAvailability(
-                    conn,
-                    rental.getCarPlateNumber(),
-                    rental.getBranchId(),
-                    rental.getExpectedPickupDateTime(),
-                    rental.getExpectedReturnDateTime()
-            );
-
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-                // Always generate new rental ID
-                rental.setRentalId(generateNextRentalId());
 
                 stmt.setString(1, rental.getRentalId());
                 stmt.setString(2, rental.getRenterDlNumber());
                 stmt.setString(3, rental.getCarPlateNumber());
                 stmt.setString(4, rental.getBranchId());
 
-                // Staff are NULL on new rental
                 stmt.setNull(5, Types.VARCHAR);
                 stmt.setNull(6, Types.VARCHAR);
 
-                // Rental timestamp NOW()
                 stmt.setTimestamp(7, Timestamp.valueOf(LocalDateTime.now()));
 
                 stmt.setTimestamp(8, Timestamp.valueOf(rental.getExpectedPickupDateTime()));
                 stmt.setNull(9, Types.TIMESTAMP);
+
                 stmt.setTimestamp(10, Timestamp.valueOf(rental.getExpectedReturnDateTime()));
                 stmt.setNull(11, Types.TIMESTAMP);
 
                 stmt.setBigDecimal(12, rental.getTotalPayment());
-
-                // Default UPCOMING
                 stmt.setString(13, RentalRecord.RentalStatus.UPCOMING.name());
 
                 stmt.executeUpdate();
@@ -178,6 +186,7 @@ public class RentalDAO {
             conn.commit();
         }
     }
+
 
     /**
      * Update full rental row (all editable fields).
@@ -250,7 +259,7 @@ public class RentalDAO {
 
         String updateRentalSql = """
                 UPDATE rental_details
-                SET rental_status = 'ACTIVE',
+                SET rental_status = 'CANCELLED',
                     rental_actual_pickup_datetime = ?
                 WHERE rental_id = ?
                 """;
@@ -327,7 +336,7 @@ public class RentalDAO {
     /**
      * Return all rentals.
      */
-    public List<RentalRecord> getAllRentals() throws SQLException {
+    public static List<RentalRecord> getAllRentals() throws SQLException {
         List<RentalRecord> list = new ArrayList<>();
         String sql = "SELECT * FROM rental_details";
 
@@ -362,7 +371,7 @@ public class RentalDAO {
     /**
      * Map a resultset row into RentalRecord.
      */
-    private RentalRecord mapResultSetToRentalRecord(ResultSet rs) throws SQLException {
+    private static RentalRecord mapResultSetToRentalRecord(ResultSet rs) throws SQLException {
         Timestamp actualPickup = rs.getTimestamp("rental_actual_pickup_datetime");
         Timestamp actualReturn = rs.getTimestamp("rental_actual_return_datetime");
 
@@ -441,6 +450,53 @@ public class RentalDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public static void processPickup(String rentalId, String staffId, LocalDateTime actualPickup) throws SQLException {
+        String sql = """
+        UPDATE rental_details
+        SET rental_actual_pickup_datetime = ?,
+            rental_status = 'ACTIVE',
+            rental_staff_id_pickup = ?
+        WHERE rental_id = ?
+          AND rental_status = 'UPCOMING'
+        """;
+
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setTimestamp(1, Timestamp.valueOf(actualPickup));
+                stmt.setString(2, staffId);
+                stmt.setString(3, rentalId);
+
+                int rows = stmt.executeUpdate();
+                if (rows == 0)
+                    throw new SQLException("Rental cannot be picked up anymore.");
+            }
+
+            // Set the car to rented
+            updateCarToRented(conn, rentalId);
+
+            conn.commit();
+        }
+    }
+
+    private static void updateCarToRented(Connection conn, String rentalId) throws SQLException {
+        String sql = """
+        UPDATE car_record
+        SET car_status = 'Rented'
+        WHERE car_plate_number = (
+            SELECT rental_car_plate_number
+            FROM rental_details
+            WHERE rental_id = ?
+        )
+    """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, rentalId);
+            stmt.executeUpdate();
         }
     }
 }

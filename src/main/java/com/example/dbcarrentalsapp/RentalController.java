@@ -118,7 +118,27 @@ public class RentalController {
 
         // Modify Rental (not fully implemented in this snippet)
         view.modifyButton.setOnAction(e -> {
-            showError("Not implemented", "Modify rental is not implemented yet.");
+            RentalRecord selected = view.tableView.getSelectionModel().getSelectedItem();
+            if (selected == null) {
+                showError("No Selection", "Please select a rental.");
+                return;
+            }
+
+            if (selected.getRentalStatus() != RentalStatus.UPCOMING) {
+                showError("Invalid", "Only UPCOMING rentals can be picked up.");
+                return;
+            }
+
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime expected = selected.getExpectedPickupDateTime();
+
+            if (now.isAfter(expected.plusMinutes(5))) {
+                showError("Too Late", "Pickup is past the grace period. This rental should auto-cancel.");
+                return;
+            }
+
+            view.showPickupPopup(selected);
+            loadRentals();
         });
 
         // VIEW RENTAL DETAILS
@@ -225,6 +245,8 @@ public class RentalController {
                 {"Branch:", r.getBranchId()},
                 {"Pickup (Expected):", r.getExpectedPickupDateTime().format(fmt)},
                 {"Return (Expected):", r.getExpectedReturnDateTime().format(fmt)},
+                {"Pickup Processed By:",
+                        r.getStaffIdPickup() == null ? "N/A" : r.getStaffIdPickup()},
                 {"Status:", r.getRentalStatus().name()},
                 {"Total Payment:", String.valueOf(r.getTotalPayment())}
         };

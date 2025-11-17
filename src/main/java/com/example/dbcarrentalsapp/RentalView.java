@@ -8,10 +8,12 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.RentalRecord;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -108,8 +110,17 @@ public class RentalView {
 
         // ===== Buttons =====
         addButton = new Button("Add");
-        modifyButton = new Button("Modify");
+        modifyButton = new Button("Pickup");
         viewButton = new Button("View");
+        viewButton.setOnAction(e -> {
+            RentalRecord selected = tableView.getSelectionModel().getSelectedItem();
+            if (selected == null) {
+                showError("No Selection", "Please select a rental record to view.");
+                return;
+            }
+            showViewRentalPopup(selected);
+        });
+
         returnButton = new Button("Return");
 
         addButton.getStyleClass().add("small-button");
@@ -215,11 +226,82 @@ public class RentalView {
         pickupDate.setPrefWidth(240);
         pickupDate.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white;");
 
+        // Disable past dates
+        pickupDate.setDayCellFactory(dp -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (item.isBefore(LocalDate.now())) {
+                    setDisable(true);
+                    setStyle("-fx-opacity: 0.4;");
+                }
+            }
+        });
+
+        Label pickupTimeLabel = new Label("Pickup Time:");
+        pickupTimeLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+
+        Spinner<Integer> pickupHour = new Spinner<>(0, 23, LocalTime.now().getHour());
+        pickupHour.setEditable(true);
+        pickupHour.setPrefWidth(80);
+
+        Spinner<Integer> pickupMinute = new Spinner<>(0, 59, LocalTime.now().getMinute());
+        pickupMinute.setEditable(true);
+        pickupMinute.setPrefWidth(80);
+
+        pickupDate.valueProperty().addListener((obs, o, n) ->
+                updatePickupTimeRestrictions(pickupDate, pickupHour, pickupMinute));
+
+        pickupHour.valueProperty().addListener((obs, o, n) ->
+                updatePickupTimeRestrictions(pickupDate, pickupHour, pickupMinute));
+
+        pickupMinute.valueProperty().addListener((obs, o, n) ->
+                updatePickupTimeRestrictions(pickupDate, pickupHour, pickupMinute));
+
+        HBox pickupTimeBox = new HBox(8, new Label("Hour:"), pickupHour, new Label("Minute:"), pickupMinute);
+        pickupTimeBox.setAlignment(Pos.CENTER_LEFT);
+
         Label returnLabel = new Label("Expected Return Date:");
         returnLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
         DatePicker returnDate = new DatePicker(LocalDate.now().plusDays(1));
         returnDate.setPrefWidth(240);
         returnDate.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white;");
+
+        Label returnTimeLabel = new Label("Return Time:");
+        returnTimeLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+
+        returnDate.setDayCellFactory(dp -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (item.isBefore(LocalDate.now())) {
+                    setDisable(true);
+                    setStyle("-fx-opacity: 0.4;");
+                }
+            }
+        });
+
+        Spinner<Integer> returnHour = new Spinner<>(0, 23, 12);
+        returnHour.setEditable(true);
+        returnHour.setPrefWidth(80);
+
+        Spinner<Integer> returnMinute = new Spinner<>(0, 59, 0);
+        returnMinute.setEditable(true);
+        returnMinute.setPrefWidth(80);
+
+        returnDate.valueProperty().addListener((obs, o, n) ->
+                updatePickupTimeRestrictions(returnDate, returnHour, returnMinute));
+
+        returnHour.valueProperty().addListener((obs, o, n) ->
+                updatePickupTimeRestrictions(returnDate, returnHour, returnMinute));
+
+        returnMinute.valueProperty().addListener((obs, o, n) ->
+                updatePickupTimeRestrictions(returnDate, returnHour, returnMinute));
+
+        HBox returnTimeBox = new HBox(8, new Label("Hour:"), returnHour, new Label("Minute:"), returnMinute);
+        returnTimeBox.setAlignment(Pos.CENTER_LEFT);
 
         Label paymentLabel = new Label("Total Payment (₱):");
         paymentLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
@@ -230,6 +312,30 @@ public class RentalView {
 
         Label computedLabel = new Label("Computed Total: ₱0.00");
         computedLabel.setStyle("-fx-text-fill: #66ff66; -fx-font-size: 14px; -fx-font-weight: bold;");
+
+        // --- Recompute total rental fee when car or dates change ---
+        Runnable updatePrice = () -> {
+            String plate = carBox.getValue();
+            LocalDate p = pickupDate.getValue();
+            LocalDate r = returnDate.getValue();
+
+            if (plate == null || p == null || r == null) return;
+
+            // Find car record
+            model.CarRecord car = allCars.stream()
+                    .filter(c -> c.getCarPlateNumber().equals(plate))
+                    .findFirst().orElse(null);
+
+            if (car == null) return;
+
+            BigDecimal computed = computeTotal(p, r, BigDecimal.valueOf(car.getCarRentalFee()));
+            computedLabel.setText("Computed Total: ₱" + computed);
+        };
+
+        // Attach listeners
+        carBox.setOnAction(e -> updatePrice.run());
+        pickupDate.setOnAction(e -> updatePrice.run());
+        returnDate.setOnAction(e -> updatePrice.run());
 
 
         Label msg = new Label();
@@ -243,7 +349,6 @@ public class RentalView {
         cancelBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold;");
 
         addBtn.setOnAction(e -> {
-            // Basic validation done here, deeper validation in controller too
             if (renterBox.getValue() == null || branchBox.getValue() == null ||
                     carBox.getValue() == null || pickupDate.getValue() == null ||
                     returnDate.getValue() == null || paymentField.getText().trim().isEmpty()) {
@@ -251,14 +356,49 @@ public class RentalView {
                 return;
             }
 
-            LocalDateTime pickup = pickupDate.getValue().atTime(LocalTime.NOON);
-            LocalDateTime ret = returnDate.getValue().atTime(LocalTime.NOON);
+            LocalDate p = pickupDate.getValue();
+            LocalDate r = returnDate.getValue();
+
+            LocalTime pickTime = LocalTime.of(pickupHour.getValue(), pickupMinute.getValue());
+            LocalTime retTime = LocalTime.of(returnHour.getValue(), returnMinute.getValue());
+
+            LocalDateTime pickup = LocalDateTime.of(p, pickTime);
+            LocalDateTime ret = LocalDateTime.of(r, retTime);
+
+            // Final validation: must be at least 24 hours
+            if (ret.isBefore(pickup.plusHours(24))) {
+                msg.setText("Return time must be at least 24 hours after pickup.");
+                return;
+            }
+
+            // --- ENFORCE MINIMUM PICKUP TIME (NOW + 5 MINUTES) ---
+            LocalDateTime minimumPickup = LocalDateTime.now().plusMinutes(5);
+            if (pickup.isBefore(minimumPickup)) {
+                msg.setText("Pickup time must be at least 5 minutes from now.");
+                return;
+            }
 
             BigDecimal payment;
             try {
                 payment = new BigDecimal(paymentField.getText().trim());
             } catch (NumberFormatException ex) {
                 msg.setText("Payment must be a valid number.");
+                return;
+            }
+
+            model.CarRecord car = allCars.stream()
+                    .filter(c -> c.getCarPlateNumber().equals(carBox.getValue()))
+                    .findFirst().orElse(null);
+
+            if (car == null) {
+                msg.setText("Car data not found.");
+                return;
+            }
+
+            BigDecimal computed = computeTotal(p, r, BigDecimal.valueOf(car.getCarRentalFee()));
+
+            if (payment.compareTo(computed) != 0) {
+                msg.setText("Payment must equal computed total: ₱" + computed);
                 return;
             }
 
@@ -278,23 +418,25 @@ public class RentalView {
 
         cancelBtn.setOnAction(e -> popup.close());
 
-        VBox box = new VBox(12,
+        VBox box = new VBox(14,
                 idLabel,
                 renterLabel, renterBox,
                 branchLabel, branchBox,
                 carLabel, carBox,
                 pickupLabel, pickupDate,
+                pickupTimeLabel, pickupTimeBox,
                 returnLabel, returnDate,
+                returnTimeLabel, returnTimeBox,
                 paymentLabel, paymentField,
                 computedLabel,
                 addBtn, cancelBtn, msg
         );
 
         box.setAlignment(Pos.CENTER);
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(30));
         box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 10; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-width: 2;");
 
-        Scene sc = new Scene(box, 420, 640);
+        Scene sc = new Scene(box, 520, 820);
         sc.getStylesheets().add(getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm());
         popup.setScene(sc);
         popup.showAndWait();
@@ -304,6 +446,111 @@ public class RentalView {
         long days = ChronoUnit.DAYS.between(pickup, ret);
         if (days < 1) days = 1; // ensure at least 1 day
         return dailyFee.multiply(BigDecimal.valueOf(days));
+    }
+
+    void showPickupPopup(RentalRecord rental) {
+        try {
+            // load ops staff
+            StaffDAO staffDAO = new StaffDAO();
+            List<String> staffList = staffDAO.getOperationsStaffForBranch(rental.getBranchId());
+
+            if (staffList.isEmpty()) {
+                showError("No Staff", "No operations staff available for this branch.");
+                return;
+            }
+
+            // DEFAULT actual pickup = now
+            LocalDateTime now = LocalDateTime.now();
+
+            // UI Popup
+            Stage popup = new Stage();
+            popup.initModality(Modality.APPLICATION_MODAL);
+            popup.setTitle("Process Pickup");
+
+            VBox layout = new VBox(12);
+            layout.setPadding(new Insets(15));
+
+            // -------------------------
+            // Actual Pickup Date
+            // -------------------------
+            DatePicker actualDate = new DatePicker(now.toLocalDate());
+
+            // -------------------------
+            // Actual Pickup Time (HH:MM)
+            // -------------------------
+            Spinner<Integer> hourSpinner = new Spinner<>(0, 23, now.getHour());
+            hourSpinner.setEditable(true);
+
+            Spinner<Integer> minuteSpinner = new Spinner<>(0, 59, now.getMinute());
+            minuteSpinner.setEditable(true);
+
+            HBox timeBox = new HBox(8, hourSpinner, new Label(":"), minuteSpinner);
+
+            // -------------------------
+            // Staff selector
+            // -------------------------
+            ComboBox<String> staffDropdown = new ComboBox<>();
+            staffDropdown.getItems().addAll(staffList);
+            staffDropdown.setPromptText("Select Staff");
+
+            Button confirmBtn = new Button("Process Pickup");
+            confirmBtn.setOnAction(ev -> {
+                if (staffDropdown.getValue() == null) {
+                    showError("Missing Staff", "Please select a staff member.");
+                    return;
+                }
+
+                // Build actual pickup datetime
+                LocalDate d = actualDate.getValue();
+                int hh = hourSpinner.getValue();
+                int mm = minuteSpinner.getValue();
+
+                LocalDateTime actualPickup = LocalDateTime.of(d, LocalTime.of(hh, mm));
+
+                // -------------------------
+                // Validate against 5-min grace
+                // -------------------------
+                LocalDateTime expected = rental.getExpectedPickupDateTime();
+
+                if (actualPickup.isAfter(expected.plusMinutes(5))) {
+                    showError("Too Late",
+                            "Pickup is past the 5-minute grace period.\n" +
+                                    "This rental should auto-cancel.");
+                    return;
+                }
+
+                try {
+                    RentalDAO.processPickup(
+                            rental.getRentalId(),
+                            staffDropdown.getValue(),
+                            actualPickup
+                    );
+
+                    loadRentals();
+                    popup.close();
+                    showInfo("Success", "Pickup processed successfully.");
+
+                } catch (SQLException ex) {
+                    showError("Database Error", ex.getMessage());
+                }
+            });
+
+            layout.getChildren().addAll(
+                    new Label("Rental ID: " + rental.getRentalId()),
+                    new Label("Expected Pickup: " + rental.getExpectedPickupDateTime().toString()),
+                    new Label("Actual Pickup Date:"), actualDate,
+                    new Label("Actual Pickup Time:"), timeBox,
+                    new Label("Select Staff:"), staffDropdown,
+                    confirmBtn
+            );
+
+            popup.setScene(new Scene(layout, 380, 380));
+            popup.showAndWait();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            showError("Error", ex.getMessage());
+        }
     }
 
     // Support data class updated to include totalPayment
@@ -326,6 +573,144 @@ public class RentalView {
             this.returnDate = returnDate;
             this.branch = branch;
             this.totalPayment = totalPayment;
+        }
+    }
+
+    private void showError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showInfo(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void loadRentals() {
+        try {
+            List<RentalRecord> rentals = RentalDAO.getAllRentals();
+            tableView.getItems().setAll(rentals);
+        } catch (SQLException ex) {
+            showError("Error", "Failed to load rentals: " + ex.getMessage());
+        }
+    }
+
+    public void showViewRentalPopup(RentalRecord record) {
+
+        Stage popup = new Stage();
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle("Rental Details");
+
+        VBox layout = new VBox(12);
+        layout.setPadding(new Insets(20));
+        layout.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 10;");
+
+        Label title = new Label("Rental Information");
+        title.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
+
+        Label id = new Label("Rental ID: " + record.getRentalId());
+        Label dl = new Label("Renter DL: " + record.getRenterDlNumber());
+        Label car = new Label("Car Plate: " + record.getCarPlateNumber());
+        Label branch = new Label("Branch: " + record.getBranchId());
+
+        Label expectedPickup = new Label("Expected Pickup: " + record.getExpectedPickupDateTime());
+        Label actualPickup = new Label("Actual Pickup: " +
+                (record.getActualPickupDateTime() == null ? "—" : record.getActualPickupDateTime()));
+
+        Label pickupStaff = new Label("Processed By (Pickup): " +
+                (record.getStaffIdPickup() == null ? "—" : record.getStaffIdPickup()));
+
+        Label expectedReturn = new Label("Expected Return: " + record.getExpectedReturnDateTime());
+        Label actualReturn = new Label("Actual Return: " +
+                (record.getActualReturnDateTime() == null ? "—" : record.getActualReturnDateTime()));
+
+        Label returnStaff = new Label("Processed By (Return): " +
+                (record.getStaffIdReturn() == null ? "—" : record.getStaffIdReturn()));
+
+        Label payment = new Label("Total Payment: ₱" + record.getTotalPayment());
+        Label status = new Label("Status: " + record.getRentalStatus());
+
+        for (Label lbl : new Label[]{id, dl, car, branch, expectedPickup, actualPickup,
+                pickupStaff, expectedReturn, actualReturn, returnStaff, payment, status}) {
+
+            lbl.setStyle("-fx-text-fill: white; -fx-font-size: 14px;");
+        }
+
+        Button closeBtn = new Button("Close");
+        closeBtn.getStyleClass().add("small-button");
+        closeBtn.setOnAction(e -> popup.close());
+
+        layout.getChildren().addAll(
+                title,
+                id, dl, car, branch,
+                expectedPickup, actualPickup, pickupStaff,
+                expectedReturn, actualReturn, returnStaff,
+                payment, status,
+                closeBtn
+        );
+
+        popup.setScene(new Scene(layout, 380, 580));
+        popup.showAndWait();
+    }
+
+    private void updatePickupTimeRestrictions(DatePicker pickupDate, Spinner<Integer> hour, Spinner<Integer> minute) {
+        LocalDate selectedDate = pickupDate.getValue();
+        if (selectedDate == null) return;
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime minimum = now.plusMinutes(5);
+
+        // If it's NOT today → no restrictions
+        if (!selectedDate.equals(now.toLocalDate())) {
+            return;
+        }
+
+        int minHour = minimum.getHour();
+        int minMinute = minimum.getMinute();
+
+        // Force hour
+        if (hour.getValue() < minHour) {
+            hour.getValueFactory().setValue(minHour);
+        }
+
+        // If hour matches min hour → restrict minutes
+        if (hour.getValue() == minHour && minute.getValue() < minMinute) {
+            minute.getValueFactory().setValue(minMinute);
+        }
+    }
+
+    private void updateReturnRestrictions(
+            DatePicker pickupDate, Spinner<Integer> pickupHour, Spinner<Integer> pickupMinute,
+            DatePicker returnDate, Spinner<Integer> returnHour, Spinner<Integer> returnMinute) {
+
+        LocalDate pDate = pickupDate.getValue();
+        LocalDate rDate = returnDate.getValue();
+        if (pDate == null || rDate == null) return;
+
+        LocalDateTime pickupDT = LocalDateTime.of(
+                pDate,
+                LocalTime.of(pickupHour.getValue(), pickupMinute.getValue())
+        );
+
+        LocalDateTime minReturn = pickupDT.plusHours(24);
+
+        // If return is BEFORE minimum → snap forward
+        LocalDateTime currentReturn = LocalDateTime.of(
+                rDate,
+                LocalTime.of(returnHour.getValue(), returnMinute.getValue())
+        );
+
+        if (currentReturn.isBefore(minReturn)) {
+            // Snap return date/time to minimum allowed
+            returnDate.setValue(minReturn.toLocalDate());
+            returnHour.getValueFactory().setValue(minReturn.getHour());
+            returnMinute.getValueFactory().setValue(minReturn.getMinute());
         }
     }
 }
