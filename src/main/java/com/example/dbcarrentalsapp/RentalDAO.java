@@ -391,29 +391,33 @@ public class RentalDAO {
     /**
      * Map a resultset row into RentalRecord.
      */
-        private static RentalRecord mapResultSetToRentalRecord(ResultSet rs) throws SQLException {
-        // Timestamps from DB
-        Timestamp rentalTs = rs.getTimestamp("rental_datetime");
-        Timestamp expectedPickupTs = rs.getTimestamp("rental_pickup_datetime");
-        // Timestamp actualPickupTs = rs.getTimestamp("rental_actual_pickup_datetime"); // <-- FIXED: Removed this line, column doesn't exist
-        Timestamp expectedReturnTs = rs.getTimestamp("rental_expected_return_datetime");
-        Timestamp actualReturnTs = rs.getTimestamp("rental_actual_return_datetime");
+    private static RentalRecord mapResultSetToRentalRecord(ResultSet rs) throws SQLException {
 
-        // Convert to LocalDateTime, handle nulls
-        LocalDateTime rentalDateTime = rentalTs != null ? rentalTs.toLocalDateTime() : null;
-        LocalDateTime expectedPickupDateTime = expectedPickupTs != null ? expectedPickupTs.toLocalDateTime() : null;
-        // LocalDateTime actualPickupDateTime = actualPickupTs != null ? actualPickupTs.toLocalDateTime() : null; // <-- FIXED: Removed this line
-        LocalDateTime expectedReturnDateTime = expectedReturnTs != null ? expectedReturnTs.toLocalDateTime() : null;
-        LocalDateTime actualReturnDateTime = actualReturnTs != null ? actualReturnTs.toLocalDateTime() : null;
+        // Read timestamps using correct column names
+        Timestamp rentalTs                  = rs.getTimestamp("rental_datetime");
+        Timestamp expectedPickupTs          = rs.getTimestamp("rental_expected_pickup_datetime");
+        Timestamp actualPickupTs            = rs.getTimestamp("rental_actual_pickup_datetime");
+        Timestamp expectedReturnTs          = rs.getTimestamp("rental_expected_return_datetime");
+        Timestamp actualReturnTs            = rs.getTimestamp("rental_actual_return_datetime");
 
-        // Map enum safely
+        // Convert to LocalDateTime (null-safe)
+        LocalDateTime rentalDateTime        = rentalTs != null ? rentalTs.toLocalDateTime() : null;
+        LocalDateTime expectedPickup        = expectedPickupTs != null ? expectedPickupTs.toLocalDateTime() : null;
+        LocalDateTime actualPickup          = actualPickupTs != null ? actualPickupTs.toLocalDateTime() : null;
+        LocalDateTime expectedReturn        = expectedReturnTs != null ? expectedReturnTs.toLocalDateTime() : null;
+        LocalDateTime actualReturn          = actualReturnTs != null ? actualReturnTs.toLocalDateTime() : null;
+
+        // Safe enum mapping
         RentalRecord.RentalStatus status;
         try {
-            status = RentalRecord.RentalStatus.valueOf(rs.getString("rental_status").toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            status = RentalRecord.RentalStatus.UPCOMING; // default if DB has wrong value
+            status = RentalRecord.RentalStatus.valueOf(
+                    rs.getString("rental_status").toUpperCase()
+            );
+        } catch (Exception e) {
+            status = RentalRecord.RentalStatus.UPCOMING;
         }
 
+        // Construct model
         return new RentalRecord(
                 rs.getString("rental_id"),
                 rs.getString("rental_renter_dl_number"),
@@ -422,10 +426,10 @@ public class RentalDAO {
                 rs.getString("rental_staff_id_pickup"),
                 rs.getString("rental_staff_id_return"),
                 rentalDateTime,
-                expectedPickupDateTime,
-                null, // <-- FIXED: Passed null for 'actualPickupDateTime' since it's not in the DB
-                expectedReturnDateTime,
-                actualReturnDateTime,
+                expectedPickup,
+                actualPickup,          // <-- now correct
+                expectedReturn,
+                actualReturn,
                 rs.getBigDecimal("rental_total_payment"),
                 status
         );
