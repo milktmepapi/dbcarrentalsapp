@@ -2,7 +2,7 @@ package com.example.dbcarrentalsapp;
 
 import javafx.scene.control.Alert;
 import javafx.stage.Stage;
-import model.RentalRecord;
+import model.RentalRecord; 
 import model.ReturnRecord;
 
 import java.sql.Connection;
@@ -13,6 +13,7 @@ import java.util.List;
 public class ReturnController {
 
     private final ReturnDAO returnDAO = new ReturnDAO();
+    private final RentalDAO rentalDAO = new RentalDAO(); 
     private final ReturnView view;
     private final Stage stage;
 
@@ -36,51 +37,51 @@ public class ReturnController {
     }
 
     private void processSelectedReturn() {
-        ReturnRecord selected = view.getSelectedRecord();
+        // --- FIX: Get a RentalRecord from the view, not a ReturnRecord
+        RentalRecord selected = view.getSelectedRecord();
+
         if (selected == null) {
-            showPopup("No Selection", "Please select a return record.");
+            // --- FIX: Update the popup message
+            showPopup("No Selection", "Please select an ACTIVE rental to return.");
             return;
         }
 
+        // --- FIX: Pass the RentalRecord to the process method
         processReturn(selected);
     }
 
-    public void processReturn(ReturnRecord selected) {
+    // This is the method that processes the return
+    public void processReturn(RentalRecord rental) {
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false); // Start transaction
 
-            RentalDAO rentalDAO = new RentalDAO();
-            RentalRecord rental = rentalDAO.getRentalById(selected.getReturnRentalID());
-            if (rental == null) {
-                showPopup("Error", "Rental not found.");
-                return;
-            }
-
+            // We already have the rental, just check its status
             if (rental.getRentalStatus() != RentalRecord.RentalStatus.ACTIVE) {
                 showPopup("Error", "Rental is not active.");
+                conn.rollback(); // Rollback before returning
                 return;
             }
 
-            // Update car status using the same connection
-            CarDAO carDAO = new CarDAO();
-            carDAO.updateCarStatus(conn, rental.getCarPlateNumber());
-
-            // Insert return record
-            ReturnRecord newReturn = new ReturnRecord(null, rental.getRentalId(), "STAFF001");
-            returnDAO.addReturn(conn, newReturn);
+            ReturnRecord newReturn = new ReturnRecord(null, rental.getRentalId(), "STF001");
+            returnDAO.addReturn(conn, newReturn); // Uses your existing DAO method
 
             // Update rental status to COMPLETED
             rental.setRentalStatus(RentalRecord.RentalStatus.COMPLETED);
-            rentalDAO.updateRentalStatus(conn, rental);
+            // Set the actual return time
+            rental.setActualReturnDateTime(LocalDateTime.now());
+
+            // --- FIX: Use the rentalDAO and the new method you just added
+            rentalDAO.updateRentalOnReturn(conn, rental);
 
             conn.commit(); // Commit transaction
 
-            loadTable();
+            loadTable(); // Refresh the list (the returned item will disappear)
 
-            showReturnReceipt(rental);
+            showReturnReceipt(rental); // Show receipt for the rental we just processed
 
         } catch (SQLException ex) {
             ex.printStackTrace();
+            // Don't forget to rollback on error!
             showPopup("Error", "Failed to process return. Rolling back.");
         }
     }
@@ -93,34 +94,11 @@ public class ReturnController {
                 "Rental ID: " + rental.getRentalId() + "\n" +
                         "Renter DL: " + rental.getRenterDlNumber() + "\n" +
                         "Car Plate: " + rental.getCarPlateNumber() + "\n" +
-                        "Return Date & Time: " + java.time.LocalDateTime.now() + "\n" +
+                        // --- FIX: Use the time from the object, not LocalDateTime.now()
+                        "Return Date & Time: " + rental.getActualReturnDateTime() + "\n" +
                         "Total Payment: " + rental.getTotalPayment()
         );
         receipt.showAndWait();
-    }
-
-
-    public void viewReceipt(ReturnRecord record) {
-        try {
-            RentalDAO rentalDAO = new RentalDAO();
-            RentalRecord rental = rentalDAO.getRentalById(record.getReturnRentalID());
-            if (rental == null) { showPopup("Error", "Rental not found."); return; }
-
-            Alert receipt = new Alert(Alert.AlertType.INFORMATION);
-            receipt.setTitle("Return Receipt");
-            receipt.setHeaderText("Car Returned Successfully!");
-            receipt.setContentText(
-                    "Rental ID: " + rental.getRentalId() + "\n" +
-                            "Renter DL: " + rental.getRenterDlNumber() + "\n" +
-                            "Car Plate: " + rental.getCarPlateNumber() + "\n" +
-                            "Return Date & Time: " + LocalDateTime.now() + "\n" +
-                            "Total Payment: " + rental.getTotalPayment()
-            );
-            receipt.showAndWait();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            showPopup("Error", "Failed to generate receipt.");
-        }
     }
 
     private void showPopup(String title, String message) {
@@ -129,7 +107,8 @@ public class ReturnController {
     }
 
     public void loadTable() {
-            List<ReturnRecord> list = returnDAO.getAllReturns();
-            view.refreshTable(list);
+        List<RentalRecord> list = rentalDAO.getActiveRentals();
+        view.refreshTable(list);
     }
 }
+
