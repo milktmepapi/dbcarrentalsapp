@@ -50,6 +50,21 @@ public class ManageReportsController {
 
     private void showViolationsReport() {
         System.out.println("Opening Violations by Branch Report...");
+
+        // Instantiate DAO and View
+        ViolationsByBranchDAO dao = new ViolationsByBranchDAO();
+        ViolationsByBranchView violationsView = new ViolationsByBranchView();
+
+        // Instantiate Controller (wires buttons + loads data)
+        new ViolationsByBranchController(violationsView, dao);
+
+        // Wire the RETURN button to come back here
+        violationsView.getReturnButton().setOnAction(e -> {
+            stage.setScene(view.getScene());
+        });
+
+        // Switch the scene to the report
+        stage.setScene(violationsView.getScene());
     }
 
     private void goBack() {
