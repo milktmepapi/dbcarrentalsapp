@@ -70,7 +70,7 @@ public class CarView {
         VBox.setVgrow(tableView, Priority.ALWAYS);
         tableView.setPadding(new Insets(5, 8, 5, 8));
 
-        TableColumn<CarRecord, String> plateNumberCol = new TableColumn<>("Plate Number");
+        TableColumn<CarRecord, String> plateNumberCol = new TableColumn<>("Plate No.");
         plateNumberCol.setCellValueFactory(new PropertyValueFactory<>("carPlateNumber"));
 
         TableColumn<CarRecord, String> transmissionCol = new TableColumn<>("Transmission");
@@ -88,7 +88,7 @@ public class CarView {
         TableColumn<CarRecord, Integer> mileageCol = new TableColumn<>("Mileage");
         mileageCol.setCellValueFactory(new PropertyValueFactory<>("carMileage"));
 
-        TableColumn<CarRecord, Integer> seatNumberCol = new TableColumn<>("Seat Number");
+        TableColumn<CarRecord, Integer> seatNumberCol = new TableColumn<>("Seat No.");
         seatNumberCol.setCellValueFactory(new PropertyValueFactory<>("carSeatNumber"));
 
         TableColumn<CarRecord, String> statusCol = new TableColumn<>("Status");
@@ -98,7 +98,7 @@ public class CarView {
         TableColumn<CarRecord, String> branchIDCol = new TableColumn<>("Branch ID");
         branchIDCol.setCellValueFactory(new PropertyValueFactory<>("carBranchId"));
 
-        TableColumn<CarRecord, Double> rentalFeeCol = new TableColumn<>("Rental Fee");
+        TableColumn<CarRecord, Double> rentalFeeCol = new TableColumn<>("Fee");
         rentalFeeCol.setCellValueFactory(new PropertyValueFactory<>("carRentalFee"));
 
         tableView.getColumns().addAll(
