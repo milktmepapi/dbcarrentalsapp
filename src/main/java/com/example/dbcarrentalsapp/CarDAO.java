@@ -210,4 +210,24 @@ public class CarDAO {
             return false;
         }
     }
+
+    public void updateCarStatus(Connection conn, String carPlate) throws SQLException {
+        String rentedSql = "UPDATE car_record SET car_status='Rented' WHERE car_plate_number=? " +
+                "AND EXISTS (SELECT 1 FROM rental_details WHERE rental_car_plate_number=? AND rental_status='ACTIVE')";
+        try (PreparedStatement stmt = conn.prepareStatement(rentedSql)) {
+            stmt.setString(1, carPlate);
+            stmt.setString(2, carPlate);
+            stmt.executeUpdate();
+        }
+
+        String availableSql = "UPDATE car_record SET car_status='Available' WHERE car_plate_number=? " +
+                "AND NOT EXISTS (SELECT 1 FROM rental_details WHERE rental_car_plate_number=? AND rental_status='ACTIVE') " +
+                "AND car_status!='Under Maintenance'";
+        try (PreparedStatement stmt = conn.prepareStatement(availableSql)) {
+            stmt.setString(1, carPlate);
+            stmt.setString(2, carPlate);
+            stmt.executeUpdate();
+        }
+    }
 }
+
