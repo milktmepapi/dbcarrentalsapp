@@ -31,6 +31,7 @@ import java.util.Optional;
  * - Consistent styling with the rest of the application
  *
  */
+
 public class ViolationView {
     // UI Components - made public for controller access
     public Button addButton, modifyButton, returnButton, filterButton;
