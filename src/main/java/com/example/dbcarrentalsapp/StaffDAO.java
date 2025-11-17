@@ -204,11 +204,11 @@ public class StaffDAO {
 
     public List<String> getOperationsStaffForBranch(String branchId) throws SQLException {
         String sql = """
-                    SELECT staff_id
-                    FROM staff
-                    WHERE staff_branch_id = ?
-                      AND staff_department = 'DEPT_OPS'
-                """;
+        SELECT staff_id
+        FROM staff_record
+        WHERE staff_branch_id = ?
+          AND staff_job_id LIKE 'OPS%'
+        """;
 
         List<String> staff = new ArrayList<>();
 
@@ -216,10 +216,12 @@ public class StaffDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, branchId);
-            ResultSet rs = stmt.executeQuery();
 
-            while (rs.next())
-                staff.add(rs.getString(1));
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    staff.add(rs.getString("staff_id"));
+                }
+            }
         }
 
         return staff;
