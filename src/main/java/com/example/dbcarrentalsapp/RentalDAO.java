@@ -391,7 +391,7 @@ public class RentalDAO {
     /**
      * Map a resultset row into RentalRecord.
      */
-        private RentalRecord mapResultSetToRentalRecord(ResultSet rs) throws SQLException {
+        private static RentalRecord mapResultSetToRentalRecord(ResultSet rs) throws SQLException {
         // Timestamps from DB
         Timestamp rentalTs = rs.getTimestamp("rental_datetime");
         Timestamp expectedPickupTs = rs.getTimestamp("rental_pickup_datetime");
