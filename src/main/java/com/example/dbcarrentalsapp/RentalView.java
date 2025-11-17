@@ -450,7 +450,6 @@ public class RentalView {
 
     void showPickupPopup(RentalRecord rental) {
         try {
-            // load ops staff
             StaffDAO staffDAO = new StaffDAO();
             List<String> staffList = staffDAO.getOperationsStaffForBranch(rental.getBranchId());
 
@@ -459,63 +458,98 @@ public class RentalView {
                 return;
             }
 
-            // DEFAULT actual pickup = now
             LocalDateTime now = LocalDateTime.now();
 
-            // UI Popup
             Stage popup = new Stage();
             popup.initModality(Modality.APPLICATION_MODAL);
             popup.setTitle("Process Pickup");
 
-            VBox layout = new VBox(12);
-            layout.setPadding(new Insets(15));
+            // -------------------------
+            // Header label
+            // -------------------------
+            Label idLabel = new Label("Process Pickup — Rental " + rental.getRentalId());
+            idLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px;");
+
+            Label expectedLabel = new Label("Expected Pickup: " + rental.getExpectedPickupDateTime());
+            expectedLabel.setStyle("-fx-text-fill: #b46bff; -fx-font-size: 14px; -fx-font-weight: bold;");
 
             // -------------------------
             // Actual Pickup Date
             // -------------------------
+            Label actualDateLabel = new Label("Actual Pickup Date:");
+            actualDateLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+
             DatePicker actualDate = new DatePicker(now.toLocalDate());
+            actualDate.setPrefWidth(240);
+            actualDate.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white;");
 
             // -------------------------
-            // Actual Pickup Time (HH:MM)
+            // Time fields
             // -------------------------
+            Label timeLabel = new Label("Actual Pickup Time:");
+            timeLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+
             Spinner<Integer> hourSpinner = new Spinner<>(0, 23, now.getHour());
-            hourSpinner.setEditable(true);
-
             Spinner<Integer> minuteSpinner = new Spinner<>(0, 59, now.getMinute());
+            hourSpinner.setPrefWidth(80);
+            minuteSpinner.setPrefWidth(80);
+            hourSpinner.setEditable(true);
             minuteSpinner.setEditable(true);
 
-            HBox timeBox = new HBox(8, hourSpinner, new Label(":"), minuteSpinner);
+            HBox timeBox = new HBox(8,
+                    new Label("Hour:"), hourSpinner,
+                    new Label("Minute:"), minuteSpinner
+            );
+            timeBox.setAlignment(Pos.CENTER_LEFT);
 
             // -------------------------
             // Staff selector
             // -------------------------
+            Label staffLabel = new Label("Processed By (Staff):");
+            staffLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+
             ComboBox<String> staffDropdown = new ComboBox<>();
             staffDropdown.getItems().addAll(staffList);
+            staffDropdown.setPrefWidth(240);
             staffDropdown.setPromptText("Select Staff");
+            staffDropdown.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white;");
 
-            Button confirmBtn = new Button("Process Pickup");
+            // -------------------------
+            // Message label
+            // -------------------------
+            Label msg = new Label();
+            msg.setStyle("-fx-text-fill: orange;");
+
+            // -------------------------
+            // Buttons
+            // -------------------------
+            Button confirmBtn = new Button("Confirm Pickup");
+            Button cancelBtn = new Button("Cancel");
+
+            confirmBtn.setStyle(
+                    "-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;"
+            );
+            cancelBtn.setStyle(
+                    "-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold;"
+            );
+
             confirmBtn.setOnAction(ev -> {
                 if (staffDropdown.getValue() == null) {
-                    showError("Missing Staff", "Please select a staff member.");
+                    msg.setText("Please select a staff member.");
                     return;
                 }
 
-                // Build actual pickup datetime
                 LocalDate d = actualDate.getValue();
                 int hh = hourSpinner.getValue();
                 int mm = minuteSpinner.getValue();
 
                 LocalDateTime actualPickup = LocalDateTime.of(d, LocalTime.of(hh, mm));
 
-                // -------------------------
-                // Validate against 5-min grace
-                // -------------------------
                 LocalDateTime expected = rental.getExpectedPickupDateTime();
 
+                // 5-minute grace check
                 if (actualPickup.isAfter(expected.plusMinutes(5))) {
-                    showError("Too Late",
-                            "Pickup is past the 5-minute grace period.\n" +
-                                    "This rental should auto-cancel.");
+                    msg.setText("Pickup is past the 5-minute grace period — should auto-cancel.");
                     return;
                 }
 
@@ -525,26 +559,37 @@ public class RentalView {
                             staffDropdown.getValue(),
                             actualPickup
                     );
-
                     loadRentals();
                     popup.close();
                     showInfo("Success", "Pickup processed successfully.");
-
                 } catch (SQLException ex) {
-                    showError("Database Error", ex.getMessage());
+                    msg.setText(ex.getMessage());
                 }
             });
 
-            layout.getChildren().addAll(
-                    new Label("Rental ID: " + rental.getRentalId()),
-                    new Label("Expected Pickup: " + rental.getExpectedPickupDateTime().toString()),
-                    new Label("Actual Pickup Date:"), actualDate,
-                    new Label("Actual Pickup Time:"), timeBox,
-                    new Label("Select Staff:"), staffDropdown,
-                    confirmBtn
+            cancelBtn.setOnAction(e -> popup.close());
+
+            VBox box = new VBox(14,
+                    idLabel,
+                    expectedLabel,
+                    actualDateLabel, actualDate,
+                    timeLabel, timeBox,
+                    staffLabel, staffDropdown,
+                    confirmBtn, cancelBtn,
+                    msg
             );
 
-            popup.setScene(new Scene(layout, 380, 380));
+            box.setAlignment(Pos.CENTER);
+            box.setPadding(new Insets(30));
+            box.setStyle(
+                    "-fx-background-color: rgba(40,40,50,0.98);" +
+                            "-fx-background-radius: 10;" +
+                            "-fx-border-color: linear-gradient(to right, #7a40ff, #b46bff);" +
+                            "-fx-border-width: 2;"
+            );
+
+            Scene sc = new Scene(box, 500, 600);
+            popup.setScene(sc);
             popup.showAndWait();
 
         } catch (Exception ex) {
