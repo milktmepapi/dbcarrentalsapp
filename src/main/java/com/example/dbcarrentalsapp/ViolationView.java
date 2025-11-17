@@ -225,12 +225,12 @@ public class ViolationView {
         timestampCol.setCellValueFactory(cellData -> {
             LocalDateTime timestamp = cellData.getValue().getTimestamp();
             String formatted = timestamp != null ?
-                    timestamp.format(DateTimeFormatter.ofPattern("MM/dd HH:mm")) : "N/A";
+                    timestamp.format(DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm")) : "N/A";
             return new javafx.beans.property.SimpleStringProperty(formatted);
         });
-        timestampCol.setPrefWidth(100);
-        timestampCol.setMaxWidth(120);
-        // Set text color to black
+        timestampCol.setPrefWidth(120);  // Increased width to accommodate year
+        timestampCol.setMaxWidth(140);
+// Set text color to black
         timestampCol.setCellFactory(column -> new TableCell<ViolationRecord, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
