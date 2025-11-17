@@ -234,25 +234,24 @@ public class ViolationDAO {
      * @throws SQLException If database access error occurs
      */
     public boolean validateStaffForViolation(String staffId, String rentalId) throws SQLException {
-        String sql = """
-            SELECT sr.staff_id, br.branch_id, jr.job_department_id
-            FROM staff_record sr
-            JOIN job_record jr ON sr.staff_job_id = jr.job_id
-            JOIN rental_details rd ON rd.rental_branch_id = sr.staff_branch_id
-            WHERE sr.staff_id = ? AND rd.rental_id = ? AND jr.job_department_id = 'DEPT_OPS'
-            """;
+    String sql = """
+        SELECT sr.staff_id, sr.staff_branch_id, jr.job_department_id
+        FROM staff_record sr
+        JOIN job_record jr ON sr.staff_job_id = jr.job_id
+        JOIN rental_details rd ON rd.rental_branch_id = sr.staff_branch_id
+        WHERE sr.staff_id = ? AND rd.rental_id = ? AND jr.job_department_id = 'DEPT_OPS'
+        """;
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, staffId);
-            stmt.setString(2, rentalId);
-            ResultSet rs = stmt.executeQuery();
+        stmt.setString(1, staffId);
+        stmt.setString(2, rentalId);
+        ResultSet rs = stmt.executeQuery();
 
-            return rs.next(); // Returns true if staff is valid
+        return rs.next(); // Returns true if staff is valid
         }
     }
-
     /**
      * Gets the branch ID of a rental
      */
@@ -319,4 +318,5 @@ public class ViolationDAO {
                 timestamp != null ? timestamp.toLocalDateTime() : LocalDateTime.now()
         );
     }
+
 }
