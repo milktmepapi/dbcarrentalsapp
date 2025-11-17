@@ -45,7 +45,7 @@ public class RevenueByBranchController {
                         return;
                     }
 
-                    view.showCompanyPopup(company);   
+                    view.showCompanyPopup(company);
                 });
             }).start();
         });

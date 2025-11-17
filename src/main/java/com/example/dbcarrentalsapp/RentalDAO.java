@@ -341,7 +341,7 @@ public class RentalDAO {
     /**
      * Return all rentals.
      */
-    public List<RentalRecord> getAllRentals() throws SQLException {
+    public static List<RentalRecord> getAllRentals() throws SQLException {
         List<RentalRecord> list = new ArrayList<>();
         String sql = "SELECT * FROM rental_details";
 
