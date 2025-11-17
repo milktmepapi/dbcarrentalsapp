@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -227,6 +228,10 @@ public class RentalView {
         paymentField.setPrefWidth(240);
         paymentField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white;");
 
+        Label computedLabel = new Label("Computed Total: ₱0.00");
+        computedLabel.setStyle("-fx-text-fill: #66ff66; -fx-font-size: 14px; -fx-font-weight: bold;");
+
+
         Label msg = new Label();
         msg.setStyle("-fx-text-fill: orange;");
 
@@ -281,6 +286,7 @@ public class RentalView {
                 pickupLabel, pickupDate,
                 returnLabel, returnDate,
                 paymentLabel, paymentField,
+                computedLabel,
                 addBtn, cancelBtn, msg
         );
 
@@ -292,6 +298,12 @@ public class RentalView {
         sc.getStylesheets().add(getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm());
         popup.setScene(sc);
         popup.showAndWait();
+    }
+
+    private BigDecimal computeTotal(LocalDate pickup, LocalDate ret, BigDecimal dailyFee) {
+        long days = ChronoUnit.DAYS.between(pickup, ret);
+        if (days < 1) days = 1; // ensure at least 1 day
+        return dailyFee.multiply(BigDecimal.valueOf(days));
     }
 
     // Support data class updated to include totalPayment
