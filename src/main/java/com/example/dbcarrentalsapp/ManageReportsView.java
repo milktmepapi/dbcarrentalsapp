@@ -24,10 +24,10 @@ public class ManageReportsView {
     public ManageReportsView(Stage stage) {
 
         // ===== Initialize Buttons =====
-        revenueButton = new Button("Revenue by Branch");
+        revenueButton = new Button("Revenue Stats");
         rentalsButton = new Button("Rentals by Branch");
         utilizationButton = new Button("Car Utilization");
-        violationsButton = new Button("Violations by Branch");
+        violationsButton = new Button("Violations Stats");
         returnButton = new Button("Return");
 
         // Set larger button size
