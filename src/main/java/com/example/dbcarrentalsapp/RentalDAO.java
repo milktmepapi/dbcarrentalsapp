@@ -570,4 +570,34 @@ public class RentalDAO {
             stmt.executeUpdate();
         }
     }
+
+    public List<RentalRecord> getActiveRentals() {
+        List<RentalRecord> list = new ArrayList<>();
+        // Select rentals that are 'Active'
+        String sql = "SELECT * FROM rental_details WHERE rental_status = 'Active' ORDER BY rental_pickup_datetime DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(mapResultSetToRentalRecord(rs));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // You can create a new method or update your existing updateRentalStatus
+    public void updateRentalOnReturn(Connection conn, RentalRecord rental) throws SQLException {
+        String sql = "UPDATE rental_details SET rental_status = ?, rental_actual_return_datetime = ? WHERE rental_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, rental.getRentalStatus().toString()); // e.g., "COMPLETED"
+            ps.setTimestamp(2, java.sql.Timestamp.valueOf(rental.getActualReturnDateTime()));
+            ps.setString(3, rental.getRentalId());
+            ps.executeUpdate();
+        }
+    }
 }
