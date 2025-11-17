@@ -498,6 +498,10 @@ VALUES
  '2025-11-12 09:30:00', NULL,
  31500.00, 'ACTIVE');
 
+INSERT INTO return_details (return_id, return_rental_id, return_staff_id) VALUES
+('R0001', 'RNT001', 'STF005'),
+('R0002', 'RNT004', 'STF006');
+
 
 -- Mark cars not currently rented as 'Available', but keep 'Under Maintenance' unchanged
 SET SQL_SAFE_UPDATES = 0;
