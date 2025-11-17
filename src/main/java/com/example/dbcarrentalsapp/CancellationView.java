@@ -24,7 +24,7 @@ import java.util.Optional;
 
 public class CancellationView {
     // UI Components - made public for controller access
-    public Button addButton, modifyButton, returnButton, filterButton;
+    public Button addButton, modifyButton, returnButton, processCancellationButton, filterButton;
     public TextField searchField;
     public TableView<CancellationRecord> tableView;
     private final Scene scene;
@@ -199,10 +199,12 @@ public class CancellationView {
         // ===== BUTTON SETUP =====
         addButton = new Button("Add");
         modifyButton = new Button("Modify");
+        processCancellationButton = new Button("Process Cancellation");
         returnButton = new Button("Return");
 
         addButton.getStyleClass().add("small-button");
         modifyButton.getStyleClass().add("small-button");
+        processCancellationButton.getStyleClass().add("small-button");
         returnButton.getStyleClass().add("small-button");
 
         addButton.setPrefWidth(120);
@@ -210,7 +212,7 @@ public class CancellationView {
         returnButton.setPrefWidth(120);
 
         // Horizontal box for action buttons
-        HBox buttonBox = new HBox(15, addButton, modifyButton, returnButton);
+        HBox buttonBox = new HBox(15, addButton, modifyButton, processCancellationButton, returnButton);
         buttonBox.setAlignment(Pos.CENTER);
 
         // ===== CARD CONTAINER SETUP =====
