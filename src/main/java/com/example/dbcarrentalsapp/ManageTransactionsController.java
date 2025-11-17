@@ -30,6 +30,9 @@ public class ManageTransactionsController {
 
     private void openCancellations() {
         System.out.println("Opening Rental Cancellations...");
+        CancellationView cancellationView = new CancellationView();
+        new CancellationController(cancellationView, stage);
+        stage.setScene(cancellationView.getScene());
         // future: navigate to RentalCancellationsView
     }
 

@@ -1,6 +1,8 @@
 package com.example.dbcarrentalsapp;
 
 import model.CancellationRecord;
+import model.ReturnRecord;
+
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -45,6 +47,19 @@ public class CancellationDAO {
         return "CNL001";
     }
 
+    private String generateNextCancellationID(Connection conn) throws SQLException {
+        String sql = "SELECT cancellation_id FROM cancellation_details WHERE cancellation_id LIKE 'CNL%' ORDER BY cancellation_id DESC LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                String lastId = rs.getString("cancellation_id"); // R0001
+                int number = Integer.parseInt(lastId.substring(1)) + 1;
+                return String.format("CNL%04d", number);
+            }
+            return "CNL0001"; // first record
+        }
+    }
     /**
      * Inserts a new cancellation record into the database.
      *
@@ -57,7 +72,7 @@ public class CancellationDAO {
             INSERT INTO cancellation_details (
                 cancellation_id, cancellation_rental_id, cancellation_staff_id,
                 cancellation_date, cancellation_reason
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?)
             """;
 
         try (Connection conn = DBConnection.getConnection();
@@ -65,8 +80,8 @@ public class CancellationDAO {
 
             // Set parameters for the prepared statement
             stmt.setString(1, cancellation.getCancellationId());
-            stmt.setString(2, cancellation.getRentalId());
-            stmt.setString(3, cancellation.getStaffId());
+            stmt.setString(2, cancellation.getCancellationRentalId());
+            stmt.setString(3, cancellation.getCancellationStaffId());
             stmt.setTimestamp(4, Timestamp.valueOf(cancellation.getTimestamp()));
             stmt.setString(5, cancellation.getReason());
 
@@ -74,7 +89,26 @@ public class CancellationDAO {
             stmt.executeUpdate();
         }
     }
+    public boolean addCancellation(Connection conn, CancellationRecord cancellation) throws SQLException {
+        String sql = """
+                INSERT INTO cancellation_details (
+                    cancellation_id, cancellation_rental_id, cancellation_staff_id, 
+                    cancellation_date, cancellation_reason
+                ) VALUES (?, ?, ?, ?, ?)
+                """;
+        // generate new ID
+        String newId = generateNextCancellationID(conn);
+        cancellation.setCancellationId(newId);
 
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, cancellation.getCancellationId());
+            ps.setString(2, cancellation.getCancellationRentalId());
+            ps.setString(3, cancellation.getCancellationStaffId());
+            ps.setTimestamp(4, Timestamp.valueOf(cancellation.getTimestamp()));
+            ps.setString(5, cancellation.getReason());
+            return ps.executeUpdate() > 0;
+        }
+    }
     /**
      * Updates an existing cancellation record in the database.
      *
@@ -94,8 +128,8 @@ public class CancellationDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             // Set update parameters
-            stmt.setString(1, cancellation.getRentalId());
-            stmt.setString(2, cancellation.getStaffId());
+            stmt.setString(1, cancellation.getCancellationRentalId());
+            stmt.setString(2, cancellation.getCancellationStaffId());
             stmt.setTimestamp(3, Timestamp.valueOf(cancellation.getTimestamp()));
             stmt.setString(4, cancellation.getReason());
             stmt.setString(5, cancellation.getCancellationId());
@@ -127,7 +161,6 @@ public class CancellationDAO {
         }
         return list;
     }
-
     /**
      * Retrieves a specific cancellation record by its ID.
      *
@@ -226,7 +259,7 @@ public class CancellationDAO {
      */
     public boolean validateStaffForCancellation(String staffId, String rentalId) throws SQLException {
         String sql = """
-            SELECT sr.staff_id, br.branch_id, jr.job_department_id
+            SELECT sr.staff_id, sr.branch_id, jr.job_department_id
             FROM staff_record sr
             JOIN job_record jr ON sr.staff_job_id = jr.job_id
             JOIN rental_details rd ON rd.rental_branch_id = sr.staff_branch_id
