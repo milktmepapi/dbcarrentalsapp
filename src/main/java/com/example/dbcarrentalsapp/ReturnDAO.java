@@ -107,5 +107,20 @@ public class ReturnDAO {
             return false;
         }
     }
+
+        public boolean addReturn(Connection conn, ReturnRecord record) throws SQLException {
+        String sql = "INSERT INTO return_details (return_id, return_rental_id, return_staff_id) VALUES (?, ?, ?)";
+        // generate new ID
+        String newId = generateNewReturnID(conn);
+        record.setReturnID(newId);
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, record.getReturnID());
+            ps.setString(2, record.getReturnRentalID());
+            ps.setString(3, record.getReturnStaffID());
+            return ps.executeUpdate() > 0;
+        }
+    }
 }
+
 
