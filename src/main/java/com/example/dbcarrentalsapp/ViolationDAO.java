@@ -53,29 +53,27 @@ public class ViolationDAO {
      * @throws SQLException If database access error occurs or constraint violation
      */
     public void addViolation(ViolationRecord violation) throws SQLException {
-        // SQL INSERT statement with parameter placeholders
         String sql = """
-            INSERT INTO violation_details (
-                violation_id, violation_rental_id, violation_staff_id,
-                violation_type, violation_penalty_fee, violation_reason,
-                violation_duration_hours, violation_timestamp
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """;
+        INSERT INTO violation_details (
+            violation_id, 
+            violation_rental_id, 
+            violation_staff_id,
+            violation_type, 
+            violation_penalty_fee, 
+            violation_reason
+        ) VALUES (?, ?, ?, ?, ?, ?)
+    """;
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            // Set parameters for the prepared statement
             stmt.setString(1, violation.getViolationId());
             stmt.setString(2, violation.getRentalId());
             stmt.setString(3, violation.getStaffId());
             stmt.setString(4, violation.getViolationType());
             stmt.setDouble(5, violation.getPenaltyFee());
             stmt.setString(6, violation.getReason());
-            stmt.setInt(7, violation.getDurationHours());
-            stmt.setTimestamp(8, Timestamp.valueOf(violation.getTimestamp()));
 
-            // Execute the insert operation
             stmt.executeUpdate();
         }
     }
