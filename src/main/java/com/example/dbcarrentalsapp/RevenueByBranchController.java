@@ -29,6 +29,16 @@ public class RevenueByBranchController {
         view.monthlyButton.setOnAction(e -> handleLoadBranchRevenue());
         view.yearlyButton.setOnAction(e -> handleLoadBranchRevenue());
 
+        view.pieChartButton.setOnAction(e -> {
+            var items = view.tableView.getItems();
+            if (items.isEmpty()) {
+                showError("Empty Data, please load revenue data first.");
+                return;
+            }
+            view.showPieChartPopup(items);
+        });
+
+
         // Load whole-company revenue
         view.getCompanyButton().setOnAction(e -> {
 

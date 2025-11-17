@@ -1,7 +1,10 @@
 package com.example.dbcarrentalsapp;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -11,6 +14,8 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import model.RevenueByBranchRecord;
+import javafx.scene.chart.PieChart;
+
 
 import java.math.BigDecimal;
 
@@ -21,6 +26,7 @@ public class RevenueByBranchView {
 
     public RadioButton dailyButton, monthlyButton, yearlyButton;
     private final ToggleGroup granularityGroup = new ToggleGroup();
+    public Button pieChartButton;
 
     private final Scene scene;
 
@@ -72,6 +78,10 @@ public class RevenueByBranchView {
         monthlyButton.setToggleGroup(granularityGroup);
         yearlyButton.setToggleGroup(granularityGroup);
         dailyButton.setSelected(true);
+
+        pieChartButton = new Button("Pie Chart");
+        pieChartButton.setPrefWidth(120);
+        pieChartButton.getStyleClass().add("small-button");
 
         HBox granularityBox = new HBox(15, dailyButton, monthlyButton, yearlyButton);
         granularityBox.setAlignment(Pos.CENTER);
@@ -133,7 +143,7 @@ public class RevenueByBranchView {
         returnButton.setPrefWidth(120);
         returnButton.getStyleClass().add("small-button");
 
-        HBox bottomButtons = new HBox(20, loadButton, companyButton, returnButton);
+        HBox bottomButtons = new HBox(20, loadButton, companyButton, pieChartButton, returnButton);
         bottomButtons.setAlignment(Pos.CENTER);
         bottomButtons.setPadding(new Insets(10, 0, 0, 0));
 
@@ -216,6 +226,108 @@ public class RevenueByBranchView {
         return String.format("%,.2f", value);
     }
 
+    public void showPieChartPopup(java.util.List<RevenueByBranchRecord> list)  {
+
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Branch Revenue Distribution");
+        dialog.setHeaderText(null);
+
+        dialog.getDialogPane().setStyle("""
+        -fx-background-color: rgba(25,25,35,0.97);
+        -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff);
+        -fx-border-width: 2;
+        -fx-border-radius: 15;
+        -fx-background-radius: 15;
+    """);
+
+        VBox box = new VBox(25);
+        box.setPadding(new Insets(35));
+        box.setAlignment(Pos.CENTER);
+
+        Label title = new Label("NET REVENUE BY BRANCH");
+        title.setStyle("""
+        -fx-text-fill: white;
+        -fx-font-size: 22px;
+        -fx-font-weight: bold;
+        -fx-padding: 0 0 20 0;
+    """);
+
+        // --- MUCH BIGGER PIE CHART ---
+        PieChart pie = new PieChart();
+        pie.setLabelsVisible(true);       // ensures labels appear
+        pie.setLegendVisible(false);
+        pie.setClockwise(true);
+        pie.setStartAngle(90);
+        pie.setStyle("-fx-background-color: transparent;");
+
+        for (RevenueByBranchRecord r : list) {
+            PieChart.Data slice = new PieChart.Data(
+                    r.getBranchName(),
+                    Math.max(0.1, r.getNetRevenue().doubleValue())
+            );
+            pie.getData().add(slice);
+        }
+
+        // Bigger size
+        pie.setPrefSize(650, 520);
+
+        // Make labels white (JavaFX default is black)
+        // Make labels white *after* chart renders
+        Platform.runLater(() -> {
+            for (PieChart.Data d : pie.getData()) {
+                Node label = d.getNode().lookup(".chart-pie-label");
+                if (label != null) {
+                    label.setStyle("-fx-text-fill: white;");
+                }
+            }
+        });
+
+        // --- RIGHT SIDE LABEL LIST ---
+        Label labelTitle = new Label("Branches");
+        labelTitle.setStyle("-fx-text-fill: #c7b3ff; -fx-font-size: 16px; -fx-font-weight: bold;");
+
+        VBox labelBox = new VBox(10);
+        labelBox.setPadding(new Insets(12));
+        labelBox.setAlignment(Pos.TOP_LEFT);
+
+        for (PieChart.Data slice : pie.getData()) {
+            Label lbl = new Label(slice.getName());
+            lbl.setStyle("-fx-text-fill: white; -fx-font-size: 14px;");
+            labelBox.getChildren().add(lbl);
+        }
+
+        ScrollPane scroll = new ScrollPane(labelBox);
+        scroll.setPrefWidth(280);
+        scroll.setPrefHeight(480);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("""
+        -fx-background: transparent;
+        -fx-background-color: transparent;
+        -fx-border-color: rgba(255,255,255,0.15);
+        -fx-border-width: 1.2;
+        -fx-border-radius: 10;
+        -fx-background-radius: 10;
+    """);
+
+        VBox rightSide = new VBox(10, labelTitle, scroll);
+        rightSide.setAlignment(Pos.TOP_CENTER);
+
+        // Divider
+        Separator divider = new Separator();
+        divider.setOrientation(Orientation.VERTICAL);
+        divider.setPrefHeight(480);
+        divider.setStyle("-fx-background-color: rgba(255,255,255,0.25);");
+
+        HBox content = new HBox(40, pie, divider, rightSide);
+        content.setAlignment(Pos.CENTER);
+
+        box.getChildren().addAll(title, content);
+
+        dialog.getDialogPane().setContent(box);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+
+        dialog.showAndWait();
+    }
 
     // -----------------------------------------------------------------
     // ACCESSORS FOR CONTROLLER
