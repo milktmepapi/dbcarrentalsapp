@@ -42,6 +42,10 @@ public class ManageReportsController {
 
     private void showRentalsReport() {
         System.out.println("Opening Rentals by Branch Report...");
+
+        RentalsReportView mtv = new RentalsReportView();
+        new RentalsReportController(mtv, stage);
+        stage.setScene(mtv.getScene());
     }
 
     private void showUtilizationReport() {
@@ -75,3 +79,4 @@ public class ManageReportsController {
         stage.setScene(userView.getScene());
     }
 }
+
