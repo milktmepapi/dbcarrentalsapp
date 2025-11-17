@@ -23,7 +23,21 @@ public class ManageReportsController {
 
     private void showRevenueReport() {
         System.out.println("Opening Revenue by Branch Report...");
-        // TODO: implement report logic
+
+        // Instantiate DAO and View
+        RevenueByBranchDAO dao = new RevenueByBranchDAO();
+        RevenueByBranchView revenueView = new RevenueByBranchView();
+
+        // Instantiate Controller (wires buttons + loads data)
+        new RevenueByBranchController(revenueView, dao);
+
+        // Wire the RETURN button to come back here
+        revenueView.getReturnButton().setOnAction(e -> {
+            stage.setScene(view.getScene());
+        });
+
+        // Switch the scene to the report
+        stage.setScene(revenueView.getScene());
     }
 
     private void showRentalsReport() {

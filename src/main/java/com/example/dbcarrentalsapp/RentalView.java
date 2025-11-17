@@ -208,12 +208,14 @@ public class RentalView {
         carBox.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white;");
 
         // When branch selected, populate carBox with available cars in branch
+        // When branch selected, populate carBox with available cars in branch
         branchBox.setOnAction(e -> {
             String branch = branchBox.getValue();
             carBox.getItems().clear();
             if (branch != null) {
                 List<String> plates = allCars.stream()
                         .filter(c -> branch.equals(c.getCarBranchId()))
+                        .filter(c -> "Available".equalsIgnoreCase(c.getCarStatus())) // Enforce status
                         .map(model.CarRecord::getCarPlateNumber)
                         .collect(Collectors.toList());
                 carBox.getItems().addAll(plates);
