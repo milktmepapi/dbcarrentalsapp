@@ -3,17 +3,17 @@ package com.example.dbcarrentalsapp;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.stage.Stage;
-import model.BranchReport;
+import model.CarUtilizationReport;
 
 import java.util.List;
-/*
-public class CarUtilizationController {
+
+public class CarUtilizationReportController {
     // 1. Use the correct DAO
-    private final RentalsReportDAO rentalsReportDAO = new RentalsReportDAO();
-    private final RentalsReportView view;
+    private final CarUtilizationReportDAO carUtilizationReportDAO = new CarUtilizationReportDAO();
+    private final CarUtilizationReportView view;
     private final Stage stage;
 
-    public RentalsReportController(RentalsReportView view, Stage stage) {
+    public CarUtilizationReportController(CarUtilizationReportView view, Stage stage) {
         this.view = view;
         this.stage = stage;
         setupActions();
@@ -34,10 +34,10 @@ public class CarUtilizationController {
     private void loadReportData() {
         try {
             // Get data from the DAO
-            List<BranchReport> reportList = rentalsReportDAO.getRentalsByBranch();
+            List<CarUtilizationReport> reportList = carUtilizationReportDAO.getCarUtilizationReport();
 
             // Convert to ObservableList for JavaFX
-            ObservableList<BranchReport> observableList = FXCollections.observableArrayList(reportList);
+            ObservableList<CarUtilizationReport> observableList = FXCollections.observableArrayList(reportList);
 
             // Set the data in the TableView
             view.tableView.setItems(observableList);
@@ -55,4 +55,3 @@ public class CarUtilizationController {
         stage.setScene(mtv.getScene());
     }
 }
-*/

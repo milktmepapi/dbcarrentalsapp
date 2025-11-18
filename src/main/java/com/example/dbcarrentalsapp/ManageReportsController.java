@@ -50,6 +50,10 @@ public class ManageReportsController {
 
     private void showUtilizationReport() {
         System.out.println("Opening Car Utilization Report...");
+
+        CarUtilizationReportView crv = new CarUtilizationReportView();
+        new CarUtilizationReportController(crv, stage);
+        stage.setScene(crv.getScene());
     }
 
     private void showViolationsReport() {

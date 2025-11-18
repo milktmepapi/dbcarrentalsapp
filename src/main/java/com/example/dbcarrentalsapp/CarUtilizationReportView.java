@@ -3,23 +3,21 @@ package com.example.dbcarrentalsapp;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
-import model.BranchReport;
-/*
-public class CarUtilizationView {
-    public TableView<BranchReport> tableView;
+import javafx.stage.Stage;
+import model.CarUtilizationReport;
+
+public class CarUtilizationReportView {
+    public TableView<CarUtilizationReport> tableView;
     public Button returnButton, filterButton;
     public TextField searchField;
     private final Scene scene;
 
-    public RentalsReportView() {
+    public CarUtilizationReportView() {
 
         // ===== Initialize TableView FIRST =====
         tableView = new TableView<>();
@@ -37,7 +35,7 @@ public class CarUtilizationView {
         root.setBackground(new Background(backgroundImage));
 
         // ===== Title =====
-        Text title = new Text("MANAGE RENTALS BY BRANCH");
+        Text title = new Text("MANAGE CAR UTILIZATION");
         title.setStyle("-fx-font-size: 48px; -fx-fill: white; -fx-font-weight: bold;");
         StackPane.setAlignment(title, Pos.TOP_CENTER);
         StackPane.setMargin(title, new Insets(50, 0, 0, 0));
@@ -45,7 +43,7 @@ public class CarUtilizationView {
 
         // ===== Search Bar =====
         searchField = new TextField();
-        searchField.setPromptText("Search rental ID or status...");
+        searchField.setPromptText("Search car plate number or model...");
         searchField.setPrefWidth(300);
 
         filterButton = new Button("Filter");
@@ -56,19 +54,31 @@ public class CarUtilizationView {
 
         // ===== Table Columns =====
 
-        TableColumn<BranchReport, String> branchCol = new TableColumn<>("Branch");
+        TableColumn<CarUtilizationReport, String> branchCol = new TableColumn<>("Branch");
         branchCol.setCellValueFactory(new PropertyValueFactory<>("branchName"));
 
-        TableColumn<BranchReport, String> typeCol = new TableColumn<>("Car Transmission");
-        typeCol.setCellValueFactory(new PropertyValueFactory<>("carTransmission"));
+        TableColumn<CarUtilizationReport, String> carPlateNumberCol = new TableColumn<>("Car Plate Number");
+        carPlateNumberCol.setCellValueFactory(new PropertyValueFactory<>("carPlateNumber"));
 
-        TableColumn<BranchReport, String> durationCol = new TableColumn<>("Duration");
-        durationCol.setCellValueFactory(new PropertyValueFactory<>("rentalDuration"));
+        TableColumn<CarUtilizationReport, String> carModelCol = new TableColumn<>("Car Model");
+        carModelCol.setCellValueFactory(new PropertyValueFactory<>("carModel"));
 
-        TableColumn<BranchReport, Integer> totalCol = new TableColumn<>("Total Rentals");
+        TableColumn<CarUtilizationReport, String> carBrandCol = new TableColumn<>("Car Brand");
+        carBrandCol.setCellValueFactory(new PropertyValueFactory<>("carBrand"));
+
+        TableColumn<CarUtilizationReport, String> carTransmissionCol = new TableColumn<>("Car Transmission");
+        carBrandCol.setCellValueFactory(new PropertyValueFactory<>("carTransmission"));
+
+        TableColumn<CarUtilizationReport, Integer> totalCol = new TableColumn<>("Total Rentals");
         totalCol.setCellValueFactory(new PropertyValueFactory<>("totalRentals"));
 
-        tableView.getColumns().addAll(branchCol, typeCol, durationCol, totalCol);
+        TableColumn<CarUtilizationReport, Integer> totalDaysCol = new TableColumn<>("Total Rental Days");
+        totalDaysCol.setCellValueFactory(new PropertyValueFactory<>("totalRentalDays"));
+
+        TableColumn<CarUtilizationReport, Double> utilizationRateCol = new TableColumn<>("Utilization Rate");
+        totalCol.setCellValueFactory(new PropertyValueFactory<>("utilizationRate"));
+
+        tableView.getColumns().addAll(branchCol, carPlateNumberCol, carModelCol, carBrandCol, carTransmissionCol, totalCol, totalDaysCol, utilizationRateCol);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
 
@@ -110,4 +120,3 @@ public class CarUtilizationView {
     }
 }
 
- */
