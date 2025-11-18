@@ -6,9 +6,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
 import model.BranchReport;
 
 public class RentalsReportView {
@@ -25,36 +26,58 @@ public class RentalsReportView {
 
         // ===== Background =====
         StackPane root = new StackPane();
-        Image bgImage = new Image(getClass().getResourceAsStream("/com/example/dbcarrentalsapp/mclaren_speedtail_2-1920x1080.jpg"));
-        BackgroundImage backgroundImage = new BackgroundImage(
-                bgImage,
-                BackgroundRepeat.NO_REPEAT,
-                BackgroundRepeat.NO_REPEAT,
-                BackgroundPosition.CENTER,
-                new BackgroundSize(100, 100, true, true, true, false)
+        Image bgImage = new Image(
+                getClass().getResourceAsStream("/com/example/dbcarrentalsapp/aston_martin_dbs-wide.png")
         );
-        root.setBackground(new Background(backgroundImage));
+        ImageView bgView = new ImageView(bgImage);
+        bgView.setFitWidth(1152);
+        bgView.setFitHeight(761);
+        bgView.setPreserveRatio(false);
+
+        root.getChildren().add(bgView);
 
         // ===== Title =====
         Text title = new Text("MANAGE RENTALS BY BRANCH");
-        title.setStyle("-fx-font-size: 48px; -fx-fill: white; -fx-font-weight: bold;");
+        Font f1Font = Font.loadFont(
+                getClass().getResourceAsStream("/com/example/dbcarrentalsapp/Formula1-Bold_web_0.ttf"), 48
+        );
+        title.setFont(f1Font != null ? f1Font : Font.font("Arial Black", 48));
+        title.setStyle("""
+                -fx-fill: white;
+                -fx-font-style: italic;
+                -fx-font-weight: bold;
+                -fx-effect: dropshadow(gaussian, black, 4, 0.5, 1, 1);
+                """);
+
         StackPane.setAlignment(title, Pos.TOP_CENTER);
-        StackPane.setMargin(title, new Insets(50, 0, 0, 0));
+        StackPane.setMargin(title, new Insets(100, 0, 0, 0));
         root.getChildren().add(title);
 
         // ===== Search Bar =====
         searchField = new TextField();
-        searchField.setPromptText("Search rental ID or status...");
-        searchField.setPrefWidth(300);
+        searchField.setPromptText("Search Branch or Transmission..."); // Updated Prompt
+        searchField.setPrefWidth(250);
+        searchField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         filterButton = new Button("Filter");
-        filterButton.setPrefWidth(100);
+        filterButton.getStyleClass().add("small-button");
+        filterButton.setPrefWidth(120);
 
         HBox searchBox = new HBox(10, searchField, filterButton);
         searchBox.setAlignment(Pos.CENTER);
 
-        // ===== Table Columns =====
+        // ===== Table Config =====
+        tableView.setPrefWidth(750);
+        tableView.setPrefHeight(280);
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        tableView.getStyleClass().add("custom-table");
+        tableView.setPlaceholder(new Label("No rental records found"));
 
+        tableView.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(tableView, Priority.ALWAYS);
+        tableView.setPadding(new Insets(5, 8, 5, 8));
+
+        // ===== Table Columns =====
         TableColumn<BranchReport, String> branchCol = new TableColumn<>("Branch");
         branchCol.setCellValueFactory(new PropertyValueFactory<>("branchName"));
 
@@ -68,13 +91,11 @@ public class RentalsReportView {
         totalCol.setCellValueFactory(new PropertyValueFactory<>("totalRentals"));
 
         tableView.getColumns().addAll(branchCol, typeCol, durationCol, totalCol);
-        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-
 
         // ===== Return button =====
         returnButton = new Button("Return");
+        returnButton.getStyleClass().add("small-button");
         returnButton.setPrefWidth(120);
-
         HBox buttonBox = new HBox(15, returnButton);
         buttonBox.setAlignment(Pos.CENTER);
 
@@ -82,19 +103,19 @@ public class RentalsReportView {
         VBox tableCard = new VBox(15, tableView, buttonBox);
         tableCard.setAlignment(Pos.CENTER);
         tableCard.setPadding(new Insets(20));
-        tableCard.setMaxWidth(950);
+        tableCard.setMaxWidth(800);
         tableCard.setStyle(
                 "-fx-background-color: rgba(25,25,35,0.85);" +
                         "-fx-background-radius: 15;" +
                         "-fx-border-color: linear-gradient(to right, #7a40ff, #b46bff);" +
                         "-fx-border-radius: 15;" +
-                        "-fx-border-width: 2;"
+                        "-fx-border-width: 2;" +
+                        "-fx-overflow: hidden;"
         );
 
         VBox layout = new VBox(30, searchBox, tableCard);
         layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(120, 0, 0, 0));
-
+        layout.setPadding(new Insets(140,0,0,0));
         root.getChildren().add(layout);
 
         // ===== Scene =====
@@ -104,8 +125,10 @@ public class RentalsReportView {
         );
     }
 
-    public Scene getScene() {
-        return scene;
-    }
+    public Scene getScene() { return scene; }
+    public Button getFilterButton() { return filterButton; }
+    public TextField getSearchField() { return searchField; }
+    public TableView<BranchReport> getTableView() { return tableView; }
 }
+
 
