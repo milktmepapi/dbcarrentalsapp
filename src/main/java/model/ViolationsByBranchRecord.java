@@ -2,6 +2,7 @@ package model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class ViolationsByBranchRecord {
     private String branchId;
@@ -116,6 +117,15 @@ public class ViolationsByBranchRecord {
 
     public void setLastViolationDate(LocalDateTime lastViolationDate) {
         this.lastViolationDate = lastViolationDate;
+    }
+
+    // Formatted date string for table display
+    public String getFormattedLastViolationDate() {
+        if (lastViolationDate == null) {
+            return "Never";
+        }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
+        return lastViolationDate.format(formatter);
     }
 
     // Helper method for average penalty

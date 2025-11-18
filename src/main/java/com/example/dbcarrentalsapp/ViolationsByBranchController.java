@@ -20,14 +20,11 @@ public class ViolationsByBranchController {
     }
 
     private void initialize() {
+        // Set controller reference in view for date change listeners
+        view.setController(this);
 
-        // Load per-branch violations
+        // Change load button to refresh functionality
         view.getLoadButton().setOnAction(e -> handleLoadBranchViolations());
-
-        // Reload when granularity changes
-        view.dailyButton.setOnAction(e -> handleLoadBranchViolations());
-        view.monthlyButton.setOnAction(e -> handleLoadBranchViolations());
-        view.yearlyButton.setOnAction(e -> handleLoadBranchViolations());
 
         // NEW: Pie Chart button handler
         view.getPieChartButton().setOnAction(e -> {
@@ -42,11 +39,11 @@ public class ViolationsByBranchController {
         // Load whole-company violations summary
         view.getCompanyButton().setOnAction(e -> {
             String granularity = view.getSelectedGranularityToggle().getText();
-            LocalDate today = LocalDate.now();
+            LocalDate selectedDate = getSelectedDateForGranularity(granularity);
 
             new Thread(() -> {
                 ViolationsByBranchRecord company =
-                        dao.getCompanyViolations(today, granularity);
+                        dao.getCompanyViolations(selectedDate, granularity);
 
                 Platform.runLater(() -> {
                     if (company == null) {
@@ -61,19 +58,28 @@ public class ViolationsByBranchController {
 
         // Return
         view.getReturnButton().setOnAction(e -> handleReturn());
+
+        // Load initial data automatically
+        handleDateChange();
+    }
+
+    // ============================================================
+    // NEW: Automatic loading when date/granularity changes
+    // ============================================================
+    public void handleDateChange() {
+        handleLoadBranchViolations();
     }
 
     // ============================================================
     // LOAD BRANCH-BY-BRANCH VIOLATIONS
     // ============================================================
     private void handleLoadBranchViolations() {
-
         String granularity = view.getSelectedGranularityToggle().getText();
-        LocalDate today = LocalDate.now();
+        LocalDate selectedDate = getSelectedDateForGranularity(granularity);
 
         new Thread(() -> {
             List<ViolationsByBranchRecord> records =
-                    dao.getViolationsByBranch(today, granularity);
+                    dao.getViolationsByBranch(selectedDate, granularity);
 
             Platform.runLater(() -> {
                 if (records.isEmpty()) {
@@ -82,6 +88,27 @@ public class ViolationsByBranchController {
                 view.getTableView().getItems().setAll(records);
             });
         }).start();
+    }
+
+    // ============================================================
+    // NEW: Date selection helper method
+    // ============================================================
+    private LocalDate getSelectedDateForGranularity(String granularity) {
+        switch (granularity.toLowerCase()) {
+            case "daily":
+                return view.getDatePicker().getValue();
+            case "monthly":
+                // Create a date representing the first day of selected month/year
+                int month = view.getSelectedMonth();
+                int year = view.getSelectedYear();
+                return LocalDate.of(year, month, 1);
+            case "yearly":
+                // Create a date representing the first day of selected year
+                int yearly = view.getSelectedYear();
+                return LocalDate.of(yearly, 1, 1);
+            default:
+                return LocalDate.now();
+        }
     }
 
     // ============================================================
