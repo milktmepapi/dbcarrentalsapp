@@ -171,6 +171,25 @@ public class RenterView {
         phoneField.setPromptText("Enter Phone Number");
         phoneField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
+        // Enforce numeric-only and max length 11
+        phoneField.textProperty().addListener((obs, oldValue, newValue) -> {
+            // Remove non-digits
+            if (!newValue.matches("\\d*")) {
+                newValue = newValue.replaceAll("[^\\d]", "");
+            }
+
+            // Limit to 11 digits
+            if (newValue.length() > 11) {
+                newValue = newValue.substring(0, 11);
+            }
+
+            // Update only if different to avoid cursor jump
+            if (!newValue.equals(oldValue)) {
+                phoneField.setText(newValue);
+            }
+        });
+
+
         Label emailLabel = new Label("Email Address:");
         emailLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField emailField = new TextField();
@@ -199,6 +218,13 @@ public class RenterView {
             if (id.isEmpty() || fn.isEmpty() || ln.isEmpty() || phone.isEmpty() || email.isEmpty()) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
+                return;
+            }
+
+            // FINAL PHONE VALIDATION HERE
+            if (!phone.matches("\\d{11}")) {
+                message.setText("Phone number must be exactly 11 digits and numeric only).");
+                message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                 return;
             }
 
@@ -279,6 +305,24 @@ public class RenterView {
         TextField phoneField = new TextField(selected.getRenterPhoneNumber());
         phoneField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
+        // Enforce numeric-only and max length 11
+        phoneField.textProperty().addListener((obs, oldValue, newValue) -> {
+            // Remove non-digits
+            if (!newValue.matches("\\d*")) {
+                newValue = newValue.replaceAll("[^\\d]", "");
+            }
+
+            // Limit to 11 digits
+            if (newValue.length() > 11) {
+                newValue = newValue.substring(0, 11);
+            }
+
+            // Update only if different to avoid cursor jump
+            if (!newValue.equals(oldValue)) {
+                phoneField.setText(newValue);
+            }
+        });
+
         Label emailLabel = new Label("Email Address:");
         emailLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField emailField = new TextField(selected.getRenterEmailAddress());
@@ -304,6 +348,13 @@ public class RenterView {
             if (first.isEmpty() || last.isEmpty() || phone.isEmpty() || email.isEmpty()) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
+                return;
+            }
+
+            // FINAL PHONE VALIDATION HERE
+            if (!phone.matches("\\d{11}")) {
+                message.setText("Phone number must be exactly 11 digits and numeric only.");
+                message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                 return;
             }
 

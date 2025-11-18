@@ -8,16 +8,19 @@ import model.RevenueByBranchRecord;
 
 public class RevenueByBranchDAO {
 
+    // company establishment (inclusive)
+    private static final LocalDate COMPANY_ESTABLISHED = LocalDate.of(2025, 1, 1);
+
     // ============================
-    // 1. BRANCH REVENUE
+    // 1. BRANCH REVENUE (rental + penalties)
     // ============================
     public List<RevenueByBranchRecord> getRevenueByBranch(LocalDate date, String granularity) {
 
         List<RevenueByBranchRecord> revenues = new ArrayList<>();
 
-        // Split filters
-        String filterR;      // rental_details r (main)
-        String filterRD;     // rental_details rd (penalty)
+        // Filters for rental (r) and penalty lookup (rd)
+        String filterR;
+        String filterRD;
 
         switch (granularity.toLowerCase()) {
             case "daily" -> {
@@ -36,65 +39,49 @@ public class RevenueByBranchDAO {
         }
 
         String query = String.format("""
-        SELECT
-            b.branch_id,
-            b.branch_name,
-
-            COALESCE(SUM(r.rental_total_payment), 0) AS rental_income,
-
-            (
-                SELECT COALESCE(SUM(v.violation_penalty_fee), 0)
-                FROM violation_details v
-                INNER JOIN rental_details rd ON v.violation_rental_id = rd.rental_id
-                WHERE rd.rental_branch_id = b.branch_id
-                  AND %s
-            ) AS penalty_income,
-
-            (
-                SELECT SUM(j.job_salary)
-                FROM staff_record s
-                INNER JOIN job_record j ON s.staff_job_id = j.job_id
-                WHERE s.staff_branch_id = b.branch_id
-            ) AS salary_expenses
-
-        FROM branch_record b
-
-        LEFT JOIN rental_details r ON r.rental_branch_id = b.branch_id
-            AND %s
-            AND r.rental_datetime <= NOW()
-
-        GROUP BY b.branch_id, b.branch_name
-        ORDER BY rental_income DESC;
-        """, filterRD, filterR);
+            SELECT
+                b.branch_id,
+                b.branch_name,
+                COALESCE(SUM(r.rental_total_payment), 0) AS rental_income,
+                (
+                    SELECT COALESCE(SUM(v.violation_penalty_fee), 0)
+                    FROM violation_details v
+                    INNER JOIN rental_details rd ON v.violation_rental_id = rd.rental_id
+                    WHERE rd.rental_branch_id = b.branch_id
+                      AND %s
+                ) AS penalty_income
+            FROM branch_record b
+            LEFT JOIN rental_details r ON r.rental_branch_id = b.branch_id
+                AND %s
+                AND r.rental_datetime <= NOW()
+            GROUP BY b.branch_id, b.branch_name
+            ORDER BY rental_income DESC;
+            """, filterRD, filterR);
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            // Bind parameters in correct sequence
+            // bind params in correct order (rd params first, then r params)
             if (granularity.equalsIgnoreCase("daily")) {
                 stmt.setDate(1, Date.valueOf(date)); // rd
                 stmt.setDate(2, Date.valueOf(date)); // r
-            }
-            else if (granularity.equalsIgnoreCase("monthly")) {
-                stmt.setInt(1, date.getMonthValue()); // rd
-                stmt.setInt(2, date.getYear());
-                stmt.setInt(3, date.getMonthValue()); // r
-                stmt.setInt(4, date.getYear());
-            }
-            else { // yearly
-                stmt.setInt(1, date.getYear()); // rd
-                stmt.setInt(2, date.getYear()); // r
+            } else if (granularity.equalsIgnoreCase("monthly")) {
+                stmt.setInt(1, date.getMonthValue()); // rd month
+                stmt.setInt(2, date.getYear());       // rd year
+                stmt.setInt(3, date.getMonthValue()); // r month
+                stmt.setInt(4, date.getYear());       // r year
+            } else { // yearly
+                stmt.setInt(1, date.getYear()); // rd year
+                stmt.setInt(2, date.getYear()); // r year
             }
 
             ResultSet rs = stmt.executeQuery();
-
             while (rs.next()) {
                 revenues.add(new RevenueByBranchRecord(
                         rs.getString("branch_id"),
                         rs.getString("branch_name"),
                         rs.getBigDecimal("rental_income"),
-                        rs.getBigDecimal("penalty_income"),
-                        rs.getBigDecimal("salary_expenses")
+                        rs.getBigDecimal("penalty_income")
                 ));
             }
 
@@ -106,80 +93,49 @@ public class RevenueByBranchDAO {
     }
 
     // ============================
-    // 2. COMPANY REVENUE
+    // 2. COMPANY CUMULATIVE REVENUE (SINCE ESTABLISHMENT)
     // ============================
-    public RevenueByBranchRecord getCompanyRevenue(LocalDate date, String granularity) {
+    public RevenueByBranchRecord getCompanyRevenue(LocalDate ignoreDate, String ignoreGranularity) {
+        // We intentionally ignore the date/granularity passed by the UI for company totals.
+        // Company total = sum(rental_total_payment) + sum(violation_penalty_fee) from company establishment -> now
 
-        String filterR;   // rental_details r
-        String filterR2;  // rental_details r2 (penalty)
+        String rentalQuery = """
+            SELECT COALESCE(SUM(r.rental_total_payment), 0) AS rental_income
+            FROM rental_details r
+            WHERE r.rental_datetime >= ? AND r.rental_datetime <= NOW()
+            """;
 
-        switch (granularity.toLowerCase()) {
-            case "daily" -> {
-                filterR  = "DATE(r.rental_datetime) = ?";
-                filterR2 = "DATE(r2.rental_datetime) = ?";
-            }
-            case "monthly" -> {
-                filterR  = "MONTH(r.rental_datetime) = ? AND YEAR(r.rental_datetime) = ?";
-                filterR2 = "MONTH(r2.rental_datetime) = ? AND YEAR(r2.rental_datetime) = ?";
-            }
-            case "yearly" -> {
-                filterR  = "YEAR(r.rental_datetime) = ?";
-                filterR2 = "YEAR(r2.rental_datetime) = ?";
-            }
-            default -> throw new IllegalArgumentException("Invalid granularity: " + granularity);
-        }
-
-        String query = String.format("""
-        SELECT
-            COALESCE(SUM(rental_total_payment), 0) AS rental_income,
-
-            (
-                SELECT COALESCE(SUM(v.violation_penalty_fee), 0)
-                FROM violation_details v
-                INNER JOIN rental_details r2 ON v.violation_rental_id = r2.rental_id
-                WHERE %s
-            ) AS penalty_income,
-
-            (
-                SELECT SUM(j.job_salary)
-                FROM staff_record s
-                INNER JOIN job_record j ON s.staff_job_id = j.job_id
-            ) AS salary_expenses
-
-        FROM rental_details r
-        WHERE %s
-          AND r.rental_datetime <= NOW();
-        """, filterR2, filterR);
+        String penaltyQuery = """
+            SELECT COALESCE(SUM(v.violation_penalty_fee), 0) AS penalty_income
+            FROM violation_details v
+            INNER JOIN rental_details rd ON v.violation_rental_id = rd.rental_id
+            WHERE rd.rental_datetime >= ? AND rd.rental_datetime <= NOW()
+            """;
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             PreparedStatement stmtRental = conn.prepareStatement(rentalQuery);
+             PreparedStatement stmtPenalty = conn.prepareStatement(penaltyQuery)) {
 
-            if (granularity.equalsIgnoreCase("daily")) {
-                stmt.setDate(1, Date.valueOf(date)); // r2
-                stmt.setDate(2, Date.valueOf(date)); // r
-            }
-            else if (granularity.equalsIgnoreCase("monthly")) {
-                stmt.setInt(1, date.getMonthValue()); // r2
-                stmt.setInt(2, date.getYear());
-                stmt.setInt(3, date.getMonthValue()); // r
-                stmt.setInt(4, date.getYear());
-            }
-            else { // yearly
-                stmt.setInt(1, date.getYear()); // r2
-                stmt.setInt(2, date.getYear()); // r
-            }
+            Date established = Date.valueOf(COMPANY_ESTABLISHED);
 
-            ResultSet rs = stmt.executeQuery();
+            // rental
+            stmtRental.setDate(1, established);
+            ResultSet rs1 = stmtRental.executeQuery();
+            java.math.BigDecimal rentalIncome = java.math.BigDecimal.ZERO;
+            if (rs1.next()) rentalIncome = rs1.getBigDecimal("rental_income");
 
-            if (rs.next()) {
-                return new RevenueByBranchRecord(
-                        "ALL",
-                        "WHOLE COMPANY",
-                        rs.getBigDecimal("rental_income"),
-                        rs.getBigDecimal("penalty_income"),
-                        rs.getBigDecimal("salary_expenses")
-                );
-            }
+            // penalty
+            stmtPenalty.setDate(1, established);
+            ResultSet rs2 = stmtPenalty.executeQuery();
+            java.math.BigDecimal penaltyIncome = java.math.BigDecimal.ZERO;
+            if (rs2.next()) penaltyIncome = rs2.getBigDecimal("penalty_income");
+
+            return new RevenueByBranchRecord(
+                    "ALL",
+                    "WHOLE COMPANY (since " + COMPANY_ESTABLISHED.toString() + ")",
+                    rentalIncome,
+                    penaltyIncome
+            );
 
         } catch (SQLException e) {
             e.printStackTrace();

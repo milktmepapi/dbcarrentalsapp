@@ -101,6 +101,18 @@ public class CarView {
         TableColumn<CarRecord, Double> rentalFeeCol = new TableColumn<>("Fee");
         rentalFeeCol.setCellValueFactory(new PropertyValueFactory<>("carRentalFee"));
 
+        rentalFeeCol.setCellFactory(column -> new TableCell<CarRecord, Double>() {
+            @Override
+            protected void updateItem(Double value, boolean empty) {
+                super.updateItem(value, empty);
+                if (empty || value == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%.2f", value)); // <-- FORMAT TO 2 DECIMAL PLACES
+                }
+            }
+        });
+
         tableView.getColumns().addAll(
                 plateNumberCol,
                 transmissionCol,

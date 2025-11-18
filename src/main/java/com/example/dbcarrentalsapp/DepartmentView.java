@@ -163,7 +163,7 @@ public class DepartmentView {
             }
 
             if (!id.matches("^DEPT_[A-Za-z]{2,3}$")) {
-                message.setText("Invalid ID format! Use DEPT_XX or DEPT_XXX (letters only).");
+                message.setText("Invalid ID format! Use DEPT_XXX (letters only).");
                 message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                 return;
             }

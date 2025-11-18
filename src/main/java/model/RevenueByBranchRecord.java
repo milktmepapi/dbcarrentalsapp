@@ -3,25 +3,28 @@ package model;
 import java.math.BigDecimal;
 
 public class RevenueByBranchRecord {
+
     private String branchId;
     private String branchName;
     private BigDecimal rentalIncome;
     private BigDecimal penaltyIncome;
-    private BigDecimal salaryExpenses;
 
     public RevenueByBranchRecord(String branchId,
                                  String branchName,
                                  BigDecimal rentalIncome,
-                                 BigDecimal penaltyIncome,
-                                 BigDecimal salaryExpenses) {
+                                 BigDecimal penaltyIncome) {
+
         this.branchId = branchId;
         this.branchName = branchName;
+
         this.rentalIncome = rentalIncome != null ? rentalIncome : BigDecimal.ZERO;
         this.penaltyIncome = penaltyIncome != null ? penaltyIncome : BigDecimal.ZERO;
-        this.salaryExpenses = salaryExpenses != null ? salaryExpenses : BigDecimal.ZERO;
     }
 
-    // Getters and Setters
+    // ====================
+    // Getters / Setters
+    // ====================
+
     public String getBranchId() {
         return branchId;
     }
@@ -54,16 +57,10 @@ public class RevenueByBranchRecord {
         this.penaltyIncome = penaltyIncome != null ? penaltyIncome : BigDecimal.ZERO;
     }
 
-    public BigDecimal getSalaryExpenses() {
-        return salaryExpenses;
-    }
-
-    public void setSalaryExpenses(BigDecimal salaryExpenses) {
-        this.salaryExpenses = salaryExpenses != null ? salaryExpenses : BigDecimal.ZERO;
-    }
-
-    // Helper method for net revenue
-    public BigDecimal getNetRevenue() {
-        return rentalIncome.add(penaltyIncome).subtract(salaryExpenses);
+    // ====================
+    // Derived Value
+    // ====================
+    public BigDecimal getTotalRevenue() {
+        return rentalIncome.add(penaltyIncome);
     }
 }
