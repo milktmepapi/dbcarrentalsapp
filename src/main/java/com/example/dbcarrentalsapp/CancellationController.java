@@ -143,69 +143,6 @@ public class CancellationController {
         sortByCancellationId();
     }
 
-    private void processSelectedReturn() {
-        CancellationRecord selected = view.getSelectedRecord();
-        if (selected == null) {
-            showPopup("No Selection", "Please select a cancellation record.");
-            return;
-        }
-
-        processCancellation(selected);
-    }
-
-    public void processCancellation(CancellationRecord selected) {
-        try (Connection conn = DBConnection.getConnection()) {
-            conn.setAutoCommit(false); // Start transaction
-
-            RentalDAO rentalDAO = new RentalDAO();
-            RentalRecord rental = rentalDAO.getRentalById(selected.getCancellationRentalId());
-            if (rental == null) {
-                showPopup("Error", "Rental not found.");
-                return;
-            }
-
-            if (rental.getRentalStatus() != RentalRecord.RentalStatus.ACTIVE) {
-                showPopup("Error", "Rental is not active.");
-                return;
-            }
-
-            // Update car status using the same connection
-            CarDAO carDAO = new CarDAO();
-            carDAO.updateCarStatus(conn, rental.getCarPlateNumber());
-
-            // Insert cancellation record
-            CancellationRecord newCancellation = new CancellationRecord(null, rental.getRentalId(), "STAFF001", LocalDateTime.now(), selected.getReason());
-            cancellationDAO.addCancellation(conn, newCancellation);
-
-            // Update rental status to COMPLETED
-            rental.setRentalStatus(RentalRecord.RentalStatus.COMPLETED);
-            rentalDAO.updateRentalStatus(conn, rental);
-
-            conn.commit(); // Commit transaction
-
-            loadTable();
-
-            showCancellationReceipt(rental);
-
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            showPopup("Error", "Failed to process cancellation. Rolling back.");
-        }
-    }
-
-    private void showCancellationReceipt(RentalRecord rental) {
-        Alert receipt = new Alert(Alert.AlertType.INFORMATION);
-        receipt.setTitle("Cancellation Receipt");
-        receipt.setHeaderText("Car Cancelled Successfully!");
-        receipt.setContentText(
-                "Rental ID: " + rental.getRentalId() + "\n" +
-                        "Renter DL: " + rental.getRenterDlNumber() + "\n" +
-                        "Car Plate: " + rental.getCarPlateNumber() + "\n" +
-                        "Cancellation Date & Time: " + java.time.LocalDateTime.now() + "\n"
-        );
-        receipt.showAndWait();
-    }
-
     public void viewReceipt(CancellationRecord record) {
         try {
             RentalDAO rentalDAO = new RentalDAO();
