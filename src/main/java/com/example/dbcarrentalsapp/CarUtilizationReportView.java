@@ -60,14 +60,14 @@ public class CarUtilizationReportView {
         TableColumn<CarUtilizationReport, String> carPlateNumberCol = new TableColumn<>("Car Plate Number");
         carPlateNumberCol.setCellValueFactory(new PropertyValueFactory<>("carPlateNumber"));
 
-        TableColumn<CarUtilizationReport, String> carModelCol = new TableColumn<>("Car Model");
-        carModelCol.setCellValueFactory(new PropertyValueFactory<>("carModel"));
-
         TableColumn<CarUtilizationReport, String> carBrandCol = new TableColumn<>("Car Brand");
         carBrandCol.setCellValueFactory(new PropertyValueFactory<>("carBrand"));
 
+        TableColumn<CarUtilizationReport, String> carModelCol = new TableColumn<>("Car Model");
+        carModelCol.setCellValueFactory(new PropertyValueFactory<>("carModel"));
+
         TableColumn<CarUtilizationReport, String> carTransmissionCol = new TableColumn<>("Car Transmission");
-        carBrandCol.setCellValueFactory(new PropertyValueFactory<>("carTransmission"));
+        carTransmissionCol.setCellValueFactory(new PropertyValueFactory<>("carTransmission"));
 
         TableColumn<CarUtilizationReport, Integer> totalCol = new TableColumn<>("Total Rentals");
         totalCol.setCellValueFactory(new PropertyValueFactory<>("totalRentals"));
@@ -76,7 +76,7 @@ public class CarUtilizationReportView {
         totalDaysCol.setCellValueFactory(new PropertyValueFactory<>("totalRentalDays"));
 
         TableColumn<CarUtilizationReport, Double> utilizationRateCol = new TableColumn<>("Utilization Rate");
-        totalCol.setCellValueFactory(new PropertyValueFactory<>("utilizationRate"));
+        utilizationRateCol.setCellValueFactory(new PropertyValueFactory<>("utilizationRate"));
 
         tableView.getColumns().addAll(branchCol, carPlateNumberCol, carModelCol, carBrandCol, carTransmissionCol, totalCol, totalDaysCol, utilizationRateCol);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
