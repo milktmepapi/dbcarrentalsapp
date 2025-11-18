@@ -73,6 +73,49 @@ public class RentalDetails {
         this.status = status;
     }
 
+    public static final String STATUS_UPCOMING = "Upcoming";
+    public static final String STATUS_ACTIVE = "Active";
+    public static final String STATUS_COMPLETED = "Completed";
+    public static final String STATUS_CANCELLED = "Cancelled";
+    public static final String STATUS_OVERDUE = "Overdue";
+
+    /**
+     * Checks if this rental is currently late
+     */
+    public boolean isLate() {
+        if (actualReturnDatetime != null) {
+            // Already returned - check if it was late
+            return actualReturnDatetime.after(expectedReturnDatetime);
+        } else {
+            // Not yet returned - check if it's overdue
+            return new Date().after(expectedReturnDatetime) && STATUS_ACTIVE.equals(status);
+        }
+    }
+
+    /**
+     * Gets the current status considering overdue status
+     */
+    public String getEffectiveStatus() {
+        if (isLate() && STATUS_ACTIVE.equals(status)) {
+            return STATUS_OVERDUE;
+        }
+        return status;
+    }
+
+    /**
+     * Calculates late hours if applicable
+     */
+    public int calculateLateHours() {
+        if (actualReturnDatetime != null && actualReturnDatetime.after(expectedReturnDatetime)) {
+            long diffMillis = actualReturnDatetime.getTime() - expectedReturnDatetime.getTime();
+            return (int) Math.ceil(diffMillis / (1000.0 * 60 * 60));
+        } else if (new Date().after(expectedReturnDatetime) && STATUS_ACTIVE.equals(status)) {
+            long diffMillis = new Date().getTime() - expectedReturnDatetime.getTime();
+            return (int) Math.ceil(diffMillis / (1000.0 * 60 * 60));
+        }
+        return 0;
+    }
+
     // Getters and Setters following the same pattern as other model classes
     /** @return the rental ID */
     public String getRentalId() {
