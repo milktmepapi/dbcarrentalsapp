@@ -238,15 +238,26 @@ public class RentalController {
         grid.setHgap(25);
         grid.setPadding(new Insets(20));
 
+        ColumnConstraints col1 = new ColumnConstraints();
+        col1.setMinWidth(180);
+        ColumnConstraints col2 = new ColumnConstraints();
+        col2.setMinWidth(220);
+        grid.getColumnConstraints().addAll(col1, col2);
+
+        String actualPickup = r.getActualPickupDateTime() == null
+                ? "N/A"
+                : r.getActualPickupDateTime().format(fmt);
+
         String[][] data = {
                 {"Rental ID:", r.getRentalId()},
                 {"Driver's License:", r.getRenterDlNumber()},
                 {"Car Plate:", r.getCarPlateNumber()},
                 {"Branch:", r.getBranchId()},
+                {"Rental Created:", r.getRentalDateTime().format(fmt)},
                 {"Pickup (Expected):", r.getExpectedPickupDateTime().format(fmt)},
+                {"Pickup (Actual):", actualPickup},
                 {"Return (Expected):", r.getExpectedReturnDateTime().format(fmt)},
-                {"Pickup Processed By:",
-                        r.getStaffIdPickup() == null ? "N/A" : r.getStaffIdPickup()},
+                {"Pickup Processed By:", r.getStaffIdPickup() == null ? "N/A" : r.getStaffIdPickup()},
                 {"Status:", r.getRentalStatus().name()},
                 {"Total Payment:", String.valueOf(r.getTotalPayment())}
         };
@@ -272,12 +283,9 @@ public class RentalController {
         VBox layout = new VBox(20, grid, closeBtn);
         layout.setAlignment(Pos.CENTER);
         layout.setPadding(new Insets(25));
-        layout.setStyle(
-                "-fx-background-color: rgba(25,25,35,0.95);" +
-                        "-fx-background-radius: 10;"
-        );
+        layout.setStyle("-fx-background-color: rgba(25,25,35,0.95); -fx-background-radius: 10;");
 
-        Scene scene = new Scene(layout, 420, 500);
+        Scene scene = new Scene(layout, 450, 520);
         popup.setScene(scene);
         popup.showAndWait();
     }

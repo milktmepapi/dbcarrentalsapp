@@ -666,7 +666,11 @@ public class RentalView {
         Label car = new Label("Car Plate: " + record.getCarPlateNumber());
         Label branch = new Label("Branch: " + record.getBranchId());
 
+        Label rentalDateTime = new Label("Rental Datetime: " +
+                (record.getRentalDateTime() == null ? "—" : record.getRentalDateTime()));
+
         Label expectedPickup = new Label("Expected Pickup: " + record.getExpectedPickupDateTime());
+
         Label actualPickup = new Label("Actual Pickup: " +
                 (record.getActualPickupDateTime() == null ? "—" : record.getActualPickupDateTime()));
 
@@ -674,6 +678,7 @@ public class RentalView {
                 (record.getStaffIdPickup() == null ? "—" : record.getStaffIdPickup()));
 
         Label expectedReturn = new Label("Expected Return: " + record.getExpectedReturnDateTime());
+
         Label actualReturn = new Label("Actual Return: " +
                 (record.getActualReturnDateTime() == null ? "—" : record.getActualReturnDateTime()));
 
@@ -683,7 +688,7 @@ public class RentalView {
         Label payment = new Label("Total Payment: ₱" + record.getTotalPayment());
         Label status = new Label("Status: " + record.getRentalStatus());
 
-        for (Label lbl : new Label[]{id, dl, car, branch, expectedPickup, actualPickup,
+        for (Label lbl : new Label[]{id, dl, car, branch, rentalDateTime, expectedPickup, actualPickup,
                 pickupStaff, expectedReturn, actualReturn, returnStaff, payment, status}) {
 
             lbl.setStyle("-fx-text-fill: white; -fx-font-size: 14px;");
@@ -696,13 +701,14 @@ public class RentalView {
         layout.getChildren().addAll(
                 title,
                 id, dl, car, branch,
+                rentalDateTime,
                 expectedPickup, actualPickup, pickupStaff,
                 expectedReturn, actualReturn, returnStaff,
                 payment, status,
                 closeBtn
         );
 
-        popup.setScene(new Scene(layout, 380, 580));
+        popup.setScene(new Scene(layout, 380, 600));
         popup.showAndWait();
     }
 

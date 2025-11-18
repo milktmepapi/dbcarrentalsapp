@@ -173,6 +173,13 @@ public class LocationView {
                 return;
             }
 
+            // Location ID must be 3 letters + 3 digits
+            if (!id.matches("^[A-Za-z]{3}\\d{3}$")) {
+                message.setText("Invalid ID format! Must be 3 letters + 3 digits (e.g., BEN001).");
+                message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
+                return;
+            }
+
             boolean success = dao.addLocation(id, city, province);
             if (success) {
                 reloadCallback.run();

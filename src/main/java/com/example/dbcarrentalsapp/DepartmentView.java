@@ -131,7 +131,7 @@ public class DepartmentView {
         Label idLabel = new Label("Department ID:");
         idLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         TextField idField = new TextField();
-        idField.setPromptText("e.g., DEP001");
+        idField.setPromptText("e.g., DEPT_HR");
         idField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         Label nameLabel = new Label("Department Name:");
@@ -159,6 +159,12 @@ public class DepartmentView {
             if (id.isEmpty() || name.isEmpty()) {
                 message.setText("Please fill in all fields!");
                 message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
+                return;
+            }
+
+            if (!id.matches("^DEPT_[A-Za-z]{2,3}$")) {
+                message.setText("Invalid ID format! Use DEPT_XX or DEPT_XXX (letters only).");
+                message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                 return;
             }
 
