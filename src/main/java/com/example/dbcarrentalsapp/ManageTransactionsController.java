@@ -47,7 +47,7 @@ public class ManageTransactionsController {
         System.out.println("Opening Rental Returns...");
         ReturnView returnView = new ReturnView();
         new ReturnController(returnView, stage);
-        rv.setController(rc);
+        returnView.setController(rc);
         stage.setScene(returnView.getScene());
     }
 
