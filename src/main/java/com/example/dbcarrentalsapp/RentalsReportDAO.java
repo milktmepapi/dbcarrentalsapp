@@ -12,15 +12,15 @@ public class RentalsReportDAO {
         List<BranchReport> list = new ArrayList<>();
 
         // 1. MODIFIED SQL (Removed renter join, select, and group by)
-        String sql = "SELECT b.branch_name, c.car_transmission, " +
-                "CASE WHEN DATEDIFF(rd.rental_actual_return_datetime, rd.rental_pickup_datetime) <= 3 THEN 'Short-term' " +
-                "WHEN DATEDIFF(rd.rental_actual_return_datetime, rd.rental_pickup_datetime) <= 7 THEN 'Medium-term' " +
+               String sql = "SELECT b.branch_name, c.car_transmission, " +
+                "CASE WHEN DATEDIFF(rd.rental_actual_return_datetime, rd.rental_actual_pickup_datetime) <= 3 THEN 'Short-term' " +
+                "WHEN DATEDIFF(rd.rental_actual_return_datetime, rd.rental_actual_pickup_datetime) <= 7 THEN 'Medium-term' " +
                 "ELSE 'Long-term' END AS rental_duration, " +
                 "COUNT(*) AS total_rentals " +
                 "FROM rental_details rd " +
                 "JOIN car_record c ON rd.rental_car_plate_number = c.car_plate_number " +
                 "JOIN branch_record b ON c.car_branch_id = b.branch_id " +
-                "WHERE rd.rental_status = 'Completed' " + //
+                "WHERE rd.rental_status = 'COMPLETED' " +
                 "GROUP BY b.branch_name, c.car_transmission, rental_duration " +
                 "ORDER BY b.branch_name, c.car_transmission";
 
@@ -47,3 +47,4 @@ public class RentalsReportDAO {
         return list;
     }
 }
+
