@@ -311,7 +311,7 @@ public class ViolationView {
                         staffComboBox.getItems().addAll(operationsStaff);
 
                         if (operationsStaff.isEmpty()) {
-                            info.append("⚠️ No Operations staff available in this branch!\n");
+                            info.append("⚠ No Operations staff available in this branch!\n");
                         }
                     }
 
@@ -324,7 +324,7 @@ public class ViolationView {
                         info.append("Status: WOULD BE LATE RETURN\n");
                         info.append(String.format("Late by: %d hours\n", lateHours));
                         info.append(String.format("Penalty Fee: $%.2f\n", penalty));
-                        info.append("\n⚠️ This will automatically create a late return violation!");
+                        info.append("\n⚠ This will automatically create a late return violation!");
                     } else {
                         info.append("Status: ON TIME\n");
                         info.append("No penalty fees applicable.");
@@ -980,4 +980,5 @@ public class ViolationView {
 
         return confirmed[0];
     }
+
 }
