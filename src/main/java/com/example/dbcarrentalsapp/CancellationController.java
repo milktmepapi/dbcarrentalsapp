@@ -44,6 +44,9 @@ public class CancellationController {
         this.stage = stage;
         this.cancellationDAO = new CancellationDAO();
 
+        // Link controller to view //
+        this.view.setController(this);
+
         // Initialize data and setup UI interactions
         loadCancellations();
         setupActions();

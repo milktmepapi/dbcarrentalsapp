@@ -96,7 +96,7 @@ public class CancellationView {
         });
 
         TableColumn<CancellationRecord, String> rentalCol = new TableColumn<>("Rental ID");
-        rentalCol.setCellValueFactory(new PropertyValueFactory<>("rentalId"));
+        rentalCol.setCellValueFactory(new PropertyValueFactory<>("cancellationRentalId"));
         rentalCol.setPrefWidth(80);
         rentalCol.setMaxWidth(100);
         // Set text color to black
@@ -114,7 +114,7 @@ public class CancellationView {
         });
 
         TableColumn<CancellationRecord, String> staffCol = new TableColumn<>("Staff ID");
-        staffCol.setCellValueFactory(new PropertyValueFactory<>("staffId"));
+        staffCol.setCellValueFactory(new PropertyValueFactory<>("cancellationStaffId"));
         staffCol.setPrefWidth(70);
         staffCol.setMaxWidth(90);
         // Set text color to black
@@ -685,6 +685,10 @@ public class CancellationView {
     }
     public void refreshTable(List<CancellationRecord> data) {
         tableView.getItems().setAll(data);
+    }
+
+    public void setController(CancellationController controller){
+        this.controller = controller;
     }
 
     public CancellationRecord getSelectedRecord() { return tableView.getSelectionModel().getSelectedItem(); }

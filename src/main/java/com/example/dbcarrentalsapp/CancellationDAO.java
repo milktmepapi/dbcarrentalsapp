@@ -259,7 +259,7 @@ public class CancellationDAO {
      */
     public boolean validateStaffForCancellation(String staffId, String rentalId) throws SQLException {
         String sql = """
-            SELECT sr.staff_id, sr.branch_id, jr.job_department_id
+            SELECT sr.staff_id, sr.staff_branch_id, jr.job_department_id
             FROM staff_record sr
             JOIN job_record jr ON sr.staff_job_id = jr.job_id
             JOIN rental_details rd ON rd.rental_branch_id = sr.staff_branch_id
