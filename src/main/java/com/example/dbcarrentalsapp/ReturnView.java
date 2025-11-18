@@ -59,6 +59,8 @@ public class ReturnView {
         searchField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         filterButton = new Button("Filter");
+        filterButton.getStyleClass().add("small-button");
+        filterButton.setPrefWidth(120);
         HBox searchBox = new HBox(10, searchField, filterButton);
         searchBox.setAlignment(Pos.CENTER);
 
@@ -155,3 +157,4 @@ public class ReturnView {
         return returnButton;
     }
 }
+
