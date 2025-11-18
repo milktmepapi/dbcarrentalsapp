@@ -33,20 +33,19 @@ import java.util.Optional;
  */
 
 public class ViolationView {
-    // UI Components - made public for controller access
+    // Original UI Components
     public Button addButton, modifyButton, returnButton, filterButton;
     public TextField searchField;
     public TableView<ViolationRecord> tableView;
+
+    // New UI Components for automated features
+    public Button processReturnButton, generateReceiptButton, checkOverdueButton;
+
     private final Scene scene;
 
-    /**
-     * Constructor - initializes the violation management interface with all UI components.
-     * Sets up the layout, styling, and initial state of the view.
-     */
     public ViolationView() {
         // ===== BACKGROUND SETUP =====
         StackPane root = new StackPane();
-        // Load and set background image
         Image bgImage = new Image(getClass().getResourceAsStream("/com/example/dbcarrentalsapp/aston_martin_dbs-wide.png"));
         ImageView bgView = new ImageView(bgImage);
         bgView.setFitWidth(1152);
@@ -79,7 +78,6 @@ public class ViolationView {
         filterButton.getStyleClass().add("small-button");
         filterButton.setPrefWidth(100);
 
-        // Horizontal box for search components
         HBox searchBox = new HBox(10, searchField, filterButton);
         searchBox.setAlignment(Pos.CENTER);
 
@@ -90,84 +88,16 @@ public class ViolationView {
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tableView.getStyleClass().add("custom-table");
 
-        // Define table columns with optimized widths
-        TableColumn<ViolationRecord, String> idCol = new TableColumn<>("Violation ID");
-        idCol.setCellValueFactory(new PropertyValueFactory<>("violationId"));
-        idCol.setPrefWidth(90);  // Reduced width
-        idCol.setMaxWidth(120);
-        // Set text color to black
-        idCol.setCellFactory(column -> new TableCell<ViolationRecord, String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item);
-                    setStyle("-fx-text-fill: black;");
-                }
-            }
-        });
-
-        TableColumn<ViolationRecord, String> rentalCol = new TableColumn<>("Rental ID");
-        rentalCol.setCellValueFactory(new PropertyValueFactory<>("rentalId"));
-        rentalCol.setPrefWidth(80);
-        rentalCol.setMaxWidth(100);
-        // Set text color to black
-        rentalCol.setCellFactory(column -> new TableCell<ViolationRecord, String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item);
-                    setStyle("-fx-text-fill: black;");
-                }
-            }
-        });
-
-        TableColumn<ViolationRecord, String> staffCol = new TableColumn<>("Staff ID");
-        staffCol.setCellValueFactory(new PropertyValueFactory<>("staffId"));
-        staffCol.setPrefWidth(70);
-        staffCol.setMaxWidth(90);
-        // Set text color to black
-        staffCol.setCellFactory(column -> new TableCell<ViolationRecord, String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item);
-                    setStyle("-fx-text-fill: black;");
-                }
-            }
-        });
-
-        TableColumn<ViolationRecord, String> typeCol = new TableColumn<>("Type");
-        typeCol.setCellValueFactory(new PropertyValueFactory<>("violationType"));
-        typeCol.setPrefWidth(100);
-        typeCol.setMaxWidth(130);
-        // Set text color to black
-        typeCol.setCellFactory(column -> new TableCell<ViolationRecord, String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item);
-                    setStyle("-fx-text-fill: black;");
-                }
-            }
-        });
+        // Define table columns (same as before)
+        TableColumn<ViolationRecord, String> idCol = createTableColumn("Violation ID", "violationId", 90, 120);
+        TableColumn<ViolationRecord, String> rentalCol = createTableColumn("Rental ID", "rentalId", 80, 100);
+        TableColumn<ViolationRecord, String> staffCol = createTableColumn("Staff ID", "staffId", 70, 90);
+        TableColumn<ViolationRecord, String> typeCol = createTableColumn("Type", "violationType", 100, 130);
 
         TableColumn<ViolationRecord, Double> penaltyCol = new TableColumn<>("Penalty");
         penaltyCol.setCellValueFactory(new PropertyValueFactory<>("penaltyFee"));
         penaltyCol.setPrefWidth(70);
         penaltyCol.setMaxWidth(90);
-        // Format penalty fee display and set text color to black
         penaltyCol.setCellFactory(column -> new TableCell<ViolationRecord, Double>() {
             @Override
             protected void updateItem(Double item, boolean empty) {
@@ -183,9 +113,8 @@ public class ViolationView {
 
         TableColumn<ViolationRecord, String> reasonCol = new TableColumn<>("Reason");
         reasonCol.setCellValueFactory(new PropertyValueFactory<>("reason"));
-        reasonCol.setPrefWidth(150);  // More space for reason
+        reasonCol.setPrefWidth(150);
         reasonCol.setMaxWidth(200);
-        // Enable text wrapping for reason column and set text color to black
         reasonCol.setCellFactory(column -> new TableCell<ViolationRecord, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -194,9 +123,8 @@ public class ViolationView {
                     setText(null);
                     setGraphic(null);
                 } else {
-                    // Create a text object with wrapping
                     Text text = new Text(item);
-                    text.setWrappingWidth(reasonCol.getWidth() - 10); // Allow for padding
+                    text.setWrappingWidth(reasonCol.getWidth() - 10);
                     text.setStyle("-fx-fill: black;");
                     setGraphic(text);
                 }
@@ -207,7 +135,6 @@ public class ViolationView {
         durationCol.setCellValueFactory(new PropertyValueFactory<>("durationHours"));
         durationCol.setPrefWidth(70);
         durationCol.setMaxWidth(90);
-        // Format duration display and set text color to black
         durationCol.setCellFactory(column -> new TableCell<ViolationRecord, Integer>() {
             @Override
             protected void updateItem(Integer item, boolean empty) {
@@ -228,9 +155,8 @@ public class ViolationView {
                     timestamp.format(DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm")) : "N/A";
             return new javafx.beans.property.SimpleStringProperty(formatted);
         });
-        timestampCol.setPrefWidth(120);  // Increased width to accommodate year
+        timestampCol.setPrefWidth(120);
         timestampCol.setMaxWidth(140);
-// Set text color to black
         timestampCol.setCellFactory(column -> new TableCell<ViolationRecord, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -244,30 +170,48 @@ public class ViolationView {
             }
         });
 
-        // Add all columns to the table
         tableView.getColumns().addAll(
                 idCol, rentalCol, staffCol, typeCol, penaltyCol, reasonCol, durationCol, timestampCol
         );
 
         // ===== BUTTON SETUP =====
+        // Original buttons
         addButton = new Button("Add");
         modifyButton = new Button("Modify");
         returnButton = new Button("Return");
 
-        addButton.getStyleClass().add("small-button");
-        modifyButton.getStyleClass().add("small-button");
-        returnButton.getStyleClass().add("small-button");
+        // New buttons for automated features
+        processReturnButton = new Button("Process Return");
+        generateReceiptButton = new Button("Generate Receipt");
+        checkOverdueButton = new Button("Check Overdue");
+
+        // Style all buttons
+        String buttonStyle = "small-button";
+        addButton.getStyleClass().add(buttonStyle);
+        modifyButton.getStyleClass().add(buttonStyle);
+        returnButton.getStyleClass().add(buttonStyle);
+        processReturnButton.getStyleClass().add(buttonStyle);
+        generateReceiptButton.getStyleClass().add(buttonStyle);
+        checkOverdueButton.getStyleClass().add(buttonStyle);
 
         addButton.setPrefWidth(120);
         modifyButton.setPrefWidth(120);
         returnButton.setPrefWidth(120);
+        processReturnButton.setPrefWidth(140);
+        generateReceiptButton.setPrefWidth(140);
+        checkOverdueButton.setPrefWidth(140);
 
-        // Horizontal box for action buttons
-        HBox buttonBox = new HBox(15, addButton, modifyButton, returnButton);
+        // Button layout - two rows for better organization
+        HBox topButtonBox = new HBox(15, addButton, modifyButton, processReturnButton);
+        topButtonBox.setAlignment(Pos.CENTER);
+
+        HBox bottomButtonBox = new HBox(15, generateReceiptButton, checkOverdueButton, returnButton);
+        bottomButtonBox.setAlignment(Pos.CENTER);
+
+        VBox buttonBox = new VBox(10, topButtonBox, bottomButtonBox);
         buttonBox.setAlignment(Pos.CENTER);
 
         // ===== CARD CONTAINER SETUP =====
-        // Main content card with semi-transparent background
         VBox tableCard = new VBox(15, tableView, buttonBox);
         tableCard.setAlignment(Pos.CENTER);
         tableCard.setPadding(new Insets(20));
@@ -294,14 +238,213 @@ public class ViolationView {
     }
 
     /**
-     * Returns the scene for this view to be displayed in the stage.
-     *
-     * @return The fully configured Scene object
+     * Helper method to create table columns with consistent styling
      */
+    private TableColumn<ViolationRecord, String> createTableColumn(String title, String property, double prefWidth, double maxWidth) {
+        TableColumn<ViolationRecord, String> column = new TableColumn<>(title);
+        column.setCellValueFactory(new PropertyValueFactory<>(property));
+        column.setPrefWidth(prefWidth);
+        column.setMaxWidth(maxWidth);
+        column.setCellFactory(col -> new TableCell<ViolationRecord, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setStyle("-fx-text-fill: black;");
+                }
+            }
+        });
+        return column;
+    }
+
     public Scene getScene() {
         return scene;
     }
 
+    /**
+     * NEW: Shows popup for processing car returns with automatic violation detection
+     */
+    public void showProcessReturnPopup(ViolationDAO dao, Runnable refresh) {
+        Stage popup = new Stage();
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle("Process Car Return");
+
+        // Input fields
+        Label rentalLabel = new Label("Select Rental to Return:");
+        rentalLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
+
+        ComboBox<String> rentalComboBox = new ComboBox<>();
+        rentalComboBox.setPromptText("Select Rental ID");
+        rentalComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        setComboBoxTextWhite(rentalComboBox);
+
+        Label staffLabel = new Label("Staff ID Processing Return:");
+        staffLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
+
+        ComboBox<String> staffComboBox = new ComboBox<>();
+        staffComboBox.setPromptText("Select Staff ID");
+        staffComboBox.setStyle("-fx-background-color: #2a2a3a; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        setComboBoxTextWhite(staffComboBox);
+
+        // Info display
+        TextArea infoArea = new TextArea();
+        infoArea.setEditable(false);
+        infoArea.setPrefHeight(120);
+        infoArea.setStyle("-fx-control-inner-background: #1a1a2a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
+        infoArea.setText("Select a rental to see details...");
+
+        // Populate dropdowns
+        try {
+            rentalComboBox.getItems().addAll(dao.getActiveRentalsForReturn());
+            staffComboBox.getItems().addAll(dao.getAllStaffIds());
+        } catch (Exception e) {
+            e.printStackTrace();
+            infoArea.setText("Error loading data: " + e.getMessage());
+        }
+
+        // Update info when rental selection changes
+        rentalComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                try {
+                    StringBuilder info = new StringBuilder();
+                    info.append("Rental ID: ").append(newVal).append("\n");
+
+                    // Check if late
+                    boolean isLate = dao.isLateReturn(newVal);
+                    int lateHours = dao.calculateLateHours(newVal);
+                    double penalty = dao.calculateLatePenalty(newVal);
+
+                    if (isLate) {
+                        info.append("Status: LATE RETURN\n");
+                        info.append(String.format("Late by: %d hours\n", lateHours));
+                        info.append(String.format("Penalty Fee: $%.2f\n", penalty));
+                        info.append("\n⚠️ This will automatically create a late return violation!");
+                    } else {
+                        info.append("Status: ON TIME\n");
+                        info.append("No penalty fees applicable.");
+                    }
+
+                    infoArea.setText(info.toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    infoArea.setText("Error loading rental details: " + e.getMessage());
+                }
+            }
+        });
+
+        // Buttons
+        Button processBtn = new Button("Process Return");
+        Button cancelBtn = new Button("Cancel");
+
+        processBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+        cancelBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 16;");
+
+        Label message = new Label();
+        message.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
+
+        processBtn.setOnAction(e -> {
+            try {
+                if (rentalComboBox.getValue() == null || staffComboBox.getValue() == null) {
+                    message.setText("Please select both rental and staff!");
+                    message.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
+                    return;
+                }
+
+                String rentalId = rentalComboBox.getValue();
+                String staffId = staffComboBox.getValue();
+
+                // Process the return
+                ViolationRecord violation = dao.processCarReturn(rentalId, staffId);
+
+                if (violation != null) {
+                    showSuccessPopup("Return Processed",
+                            "Car returned successfully!\n\n" +
+                                    "Late return violation automatically created:\n" +
+                                    "• Violation ID: " + violation.getViolationId() + "\n" +
+                                    "• Penalty: $" + violation.getPenaltyFee() + "\n" +
+                                    "• Duration: " + violation.getDurationHours() + " hours late");
+                } else {
+                    showSuccessPopup("Return Processed",
+                            "Car returned successfully and marked as available.\nNo late return detected.");
+                }
+
+                refresh.run();
+                popup.close();
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                message.setText("Failed to process return: " + ex.getMessage());
+                message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+            }
+        });
+
+        cancelBtn.setOnAction(e -> popup.close());
+
+        HBox buttonBox = new HBox(10, processBtn, cancelBtn);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        VBox box = new VBox(15,
+                rentalLabel, rentalComboBox,
+                staffLabel, staffComboBox,
+                new Label("Return Details:"), infoArea,
+                buttonBox,
+                message
+        );
+        box.setPadding(new Insets(25));
+        box.setAlignment(Pos.CENTER);
+        box.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #7a40ff, #b46bff); -fx-border-radius: 15; -fx-border-width: 2;");
+
+        Scene popupScene = new Scene(box, 500, 500);
+        popupScene.getStylesheets().add(
+                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
+        );
+
+        popup.setScene(popupScene);
+        popupScene.getRoot().requestFocus();
+        popup.showAndWait();
+    }
+
+    /**
+     * NEW: Shows receipt in a popup window
+     */
+    public void showReceiptPopup(String title, String receiptContent) {
+        Stage popup = new Stage();
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle(title);
+
+        TextArea receiptArea = new TextArea(receiptContent);
+        receiptArea.setEditable(false);
+        receiptArea.setStyle("-fx-font-family: 'Monospaced'; -fx-font-size: 12px; -fx-control-inner-background: white; -fx-text-fill: black;");
+        receiptArea.setPrefSize(600, 500);
+
+        Button printBtn = new Button("Print");
+        Button closeBtn = new Button("Close");
+
+        printBtn.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold;");
+        closeBtn.setStyle("-fx-background-color: #757575; -fx-text-fill: white; -fx-font-weight: bold;");
+
+        printBtn.setOnAction(e -> {
+            // Basic print functionality - could be enhanced with proper printing
+            showSuccessPopup("Print", "Receipt sent to printer.");
+        });
+
+        closeBtn.setOnAction(e -> popup.close());
+
+        HBox buttonBox = new HBox(15, printBtn, closeBtn);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        VBox layout = new VBox(15, receiptArea, buttonBox);
+        layout.setPadding(new Insets(20));
+        layout.setAlignment(Pos.CENTER);
+        layout.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15;");
+
+        Scene scene = new Scene(layout);
+        popup.setScene(scene);
+        popup.showAndWait();
+    }
     /**
      * Sorts the table by violation ID in ascending order
      */

@@ -2,6 +2,13 @@ package com.example.dbcarrentalsapp;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.ViolationRecord;
 
@@ -9,17 +16,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * The ViolationController class handles the business logic for violation management.
- * It acts as the intermediary between the ViolationView (UI) and ViolationDAO (data access),
- * following the Controller layer in MVC architecture.
- *
- * Responsibilities:
- * - Initialize the view and setup event handlers
- * - Handle user actions from the UI
- * - Coordinate data operations with the DAO
- * - Manage data filtering and search functionality
- * - Provide user feedback and error handling
- *
+ * Enhanced ViolationController with automated violation detection and processing
  */
 public class ViolationController {
 
@@ -28,44 +25,28 @@ public class ViolationController {
     private final ViolationDAO violationDAO;
     private ObservableList<ViolationRecord> masterList;
 
-    /**
-     * Constructor - initializes the controller with view and stage references.
-     * Sets up the data access object and initializes the UI.
-     *
-     * @param view The ViolationView UI component
-     * @param stage The primary application stage
-     */
     public ViolationController(ViolationView view, Stage stage) {
         this.view = view;
         this.stage = stage;
         this.violationDAO = new ViolationDAO();
 
-        // Initialize data and setup UI interactions
         loadViolations();
         setupActions();
+        checkForOverdueRentals();
     }
 
-    /**
-     * Sets up all event handlers for UI components.
-     * This method connects user actions to the appropriate business logic methods.
-     */
     private void setupActions() {
-        // ===== RETURN BUTTON ACTION =====
-        // Navigates back to the Manage Transactions screen
+        // Original actions
         view.returnButton.setOnAction(e -> {
             ManageTransactionsView manageView = new ManageTransactionsView(stage);
             new ManageTransactionsController(manageView, stage);
             stage.setScene(manageView.getScene());
         });
 
-        // ===== ADD BUTTON ACTION =====
-        // Opens the add violation dialog
         view.addButton.setOnAction(e ->
                 view.showAddViolationPopup(violationDAO, this::loadViolations)
         );
 
-        // ===== MODIFY BUTTON ACTION =====
-        // Opens the modify violation dialog for selected record
         view.modifyButton.setOnAction(e -> {
             ViolationRecord selected = view.tableView.getSelectionModel().getSelectedItem();
             if (selected == null) {
@@ -75,26 +56,126 @@ public class ViolationController {
             view.showModifyViolationPopup(violationDAO, selected, this::loadViolations);
         });
 
-        // ===== FILTER AND SEARCH ACTIONS =====
-        // Apply filter when filter button is clicked or search field is used
         view.filterButton.setOnAction(e -> applyFilter());
         view.searchField.setOnAction(e -> applyFilter());
+
+        // New actions for automated features
+        view.processReturnButton.setOnAction(e ->
+                view.showProcessReturnPopup(violationDAO, this::loadViolations)
+        );
+
+        view.generateReceiptButton.setOnAction(e -> {
+            ViolationRecord selected = view.tableView.getSelectionModel().getSelectedItem();
+            if (selected == null) {
+                view.showSuccessPopup("No Selection", "Please select a violation to generate receipt.");
+                return;
+            }
+            showRentalReceipt(selected.getRentalId());
+        });
+
+        view.checkOverdueButton.setOnAction(e -> checkForOverdueRentals());
     }
 
     /**
-     * Loads all violation records from the database and populates the table.
-     * This method is called during initialization and after data modifications.
-     * Automatically sorts the table by Violation ID after loading.
+     * Enhanced method to process car returns with automatic violation detection
      */
+    public void processCarReturn(String rentalId, String staffId) {
+        try {
+            ViolationRecord lateViolation = violationDAO.processCarReturn(rentalId, staffId);
+
+            if (lateViolation != null) {
+                String receipt = violationDAO.generateLateReturnReceipt(rentalId);
+                view.showSuccessPopup("Late Return Detected",
+                        "Car returned late!\n\n" + receipt +
+                                "\nLate violation has been automatically recorded.");
+            } else {
+                view.showSuccessPopup("Return Processed",
+                        "Car returned successfully and marked as available.");
+            }
+
+            loadViolations();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            view.showSuccessPopup("Error", "Failed to process car return: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Method to generate and display rental receipt
+     */
+    public void showRentalReceipt(String rentalId) {
+        try {
+            String receipt = violationDAO.generateRentalReceipt(rentalId);
+            view.showReceiptPopup("Rental Receipt - " + rentalId, receipt);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            view.showSuccessPopup("Error", "Failed to generate receipt: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Checks for and displays overdue rentals with proper styling
+     */
+    public void checkForOverdueRentals() {
+        try {
+            List<String> overdueRentals = violationDAO.getOverdueRentals();
+            if (!overdueRentals.isEmpty()) {
+                StringBuilder message = new StringBuilder("Overdue Rentals Detected:\n\n");
+                for (String rentalId : overdueRentals) {
+                    int lateHours = violationDAO.calculateLateHours(rentalId);
+                    double penalty = violationDAO.calculateLatePenalty(rentalId);
+                    message.append(String.format("• %s: %d hours late - Penalty: $%.2f\n",
+                            rentalId, lateHours, penalty));
+                }
+                message.append("\nPlease process returns for these rentals.");
+                showStyledOverduePopup("Overdue Rentals Alert", message.toString());
+            } else {
+                view.showSuccessPopup("No Overdue Rentals", "All rentals are currently on time!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            view.showSuccessPopup("Error", "Failed to check overdue rentals: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Shows a properly styled overdue rentals popup
+     */
+    private void showStyledOverduePopup(String title, String messageText) {
+        Stage popup = new Stage();
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle(title);
+
+        Label msg = new Label(messageText);
+        msg.setStyle("-fx-text-fill: #ff6b6b; -fx-font-size: 14px; -fx-font-weight: bold; -fx-alignment: center-left;");
+        msg.setWrapText(true);
+
+        Button okBtn = new Button("OK");
+        okBtn.getStyleClass().add("small-button");
+        okBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #FF9800, #F57C00); -fx-text-fill: white; -fx-font-weight: bold;");
+        okBtn.setOnAction(e -> popup.close());
+
+        VBox layout = new VBox(20, msg, okBtn);
+        layout.setAlignment(Pos.CENTER);
+        layout.setPadding(new Insets(25));
+        layout.setStyle("-fx-background-color: rgba(40,40,50,0.98); -fx-background-radius: 15; -fx-border-color: linear-gradient(to right, #FF9800, #FFB74D); -fx-border-radius: 15; -fx-border-width: 2;");
+
+        Scene scene = new Scene(layout, 450, 250);
+        scene.getStylesheets().add(
+                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
+        );
+
+        popup.setScene(scene);
+        scene.getRoot().requestFocus();
+        popup.showAndWait();
+    }
+
     public void loadViolations() {
         try {
-            // Retrieve all violations from database
             List<ViolationRecord> violations = violationDAO.getAllViolations();
-            // Convert to observable list for TableView binding
             masterList = FXCollections.observableArrayList(violations);
             view.tableView.setItems(masterList);
-
-            // Sort the table by Violation ID after loading
             sortByViolationId();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -102,49 +183,31 @@ public class ViolationController {
         }
     }
 
-    /**
-     * Applies text-based filtering to the violation records in the table.
-     * Filters records based on violation ID, rental ID, type, or reason.
-     * Case-insensitive search across multiple fields.
-     * Maintains sorting after filtering.
-     */
     private void applyFilter() {
         String filterText = view.searchField.getText().toLowerCase().trim();
 
-        // If search is empty, show all records
         if (filterText.isEmpty()) {
             view.tableView.setItems(masterList);
-            // Reapply sorting when showing all records
             sortByViolationId();
             return;
         }
 
-        // Create filtered list based on search criteria
         ObservableList<ViolationRecord> filteredList = masterList.filtered(record -> {
-            // Check if any field contains the search text
             boolean matchId = record.getViolationId().toLowerCase().contains(filterText);
             boolean matchRentalId = record.getRentalId().toLowerCase().contains(filterText);
             boolean matchType = record.getViolationType().toLowerCase().contains(filterText);
             boolean matchReason = record.getReason().toLowerCase().contains(filterText);
 
-            // Return true if any field matches
             return matchId || matchRentalId || matchType || matchReason;
         });
 
-        // Update table with filtered results
         view.tableView.setItems(filteredList);
-        // Reapply sorting to filtered results
         sortByViolationId();
     }
 
-    /**
-     * Sorts the table by Violation ID in ascending order.
-     * This method can be called after any data modification to maintain consistent sorting.
-     */
     private void sortByViolationId() {
         view.tableView.getSortOrder().clear();
 
-        // Find the violation ID column
         for (javafx.scene.control.TableColumn<ViolationRecord, ?> column : view.tableView.getColumns()) {
             if ("Violation ID".equals(column.getText())) {
                 view.tableView.getSortOrder().add(column);
@@ -156,23 +219,13 @@ public class ViolationController {
         view.tableView.sort();
     }
 
-    /**
-     * Enhanced method to refresh violations with automatic sorting.
-     * Useful for external calls that need to refresh the data.
-     */
     public void refreshViolations() {
         loadViolations();
     }
 
-    /**
-     * Alternative method that allows specifying sort order.
-     *
-     * @param ascending true for ascending order, false for descending
-     */
     public void sortByViolationId(boolean ascending) {
         view.tableView.getSortOrder().clear();
 
-        // Find the violation ID column
         for (javafx.scene.control.TableColumn<ViolationRecord, ?> column : view.tableView.getColumns()) {
             if ("Violation ID".equals(column.getText())) {
                 view.tableView.getSortOrder().add(column);
