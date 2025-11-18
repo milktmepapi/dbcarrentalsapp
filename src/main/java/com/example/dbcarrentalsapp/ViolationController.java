@@ -16,7 +16,8 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Enhanced ViolationController with automated violation detection and processing
+ * Controller for managing violation records and automated violation processing
+ * Handles user interactions, data processing, and coordination between view and data layers
  */
 public class ViolationController {
 
@@ -36,7 +37,7 @@ public class ViolationController {
     }
 
     private void setupActions() {
-        // Original actions
+        // Navigation and basic CRUD actions
         view.returnButton.setOnAction(e -> {
             ManageTransactionsView manageView = new ManageTransactionsView(stage);
             new ManageTransactionsController(manageView, stage);
@@ -59,7 +60,7 @@ public class ViolationController {
         view.filterButton.setOnAction(e -> applyFilter());
         view.searchField.setOnAction(e -> applyFilter());
 
-        // New actions for automated features
+        // Automated processing actions
         view.processReturnButton.setOnAction(e ->
                 view.showProcessReturnPopup(violationDAO, this::loadViolations)
         );
@@ -77,20 +78,46 @@ public class ViolationController {
     }
 
     /**
-     * Enhanced method to process car returns with automatic violation detection
+     * Processes car return with automatic violation detection
+     * Updates car status, rental status, and creates late return violations if applicable
      */
     public void processCarReturn(String rentalId, String staffId) {
         try {
+            // Process return and get any newly created late violation
             ViolationRecord lateViolation = violationDAO.processCarReturn(rentalId, staffId);
 
-            if (lateViolation != null) {
-                String receipt = violationDAO.generateLateReturnReceipt(rentalId);
-                view.showSuccessPopup("Late Return Detected",
-                        "Car returned late!\n\n" + receipt +
-                                "\nLate violation has been automatically recorded.");
+            // Get all violations for this rental to display comprehensive summary
+            List<ViolationRecord> allViolations = violationDAO.getViolationsByRentalId(rentalId);
+
+            if (!allViolations.isEmpty()) {
+                StringBuilder violationMessage = new StringBuilder();
+                violationMessage.append("Car returned successfully!\n\n");
+                violationMessage.append("ALL VIOLATIONS DETECTED:\n\n");
+
+                double totalPenalties = 0.0;
+
+                for (ViolationRecord violation : allViolations) {
+                    violationMessage.append(String.format("• %s:\n", violation.getViolationType()));
+                    violationMessage.append(String.format("  Violation ID: %s\n", violation.getViolationId()));
+                    violationMessage.append(String.format("  Reason: %s\n", violation.getReason()));
+                    if (violation.getDurationHours() > 0) {
+                        violationMessage.append(String.format("  Duration: %d hours\n", violation.getDurationHours()));
+                    }
+                    violationMessage.append(String.format("  Penalty: $%.2f\n\n", violation.getPenaltyFee()));
+
+                    totalPenalties += violation.getPenaltyFee();
+                }
+
+                violationMessage.append(String.format("TOTAL PENALTIES: $%.2f", totalPenalties));
+
+                // Generate receipt including all violations
+                String receipt = violationDAO.generateRentalReceipt(rentalId);
+                view.showSuccessPopup("Return Processed with Violations",
+                        violationMessage.toString() + "\n\nFull receipt has been generated.");
+
             } else {
                 view.showSuccessPopup("Return Processed",
-                        "Car returned successfully and marked as available.");
+                        "Car returned successfully and marked as available.\nNo violations detected.");
             }
 
             loadViolations();
@@ -102,7 +129,7 @@ public class ViolationController {
     }
 
     /**
-     * Method to generate and display rental receipt
+     * Generates and displays rental receipt for the specified rental ID
      */
     public void showRentalReceipt(String rentalId) {
         try {
@@ -116,6 +143,7 @@ public class ViolationController {
 
     /**
      * Checks for and displays overdue rentals with proper styling
+     * Shows alert popup if overdue rentals are found
      */
     public void checkForOverdueRentals() {
         try {
@@ -140,7 +168,7 @@ public class ViolationController {
     }
 
     /**
-     * Shows a properly styled overdue rentals popup
+     * Displays styled popup for overdue rentals with warning colors
      */
     private void showStyledOverduePopup(String title, String messageText) {
         Stage popup = new Stage();
@@ -171,6 +199,9 @@ public class ViolationController {
         popup.showAndWait();
     }
 
+    /**
+     * Loads violations from database and populates the table
+     */
     public void loadViolations() {
         try {
             List<ViolationRecord> violations = violationDAO.getAllViolations();
@@ -183,6 +214,10 @@ public class ViolationController {
         }
     }
 
+    /**
+     * Applies filter to table based on search field text
+     * Filters by violation ID, rental ID, type, or reason
+     */
     private void applyFilter() {
         String filterText = view.searchField.getText().toLowerCase().trim();
 
@@ -205,6 +240,9 @@ public class ViolationController {
         sortByViolationId();
     }
 
+    /**
+     * Sorts table by violation ID in ascending order
+     */
     private void sortByViolationId() {
         view.tableView.getSortOrder().clear();
 
@@ -219,10 +257,16 @@ public class ViolationController {
         view.tableView.sort();
     }
 
+    /**
+     * Refreshes violations data from database
+     */
     public void refreshViolations() {
         loadViolations();
     }
 
+    /**
+     * Sorts table by violation ID in specified order
+     */
     public void sortByViolationId(boolean ascending) {
         view.tableView.getSortOrder().clear();
 
