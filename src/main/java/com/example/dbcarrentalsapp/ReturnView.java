@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import model.RentalRecord; // --- FIX: Import RentalRecord
 // --- FIX: ReturnRecord is no longer needed here unless for 'viewReceipt'
@@ -26,22 +27,36 @@ public class ReturnView {
 
     public ReturnView() {
 
+// ===== Background =====
         StackPane root = new StackPane();
-        Image bgImage = new Image(getClass().getResourceAsStream("/com/example/dbcarrentalsapp/mclaren_speedtail_2-1920x1080.jpg"));
-        root.setBackground(new Background(new BackgroundImage(bgImage, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
-                BackgroundPosition.CENTER, new BackgroundSize(100, 100, true, true, true, false))));
+        Image bgImage = new Image(getClass().getResourceAsStream("/com/example/dbcarrentalsapp/audi_r_zero_concept_black-normal.png"));
+        BackgroundImage backgroundImage = new BackgroundImage(
+                bgImage,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER,
+                new BackgroundSize(100, 100, true, true, true, false)
+        );
+        root.setBackground(new Background(backgroundImage));
 
-        Text title = new Text("MANAGE RETURNS");
-        title.setStyle("-fx-font-size: 48px; -fx-fill: white; -fx-font-weight: bold;");
+        // ===== Title =====
+        Text title = new Text("MANAGE RETURN");
+        Font f1Font = Font.loadFont(getClass().getResourceAsStream("/com/example/dbcarrentalsapp/Formula1-Bold_web_0.ttf"), 48);
+        title.setFont(f1Font != null ? f1Font : Font.font("Arial Black", 48));
+        title.setStyle("-fx-fill: white; -fx-font-style: italic; -fx-font-weight: bold; -fx-effect: dropshadow(gaussian, black, 4, 0.5, 1, 1);");
+
         StackPane.setAlignment(title, Pos.TOP_CENTER);
-        StackPane.setMargin(title, new Insets(50, 0, 0, 0));
+        StackPane.setMargin(title, new Insets(100, 0, 0, 0));
         root.getChildren().add(title);
 
         backButton = new Button("Back");
+        backButton.getStyleClass().add("small-button");
+        backButton.setPrefWidth(120);
         searchField = new TextField();
         // --- FIX: Update prompt text to reflect new data
         searchField.setPromptText("Search Rental ID, Renter DL, or Car Plate...");
-        searchField.setPrefWidth(300);
+        searchField.setPrefWidth(200);
+        searchField.setStyle("-fx-background-color: #2a2a3a; -fx-text-fill: white; -fx-border-color: #7a40ff; -fx-border-radius: 5;");
 
         filterButton = new Button("Filter");
         HBox searchBox = new HBox(10, searchField, filterButton);
@@ -49,8 +64,16 @@ public class ReturnView {
 
         // --- FIX: The TableView must hold RentalRecord objects
         tableView = new TableView<RentalRecord>();
-        tableView.setPrefWidth(900);
+        tableView.setPrefWidth(750);
+        tableView.setPrefHeight(280);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        tableView.getStyleClass().add("custom-table");
+        tableView.setPlaceholder(new Label("No rental records found"));
+
+        tableView.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(tableView, Priority.ALWAYS);
+        tableView.setPadding(new Insets(5, 8, 5, 8));
+
 
         // --- FIX: Columns must be for RentalRecord, not ReturnRecord
         TableColumn<RentalRecord, String> idCol = new TableColumn<>("Rental ID");
@@ -77,21 +100,33 @@ public class ReturnView {
         tableView.getColumns().addAll(idCol, rentalIDCol, staffIdCol, expectedReturnCol, statusCol);
 
         returnButton = new Button("Process Return");
+        returnButton.getStyleClass().add("small-button");
+        returnButton.setPrefWidth(120);
         HBox buttonBox = new HBox(15, returnButton, backButton);
         buttonBox.setAlignment(Pos.CENTER);
 
         VBox tableCard = new VBox(15, tableView, buttonBox);
         tableCard.setAlignment(Pos.CENTER);
         tableCard.setPadding(new Insets(20));
-        tableCard.setMaxWidth(950);
-        tableCard.setStyle("-fx-background-color: rgba(255,255,255,0.1); -fx-background-radius: 15; -fx-border-color: #9575cd; -fx-border-radius: 15; -fx-border-width: 2;");
+        tableCard.setMaxWidth(800);
+        tableCard.setStyle(
+                "-fx-background-color: rgba(25,25,35,0.85);" +
+                        "-fx-background-radius: 15;" +
+                        "-fx-border-color: linear-gradient(to right, #7a40ff, #b46bff);" +
+                        "-fx-border-radius: 15;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-overflow: hidden;"
+        );
 
         VBox layout = new VBox(30, searchBox, tableCard);
         layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(120,0,0,0));
+        layout.setPadding(new Insets(140,0,0,0));
         root.getChildren().add(layout);
 
         scene = new Scene(root, 1152, 761);
+        scene.getStylesheets().add(
+                getClass().getResource("/com/example/dbcarrentalsapp/style.css").toExternalForm()
+        );
     }
 
     public Scene getScene() { return scene; }
@@ -120,4 +155,3 @@ public class ReturnView {
         return returnButton;
     }
 }
-
