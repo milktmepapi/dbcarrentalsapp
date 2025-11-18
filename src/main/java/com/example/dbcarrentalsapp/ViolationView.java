@@ -19,28 +19,15 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The ViolationView class represents the user interface for managing violations.
- * It provides a comprehensive GUI for viewing, adding, modifying, and deleting
- * violation records in the car rental system.
- *
- * This class follows the View layer in MVC architecture and features:
- * - Table display of all violations
- * - Search and filter functionality
- * - Add/Modify/Delete operations via dialog popups
- * - Input validation and user feedback
- * - Consistent styling with the rest of the application
- *
+ * View class for violation management interface
+ * Provides comprehensive GUI for viewing, adding, modifying, and processing violations
+ * Follows MVC architecture with consistent styling and user feedback
  */
-
 public class ViolationView {
-    // Original UI Components
     public Button addButton, modifyButton, returnButton, filterButton;
     public TextField searchField;
     public TableView<ViolationRecord> tableView;
-
-    // New UI Components for automated features
     public Button processReturnButton, generateReceiptButton, checkOverdueButton;
-
     private final Scene scene;
 
     public ViolationView() {
@@ -88,7 +75,7 @@ public class ViolationView {
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tableView.getStyleClass().add("custom-table");
 
-        // Define table columns (same as before)
+        // Define table columns
         TableColumn<ViolationRecord, String> idCol = createTableColumn("Violation ID", "violationId", 90, 120);
         TableColumn<ViolationRecord, String> rentalCol = createTableColumn("Rental ID", "rentalId", 80, 100);
         TableColumn<ViolationRecord, String> staffCol = createTableColumn("Staff ID", "staffId", 70, 90);
@@ -265,7 +252,8 @@ public class ViolationView {
     }
 
     /**
-     * NEW: Shows popup for processing car returns with automatic violation detection
+     * Shows popup for processing car returns with automatic violation detection
+     * Includes rental selection, staff assignment, and penalty preview
      */
     public void showProcessReturnPopup(ViolationDAO dao, Runnable refresh) {
         Stage popup = new Stage();
@@ -312,13 +300,28 @@ public class ViolationView {
                     StringBuilder info = new StringBuilder();
                     info.append("Rental ID: ").append(newVal).append("\n");
 
-                    // Check if late
-                    boolean isLate = dao.isLateReturn(newVal);
-                    int lateHours = dao.calculateLateHours(newVal);
-                    double penalty = dao.calculateLatePenalty(newVal);
+                    // Get branch info for staff validation
+                    String branchId = dao.getRentalBranchId(newVal);
+                    if (branchId != null) {
+                        info.append("Branch: ").append(branchId).append("\n");
 
-                    if (isLate) {
-                        info.append("Status: LATE RETURN\n");
+                        // Show only operations staff from this branch
+                        List<String> operationsStaff = dao.getOperationsStaffByBranch(branchId);
+                        staffComboBox.getItems().clear();
+                        staffComboBox.getItems().addAll(operationsStaff);
+
+                        if (operationsStaff.isEmpty()) {
+                            info.append("⚠️ No Operations staff available in this branch!\n");
+                        }
+                    }
+
+                    // Check if WOULD BE late if returned NOW (not based on current database state)
+                    int lateHours = dao.calculateLateHoursIfReturnedNow(newVal);
+                    double penalty = 0.0;
+
+                    if (lateHours > 0) {
+                        penalty = dao.calculateLatePenaltyFromHours(lateHours);
+                        info.append("Status: WOULD BE LATE RETURN\n");
                         info.append(String.format("Late by: %d hours\n", lateHours));
                         info.append(String.format("Penalty Fee: $%.2f\n", penalty));
                         info.append("\n⚠️ This will automatically create a late return violation!");
@@ -356,19 +359,41 @@ public class ViolationView {
                 String rentalId = rentalComboBox.getValue();
                 String staffId = staffComboBox.getValue();
 
-                // Process the return
-                ViolationRecord violation = dao.processCarReturn(rentalId, staffId);
+                // Process the return directly using DAO
+                ViolationRecord lateViolation = dao.processCarReturn(rentalId, staffId);
 
-                if (violation != null) {
-                    showSuccessPopup("Return Processed",
-                            "Car returned successfully!\n\n" +
-                                    "Late return violation automatically created:\n" +
-                                    "• Violation ID: " + violation.getViolationId() + "\n" +
-                                    "• Penalty: $" + violation.getPenaltyFee() + "\n" +
-                                    "• Duration: " + violation.getDurationHours() + " hours late");
+                // Get ALL violations for this rental to show comprehensive summary
+                List<ViolationRecord> allViolations = dao.getViolationsByRentalId(rentalId);
+
+                if (!allViolations.isEmpty()) {
+                    StringBuilder violationMessage = new StringBuilder();
+                    violationMessage.append("Car returned successfully!\n\n");
+                    violationMessage.append("ALL VIOLATIONS DETECTED:\n\n");
+
+                    double totalPenalties = 0.0;
+
+                    for (ViolationRecord violation : allViolations) {
+                        violationMessage.append(String.format("• %s:\n", violation.getViolationType()));
+                        violationMessage.append(String.format("  Violation ID: %s\n", violation.getViolationId()));
+                        violationMessage.append(String.format("  Reason: %s\n", violation.getReason()));
+                        if (violation.getDurationHours() > 0) {
+                            violationMessage.append(String.format("  Duration: %d hours\n", violation.getDurationHours()));
+                        }
+                        violationMessage.append(String.format("  Penalty: $%.2f\n\n", violation.getPenaltyFee()));
+
+                        totalPenalties += violation.getPenaltyFee();
+                    }
+
+                    violationMessage.append(String.format("TOTAL PENALTIES: $%.2f", totalPenalties));
+
+                    // Generate receipt that includes ALL violations
+                    String receipt = dao.generateRentalReceipt(rentalId);
+                    showSuccessPopup("Return Processed with Violations",
+                            violationMessage.toString() + "\n\nFull receipt has been generated.");
+
                 } else {
                     showSuccessPopup("Return Processed",
-                            "Car returned successfully and marked as available.\nNo late return detected.");
+                            "Car returned successfully and marked as available.\nNo violations detected.");
                 }
 
                 refresh.run();
@@ -408,7 +433,7 @@ public class ViolationView {
     }
 
     /**
-     * NEW: Shows receipt in a popup window
+     * Shows receipt in a popup window with print functionality
      */
     public void showReceiptPopup(String title, String receiptContent) {
         Stage popup = new Stage();
@@ -445,6 +470,7 @@ public class ViolationView {
         popup.setScene(scene);
         popup.showAndWait();
     }
+
     /**
      * Sorts the table by violation ID in ascending order
      */
@@ -464,10 +490,7 @@ public class ViolationView {
     }
 
     /**
-     * Sets a custom ButtonCell for a ComboBox to ensure its text (both prompt and selected)
-     * is displayed in white, overriding any conflicting CSS.
-     *
-     * @param comboBox The ComboBox to modify.
+     * Sets custom ButtonCell for ComboBox to ensure white text display
      */
     private void setComboBoxTextWhite(ComboBox<String> comboBox) {
         comboBox.setButtonCell(new ListCell<String>() {
@@ -488,11 +511,8 @@ public class ViolationView {
     }
 
     /**
-     * Displays a popup dialog for adding a new violation record.
-     * Includes input validation and dynamic field enabling.
-     *
-     * @param dao Data Access Object for violation operations
-     * @param refresh Callback function to refresh the table after addition
+     * Shows popup dialog for adding new violation record
+     * Includes input validation and dynamic field enabling
      */
     public void showAddViolationPopup(ViolationDAO dao, Runnable refresh) {
         Stage popup = new Stage();
@@ -609,7 +629,7 @@ public class ViolationView {
                     return;
                 }
 
-                // NEW: Validate staff assignment
+                // Validate staff assignment
                 if (!dao.validateStaffForViolation(staffId.getValue(), rentalId.getValue())) {
                     message.setText("Invalid staff selection! Staff must be from Operations department and same branch as rental.");
                     message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
@@ -673,12 +693,8 @@ public class ViolationView {
     }
 
     /**
-     * Displays a popup dialog for modifying an existing violation record.
-     * All fields except violation ID are editable.
-     *
-     * @param dao Data Access Object for violation operations
-     * @param violation The violation record to modify
-     * @param refresh Callback function to refresh the table after modification
+     * Shows popup dialog for modifying existing violation record
+     * All fields except violation ID are editable
      */
     public void showModifyViolationPopup(ViolationDAO dao, ViolationRecord violation, Runnable refresh) {
         if (violation == null) {
@@ -824,7 +840,7 @@ public class ViolationView {
                     return;
                 }
 
-                // NEW: Validate staff assignment
+                // Validate staff assignment
                 if (!dao.validateStaffForViolation(staffId.getValue(), rentalId.getValue())) {
                     message.setText("Invalid staff selection! Staff must be from Operations department and same branch as rental.");
                     message.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
@@ -885,10 +901,7 @@ public class ViolationView {
     }
 
     /**
-     * Displays a success/information popup message to the user.
-     *
-     * @param title The popup window title
-     * @param messageText The message to display
+     * Shows success/information popup message to user
      */
     public void showSuccessPopup(String title, String messageText) {
         Stage popup = new Stage();
@@ -920,10 +933,7 @@ public class ViolationView {
     }
 
     /**
-     * Displays a confirmation dialog for deleting a violation record.
-     *
-     * @param violationId The ID of the violation to be deleted
-     * @return true if user confirms deletion, false otherwise
+     * Shows confirmation dialog for deleting violation record
      */
     public boolean showDeleteConfirmation(String violationId) {
         final boolean[] confirmed = {false};

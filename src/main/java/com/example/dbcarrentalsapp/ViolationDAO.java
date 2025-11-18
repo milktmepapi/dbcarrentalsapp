@@ -8,6 +8,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Data Access Object for violation-related database operations
+ * Handles CRUD operations, automatic violation detection, and penalty calculations
+ */
 public class ViolationDAO {
 
     // Penalty rates configuration
@@ -18,7 +22,7 @@ public class ViolationDAO {
     private static final double TRAFFIC_VIOLATION_FEE = 150.0;
 
     /**
-     * Checks if a rental was returned late by comparing actual vs expected return datetime
+     * Checks if rental was returned late by comparing actual vs expected return datetime
      */
     public boolean isLateReturn(String rentalId) throws SQLException {
         String sql = "SELECT rental_expected_return_datetime, rental_actual_return_datetime FROM rental_details WHERE rental_id = ?";
@@ -41,7 +45,7 @@ public class ViolationDAO {
     }
 
     /**
-     * Calculates the number of hours a rental was returned late
+     * Calculates number of hours a rental was returned late
      */
     public int calculateLateHours(String rentalId) throws SQLException {
         String sql = "SELECT rental_expected_return_datetime, rental_actual_return_datetime FROM rental_details WHERE rental_id = ?";
@@ -67,6 +71,7 @@ public class ViolationDAO {
 
     /**
      * Calculates late return penalty based on rental duration
+     * Uses tiered pricing: $50/hour first 6 hours, $100/hour thereafter
      */
     public double calculateLatePenalty(String rentalId) throws SQLException {
         int lateHours = calculateLateHours(rentalId);
@@ -87,7 +92,8 @@ public class ViolationDAO {
     }
 
     /**
-     * Automatically creates a late return violation record
+     * Automatically creates late return violation record if rental is late
+     * Updates existing late violation if one already exists for this rental
      */
     public ViolationRecord createAutomaticLateViolation(String rentalId, String staffId) throws SQLException {
         if (!isLateReturn(rentalId)) {
@@ -160,12 +166,20 @@ public class ViolationDAO {
     }
 
     /**
-     * Automatically processes car return and updates relevant statuses
+     * Processes car return and updates relevant statuses
+     * Validates staff permissions, updates car status, and creates violations
      */
     public ViolationRecord processCarReturn(String rentalId, String staffId) throws SQLException {
-        // 1. Get car plate number from rental
-        String carSql = "SELECT rental_car_plate_number FROM rental_details WHERE rental_id = ?";
+        // 1. Validate staff can process this return (same branch and operations department)
+        if (!validateStaffForViolation(staffId, rentalId)) {
+            throw new SQLException("Staff " + staffId + " cannot process return for rental " + rentalId +
+                    ". Staff must be from Operations department and same branch as rental.");
+        }
+
+        // 2. Get car plate number from rental
+        String carSql = "SELECT rental_car_plate_number, rental_branch_id FROM rental_details WHERE rental_id = ?";
         String carPlateNumber = null;
+        String rentalBranchId = null;
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(carSql)) {
@@ -175,6 +189,7 @@ public class ViolationDAO {
 
             if (rs.next()) {
                 carPlateNumber = rs.getString("rental_car_plate_number");
+                rentalBranchId = rs.getString("rental_branch_id");
             }
         }
 
@@ -182,18 +197,42 @@ public class ViolationDAO {
             throw new SQLException("Car not found for rental: " + rentalId);
         }
 
-        // 2. Update car status to Available
+        // 3. Update car status to Available
         updateCarStatus(carPlateNumber, "Available");
 
-        // 3. Update rental status to Completed
+        // 4. Update rental status to Completed with current timestamp
         updateRentalStatus(rentalId, "COMPLETED", staffId);
 
-        // 4. Check for and create late return violation
-        return createAutomaticLateViolation(rentalId, staffId);
+        // 5. Check for and create late return violation
+        ViolationRecord lateViolation = createAutomaticLateViolation(rentalId, staffId);
+
+        // Return the late violation if created, otherwise return null
+        // The controller will handle displaying ALL violations
+        return lateViolation;
     }
 
     /**
-     * Updates rental status and sets return staff
+     * Gets all violations for a specific rental ID
+     */
+    public List<ViolationRecord> getViolationsByRentalId(String rentalId) throws SQLException {
+        List<ViolationRecord> violations = new ArrayList<>();
+        String sql = "SELECT * FROM violation_details WHERE violation_rental_id = ? ORDER BY violation_timestamp";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, rentalId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                violations.add(mapResultSetToViolationRecord(rs));
+            }
+        }
+        return violations;
+    }
+
+    /**
+     * Updates rental status and sets return staff and actual return datetime
      */
     private void updateRentalStatus(String rentalId, String status, String staffId) throws SQLException {
         String sql = "UPDATE rental_details SET rental_status = ?, rental_staff_id_return = ?, rental_actual_return_datetime = NOW() WHERE rental_id = ?";
@@ -209,7 +248,7 @@ public class ViolationDAO {
     }
 
     /**
-     * Generates a detailed receipt for a rental including any violations
+     * Generates detailed receipt for rental including all violations and penalties
      */
     public String generateRentalReceipt(String rentalId) throws SQLException {
         StringBuilder receipt = new StringBuilder();
@@ -316,7 +355,7 @@ public class ViolationDAO {
     }
 
     /**
-     * Generates a late return receipt specifically for overdue rentals
+     * Generates late return receipt specifically for overdue rentals
      */
     public String generateLateReturnReceipt(String rentalId) throws SQLException {
         if (!isLateReturn(rentalId)) {
@@ -348,7 +387,7 @@ public class ViolationDAO {
     }
 
     /**
-     * Helper method to format timestamp
+     * Formats timestamp for display
      */
     private String formatTimestamp(Timestamp timestamp) {
         if (timestamp == null) return "N/A";
@@ -356,7 +395,7 @@ public class ViolationDAO {
     }
 
     /**
-     * Helper method to get expected return time as string
+     * Gets expected return time as formatted string
      */
     private String getExpectedReturnTime(String rentalId) throws SQLException {
         String sql = "SELECT rental_expected_return_datetime FROM rental_details WHERE rental_id = ?";
@@ -417,6 +456,9 @@ public class ViolationDAO {
         return overdueRentals;
     }
 
+    /**
+     * Generates next sequential violation ID
+     */
     public String generateNextViolationId() throws SQLException {
         String sql = "SELECT violation_id FROM violation_details WHERE violation_id LIKE 'VLN%' ORDER BY violation_id DESC LIMIT 1";
 
@@ -433,6 +475,9 @@ public class ViolationDAO {
         return "VLN001";
     }
 
+    /**
+     * Adds new violation record to database
+     */
     public void addViolation(ViolationRecord violation) throws SQLException {
         String sql = """
         INSERT INTO violation_details (
@@ -463,6 +508,9 @@ public class ViolationDAO {
         }
     }
 
+    /**
+     * Updates existing violation record in database
+     */
     public void updateViolation(ViolationRecord violation) throws SQLException {
         String sql = """
             UPDATE violation_details 
@@ -488,6 +536,9 @@ public class ViolationDAO {
         }
     }
 
+    /**
+     * Gets all violations from database
+     */
     public List<ViolationRecord> getAllViolations() throws SQLException {
         List<ViolationRecord> list = new ArrayList<>();
         String sql = "SELECT * FROM violation_details ORDER BY violation_timestamp DESC";
@@ -503,6 +554,9 @@ public class ViolationDAO {
         return list;
     }
 
+    /**
+     * Gets violation by ID
+     */
     public ViolationRecord getViolationById(String id) throws SQLException {
         String sql = "SELECT * FROM violation_details WHERE violation_id = ?";
 
@@ -519,6 +573,9 @@ public class ViolationDAO {
         return null;
     }
 
+    /**
+     * Deletes violation from database
+     */
     public boolean deleteViolation(String violationId) throws SQLException {
         String sql = "DELETE FROM violation_details WHERE violation_id = ?";
 
@@ -530,6 +587,9 @@ public class ViolationDAO {
         }
     }
 
+    /**
+     * Gets all rental IDs from database
+     */
     public List<String> getAllRentalIds() throws SQLException {
         List<String> rentalIds = new ArrayList<>();
         String sql = "SELECT rental_id FROM rental_details ORDER BY rental_id";
@@ -545,6 +605,9 @@ public class ViolationDAO {
         return rentalIds;
     }
 
+    /**
+     * Gets all staff IDs from database
+     */
     public List<String> getAllStaffIds() throws SQLException {
         List<String> staffIds = new ArrayList<>();
         String sql = "SELECT staff_id FROM staff_record ORDER BY staff_id";
@@ -560,26 +623,33 @@ public class ViolationDAO {
         return staffIds;
     }
 
+    /**
+     * Validates if staff can process violation for rental
+     * Staff must be from Operations department and same branch as rental
+     */
     public boolean validateStaffForViolation(String staffId, String rentalId) throws SQLException {
         String sql = """
-            SELECT sr.staff_id, sr.staff_branch_id, jr.job_department_id
-            FROM staff_record sr
-            JOIN job_record jr ON sr.staff_job_id = jr.job_id
-            JOIN rental_details rd ON rd.rental_id = ? AND rd.rental_branch_id = sr.staff_branch_id
-            WHERE sr.staff_id = ? AND rd.rental_id = ? AND jr.job_department_id = 'DEPT_OPS'
-            """;
+        SELECT sr.staff_id, sr.staff_branch_id, jr.job_department_id
+        FROM staff_record sr
+        JOIN job_record jr ON sr.staff_job_id = jr.job_id
+        JOIN rental_details rd ON rd.rental_id = ? AND rd.rental_branch_id = sr.staff_branch_id
+        WHERE sr.staff_id = ? AND jr.job_department_id = 'DEPT_OPS'
+        """;
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, rentalId);
-            stmt.setString(2, staffId);
+            stmt.setString(1, rentalId);  // First parameter: rental_id in JOIN
+            stmt.setString(2, staffId);   // Second parameter: staff_id in WHERE
             ResultSet rs = stmt.executeQuery();
 
             return rs.next();
         }
     }
 
+    /**
+     * Gets branch ID for specified rental
+     */
     public String getRentalBranchId(String rentalId) throws SQLException {
         String sql = "SELECT rental_branch_id FROM rental_details WHERE rental_id = ?";
 
@@ -593,6 +663,9 @@ public class ViolationDAO {
         }
     }
 
+    /**
+     * Gets Operations staff IDs for specified branch
+     */
     public List<String> getOperationsStaffByBranch(String branchId) throws SQLException {
         List<String> staffIds = new ArrayList<>();
         String sql = """
@@ -616,6 +689,9 @@ public class ViolationDAO {
         return staffIds;
     }
 
+    /**
+     * Maps database ResultSet to ViolationRecord object
+     */
     private ViolationRecord mapResultSetToViolationRecord(ResultSet rs) throws SQLException {
         Timestamp timestamp = rs.getTimestamp("violation_timestamp");
 
@@ -629,5 +705,48 @@ public class ViolationDAO {
                 rs.getInt("violation_duration_hours"),
                 timestamp != null ? timestamp.toLocalDateTime() : LocalDateTime.now()
         );
+    }
+
+    /**
+     * Calculates how many hours late a rental would be if returned now
+     */
+    public int calculateLateHoursIfReturnedNow(String rentalId) throws SQLException {
+        String sql = "SELECT rental_expected_return_datetime FROM rental_details WHERE rental_id = ? AND rental_status IN ('ACTIVE', 'UPCOMING')";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, rentalId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                Timestamp expected = rs.getTimestamp("rental_expected_return_datetime");
+
+                if (expected != null && expected.before(new Timestamp(System.currentTimeMillis()))) {
+                    long diffMillis = System.currentTimeMillis() - expected.getTime();
+                    return (int) Math.ceil(diffMillis / (1000.0 * 60 * 60)); // Convert to hours, round up
+                }
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Calculates late penalty from hours (for preview purposes)
+     */
+    public double calculateLatePenaltyFromHours(int lateHours) {
+        if (lateHours <= 0) {
+            return 0.0;
+        }
+
+        double penalty = 0.0;
+
+        if (lateHours <= 6) {
+            penalty = lateHours * RATE_FIRST_6_HOURS;
+        } else {
+            penalty = (6 * RATE_FIRST_6_HOURS) + ((lateHours - 6) * RATE_AFTER_6_HOURS);
+        }
+
+        return penalty;
     }
 }
