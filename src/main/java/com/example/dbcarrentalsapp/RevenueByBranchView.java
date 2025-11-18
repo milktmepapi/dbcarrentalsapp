@@ -1,6 +1,7 @@
 package com.example.dbcarrentalsapp;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -344,69 +345,76 @@ public class RevenueByBranchView {
 
         PieChart pie = new PieChart();
         // Force labels to render closer to center so small slices never hide
-        pie.setLabelLineLength(5);  // default is ~15–20, too far for small slices
+        pie.setLabelLineLength(8); // shorter leader lines
         pie.setLabelsVisible(true);
         pie.setLegendVisible(false);
         pie.setClockwise(true);
         pie.setStartAngle(90);
-        pie.setStyle("-fx-background-color: transparent;");
+
+        // single setStyle call that keeps background + label color + distance
         pie.setStyle("""
-                -fx-pie-label-visible: true;
-                -fx-pie-label-distance: 0.75;   /* 0.5 = closer to center, 1.0 = default */
-            """);
+        -fx-background-color: transparent;
+        -fx-pie-label-distance: 0.72;   /* 0.5 = closer to center, 1.0 = default */
+        -fx-pie-label-fill: white;      /* label color */
+        -fx-pie-label-font-size: 13px;
+    """);
 
-
-        // Add slices
+        // Add slices (store base label names so binding uses immutable base)
+        // ensure very small slices are still visible by giving a tiny floor
+        final double MIN_SLICE = 0.0001; // absolute floor, but we'll bump tiny ones up a bit later
         for (RevenueByBranchRecord r : list) {
             BigDecimal rental = r.getRentalIncome() != null ? r.getRentalIncome() : BigDecimal.ZERO;
             BigDecimal penalty = r.getPenaltyIncome() != null ? r.getPenaltyIncome() : BigDecimal.ZERO;
             BigDecimal net = rental.add(penalty);
 
             boolean noProfit = net.compareTo(BigDecimal.ZERO) <= 0;
-            double value = Math.max(0, net.doubleValue());
+            double value = Math.max(0.0, net.doubleValue());
 
-            String label = r.getBranchName() + (noProfit ? " (No Profit)" : "");
-            PieChart.Data slice = new PieChart.Data(label, value < 0.1 ? 0.3 : value);
+            String baseLabel = r.getBranchName() + (noProfit ? " (No Profit)" : "");
+            // If value is extremely small (or zero), give a tiny visible wedge so the chart draws a slice
+            double sliceValue = (value < 0.01) ? 0.03 : Math.max(MIN_SLICE, value);
+
+            PieChart.Data slice = new PieChart.Data(baseLabel, sliceValue);
             pie.getData().add(slice);
         }
 
-        // Smaller chart wrapper — this shrinks the entire popup
+        // ==== enlarge the actual pie chart by wrapping it, but keep dialog reasonable ====
         StackPane pieWrapper = new StackPane(pie);
-        pieWrapper.setPrefSize(850, 600);
+        pieWrapper.setPrefSize(760, 520); // bigger graph area but dialog won't be enormous
         pieWrapper.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-
         HBox.setHgrow(pieWrapper, Priority.ALWAYS);
         VBox.setVgrow(pieWrapper, Priority.ALWAYS);
-
         pie.setMinSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
         pie.setPrefSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
         pie.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        // ==============================================================================
 
-        // Compute total
-        double total = pie.getData().stream()
-                .mapToDouble(PieChart.Data::getPieValue)
-                .sum();
+        // Compute total (use the values that are in pie.getData() right now)
+        double total = pie.getData().stream().mapToDouble(PieChart.Data::getPieValue).sum();
+        final double totalFinal = total == 0 ? 1.0 : total; // avoid div-by-zero
 
-        // Apply label styles & percentages
+        // Bind each slice's nameProperty to "baseLabel (xx.xx%)"
+        // We used the base label as the initial name stored in Data; capture it first.
+        for (PieChart.Data data : pie.getData()) {
+            final String base = data.getName(); // original base label
+            // Bind nameProperty to a string that updates if pie value changes
+            data.nameProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
+                    () -> {
+                        double pct = (totalFinal == 0) ? 0.0 : (data.getPieValue() / totalFinal) * 100.0;
+                        return String.format("%s (%.2f%%)", base, pct);
+                    },
+                    data.pieValueProperty()
+            ));
+        }
+
+        // Apply label CSS when labels are created (they are drawn asynchronously)
         Platform.runLater(() -> {
             pie.lookupAll(".chart-pie-label").forEach(node ->
                     node.setStyle("-fx-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;")
             );
-
-            for (PieChart.Data data : pie.getData()) {
-                double percent = total == 0 ? 0 : (data.getPieValue() / total) * 100;
-
-                for (Node node : pie.lookupAll(".chart-pie-label")) {
-                    if (node instanceof javafx.scene.text.Text textNode) {
-                        if (textNode.getText().equals(data.getName())) {
-                            textNode.setText(data.getName() + " (" + String.format("%.2f", percent) + "%)");
-                        }
-                    }
-                }
-            }
         });
 
-        // Right list of branches
+        // Right-side list
         Label labelTitle = new Label("Branches");
         labelTitle.setStyle("-fx-text-fill: #c7b3ff; -fx-font-size: 15px; -fx-font-weight: bold;");
 
@@ -414,8 +422,10 @@ public class RevenueByBranchView {
         labelBox.setPadding(new Insets(10));
         labelBox.setAlignment(Pos.TOP_LEFT);
 
+        // Use the bound nameProperty values so the right list shows same text as pie labels
         for (PieChart.Data slice : pie.getData()) {
-            Label lbl = new Label(slice.getName());
+            Label lbl = new Label();
+            lbl.textProperty().bind(slice.nameProperty()); // keep in sync
             lbl.setStyle("-fx-text-fill: white; -fx-font-size: 13px;");
             labelBox.getChildren().add(lbl);
         }
