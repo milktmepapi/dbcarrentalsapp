@@ -8,25 +8,39 @@ import model.ViolationsByBranchRecord;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Controller for the Violations By Branch Report feature.
+ * Manages the interaction between the view and data access layer,
+ * handling user actions and data retrieval for branch violation reporting.
+ */
 public class ViolationsByBranchController {
 
     private final ViolationsByBranchView view;
     private final ViolationsByBranchDAO dao;
 
+    /**
+     * Constructs a new controller with the specified view and data access object.
+     * @param view the view component for violations by branch reporting
+     * @param dao the data access object for violation data operations
+     */
     public ViolationsByBranchController(ViolationsByBranchView view, ViolationsByBranchDAO dao) {
         this.view = view;
         this.dao = dao;
         initialize();
     }
 
+    /**
+     * Initializes the controller by setting up event handlers and initial data loading.
+     * Configures button actions and date change listeners for automatic data refresh.
+     */
     private void initialize() {
         // Set controller reference in view for date change listeners
         view.setController(this);
 
-        // Change load button to refresh functionality
+        // Configure refresh button to reload branch violations data
         view.getLoadButton().setOnAction(e -> handleLoadBranchViolations());
 
-        // NEW: Pie Chart button handler
+        // Set up pie chart button to display violations distribution
         view.getPieChartButton().setOnAction(e -> {
             var items = view.getTableView().getItems();
             if (items.isEmpty()) {
@@ -36,15 +50,17 @@ public class ViolationsByBranchController {
             view.showPieChartPopup(items);
         });
 
-        // Load whole-company violations summary
+        // Configure company summary button to show overall violations
         view.getCompanyButton().setOnAction(e -> {
             String granularity = view.getSelectedGranularityToggle().getText();
             LocalDate selectedDate = getSelectedDateForGranularity(granularity);
 
+            // Execute database query in background thread to prevent UI freezing
             new Thread(() -> {
                 ViolationsByBranchRecord company =
                         dao.getCompanyViolations(selectedDate, granularity);
 
+                // Update UI on JavaFX application thread
                 Platform.runLater(() -> {
                     if (company == null) {
                         showError("No violation data found for the selected period.");
@@ -56,31 +72,35 @@ public class ViolationsByBranchController {
             }).start();
         });
 
-        // Return
+        // Set up return button for navigation
         view.getReturnButton().setOnAction(e -> handleReturn());
 
-        // Load initial data automatically
+        // Load initial data automatically on startup
         handleDateChange();
     }
 
-    // ============================================================
-    // NEW: Automatic loading when date/granularity changes
-    // ============================================================
+    /**
+     * Handles date or granularity changes by refreshing the violations data.
+     * Called automatically when user changes date selection or time granularity.
+     */
     public void handleDateChange() {
         handleLoadBranchViolations();
     }
 
-    // ============================================================
-    // LOAD BRANCH-BY-BRANCH VIOLATIONS
-    // ============================================================
+    /**
+     * Loads branch-by-branch violations data based on current date and granularity selection.
+     * Executes database query in background thread and updates table view with results.
+     */
     private void handleLoadBranchViolations() {
         String granularity = view.getSelectedGranularityToggle().getText();
         LocalDate selectedDate = getSelectedDateForGranularity(granularity);
 
+        // Execute data retrieval in background thread to maintain UI responsiveness
         new Thread(() -> {
             List<ViolationsByBranchRecord> records =
                     dao.getViolationsByBranch(selectedDate, granularity);
 
+            // Update table view on JavaFX application thread
             Platform.runLater(() -> {
                 if (records.isEmpty()) {
                     showInfo("No violations found for the selected period.");
@@ -90,9 +110,12 @@ public class ViolationsByBranchController {
         }).start();
     }
 
-    // ============================================================
-    // NEW: Date selection helper method
-    // ============================================================
+    /**
+     * Converts the current UI selection into a LocalDate based on the specified granularity.
+     *
+     * @param granularity the time granularity ("daily", "monthly", or "yearly")
+     * @return LocalDate representing the selected date period
+     */
     private LocalDate getSelectedDateForGranularity(String granularity) {
         switch (granularity.toLowerCase()) {
             case "daily":
@@ -107,13 +130,14 @@ public class ViolationsByBranchController {
                 int yearly = view.getSelectedYear();
                 return LocalDate.of(yearly, 1, 1);
             default:
-                return LocalDate.now();
+                return LocalDate.now(); // Fallback to current date
         }
     }
 
-    // ============================================================
-    // ERROR HANDLER
-    // ============================================================
+    /**
+     * Displays an error alert dialog with the specified message.
+     * @param msg the error message to display
+     */
     private void showError(String msg) {
         Alert a = new Alert(AlertType.ERROR);
         a.setTitle("Error");
@@ -122,6 +146,10 @@ public class ViolationsByBranchController {
         a.showAndWait();
     }
 
+    /**
+     * Displays an information alert dialog with the specified message.
+     * @param msg the information message to display
+     */
     private void showInfo(String msg) {
         Alert a = new Alert(AlertType.INFORMATION);
         a.setTitle("Information");
@@ -130,9 +158,9 @@ public class ViolationsByBranchController {
         a.showAndWait();
     }
 
-    // ============================================================
-    // RETURN — implement navigation
-    // ============================================================
+    /**
+     * Handles the return button action for navigation back to the main application.
+     */
     private void handleReturn() {
         System.out.println("Return button clicked — implement navigation here.");
     }
