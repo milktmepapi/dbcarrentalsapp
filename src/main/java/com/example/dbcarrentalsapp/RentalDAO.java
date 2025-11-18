@@ -427,7 +427,7 @@ public class RentalDAO {
                 rs.getString("rental_staff_id_return"),
                 rentalDateTime,
                 expectedPickup,
-                null, //actualPickup,          // <-- now correct
+                null, 
                 expectedReturn,
                 actualReturn,
                 rs.getBigDecimal("rental_total_payment"),
