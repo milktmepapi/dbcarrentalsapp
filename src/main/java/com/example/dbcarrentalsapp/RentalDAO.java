@@ -396,14 +396,14 @@ public class RentalDAO {
         // Read timestamps using correct column names
         Timestamp rentalTs                  = rs.getTimestamp("rental_datetime");
         Timestamp expectedPickupTs          = rs.getTimestamp("rental_expected_pickup_datetime");
-        //Timestamp actualPickupTs            = rs.getTimestamp("rental_actual_pickup_datetime");
+        Timestamp actualPickupTs            = rs.getTimestamp("rental_actual_pickup_datetime");
         Timestamp expectedReturnTs          = rs.getTimestamp("rental_expected_return_datetime");
         Timestamp actualReturnTs            = rs.getTimestamp("rental_actual_return_datetime");
 
         // Convert to LocalDateTime (null-safe)
         LocalDateTime rentalDateTime        = rentalTs != null ? rentalTs.toLocalDateTime() : null;
         LocalDateTime expectedPickup        = expectedPickupTs != null ? expectedPickupTs.toLocalDateTime() : null;
-        //LocalDateTime actualPickup          = actualPickupTs != null ? actualPickupTs.toLocalDateTime() : null;
+        LocalDateTime actualPickup          = actualPickupTs != null ? actualPickupTs.toLocalDateTime() : null;
         LocalDateTime expectedReturn        = expectedReturnTs != null ? expectedReturnTs.toLocalDateTime() : null;
         LocalDateTime actualReturn          = actualReturnTs != null ? actualReturnTs.toLocalDateTime() : null;
 
@@ -427,7 +427,7 @@ public class RentalDAO {
                 rs.getString("rental_staff_id_return"),
                 rentalDateTime,
                 expectedPickup,
-                null, 
+                actualPickup, 
                 expectedReturn,
                 actualReturn,
                 rs.getBigDecimal("rental_total_payment"),
@@ -574,7 +574,7 @@ public class RentalDAO {
     public List<RentalRecord> getActiveRentals() {
         List<RentalRecord> list = new ArrayList<>();
         // Select rentals that are 'Active'
-        String sql = "SELECT * FROM rental_details WHERE rental_status = 'Active' ORDER BY rental_pickup_datetime DESC";
+        String sql = "SELECT * FROM rental_details WHERE rental_status = 'Active' ORDER BY rental_expected_pickup_datetime DESC";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
