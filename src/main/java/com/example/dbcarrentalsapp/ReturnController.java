@@ -2,18 +2,19 @@ package com.example.dbcarrentalsapp;
 
 import javafx.scene.control.Alert;
 import javafx.stage.Stage;
-import model.RentalRecord; 
+import model.RentalRecord;
 import model.ReturnRecord;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ReturnController {
 
     private final ReturnDAO returnDAO = new ReturnDAO();
-    private final RentalDAO rentalDAO = new RentalDAO(); 
+    private final RentalDAO rentalDAO = new RentalDAO();
     private final ReturnView view;
     private final Stage stage;
 
@@ -28,6 +29,7 @@ public class ReturnController {
     private void setupActions() {
         view.getBackButton().setOnAction(e -> goBack());
         view.getReturnButton().setOnAction(e -> processSelectedReturn());
+        view.getFilterButton().setOnAction(e -> applyFilter());
     }
 
     private void goBack() {
@@ -37,45 +39,32 @@ public class ReturnController {
     }
 
     private void processSelectedReturn() {
-        // --- FIX: Get a RentalRecord from the view, not a ReturnRecord
         RentalRecord selected = view.getSelectedRecord();
 
         if (selected == null) {
-            // --- FIX: Update the popup message
             showPopup("No Selection", "Please select an ACTIVE rental to return.");
             return;
         }
-
-        // --- FIX: Pass the RentalRecord to the process method
         processReturn(selected);
     }
-
-    // This is the method that processes the return
+    
     public void processReturn(RentalRecord rental) {
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false); // Start transaction
 
-            // We already have the rental, just check its status
             if (rental.getRentalStatus() != RentalRecord.RentalStatus.ACTIVE) {
                 showPopup("Error", "Rental is not active.");
-                conn.rollback(); // Rollback before returning
+                conn.rollback();
                 return;
             }
 
             ReturnRecord newReturn = new ReturnRecord(null, rental.getRentalId(), "STF001");
-            returnDAO.addReturn(conn, newReturn); // Uses your existing DAO method
-
-            // Update rental status to COMPLETED
+            returnDAO.addReturn(conn, newReturn); 
             rental.setRentalStatus(RentalRecord.RentalStatus.COMPLETED);
-            // Set the actual return time
             rental.setActualReturnDateTime(LocalDateTime.now());
-
-            // --- FIX: Use the rentalDAO and the new method you just added
             rentalDAO.updateRentalOnReturn(conn, rental);
-
-            conn.commit(); // Commit transaction
-
-            loadTable(); // Refresh the list (the returned item will disappear)
+            conn.commit(); 
+            loadTable(); 
 
             showReturnReceipt(rental); // Show receipt for the rental we just processed
 
@@ -94,7 +83,6 @@ public class ReturnController {
                 "Rental ID: " + rental.getRentalId() + "\n" +
                         "Renter DL: " + rental.getRenterDlNumber() + "\n" +
                         "Car Plate: " + rental.getCarPlateNumber() + "\n" +
-                        // --- FIX: Use the time from the object, not LocalDateTime.now()
                         "Return Date & Time: " + rental.getActualReturnDateTime() + "\n" +
                         "Total Payment: " + rental.getTotalPayment()
         );
@@ -103,12 +91,33 @@ public class ReturnController {
 
     private void showPopup(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title); alert.setHeaderText(null); alert.setContentText(message); alert.showAndWait();
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     public void loadTable() {
         List<RentalRecord> list = rentalDAO.getActiveRentals();
         view.refreshTable(list);
+    }
+
+    private void applyFilter() {
+        String keyword = view.getSearchField().getText().toLowerCase().trim();
+        List<RentalRecord> allActiveRentals = rentalDAO.getActiveRentals();
+        if (keyword.isEmpty()) {
+            view.refreshTable(allActiveRentals);
+            return;
+        }
+
+        List<RentalRecord> filteredList = allActiveRentals.stream()
+                .filter(r ->(r.getRentalId() != null && r.getRentalId().toLowerCase().contains(keyword)) ||
+                                (r.getCarPlateNumber() != null && r.getCarPlateNumber().toLowerCase().contains(keyword)) ||
+                                (r.getRenterDlNumber() != null && r.getRenterDlNumber().toLowerCase().contains(keyword))
+                )
+                .collect(Collectors.toList());
+
+        view.refreshTable(filteredList);
     }
 }
 
