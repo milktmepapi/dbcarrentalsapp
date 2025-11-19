@@ -13,16 +13,25 @@ public class CarUtilizationReportDAO {
         List<CarUtilizationReport> list = new ArrayList<>();
 
         // 1. MODIFIED SQL (Removed renter join, select, and group by)
-        String sql = "SELECT b.branch_name, c.car_plate_number, c.car_brand, c.car_model, c.car_transmission, " +
-                "COUNT(*) AS total_rentals, " +
-                "COALESCE(SUM(DATEDIFF(rd.rental_actual_return_datetime, rd.rental_actual_pickup_datetime) + 1), 0) AS total_days_rented, " +
-                "ROUND((COALESCE(SUM(DATEDIFF(rd.rental_actual_return_datetime, rd.rental_actual_pickup_datetime) + 1), 0) / 365.0) * 100, 2) AS rate_of_utilization " +
-                "FROM rental_details rd " +
-                "JOIN car_record c ON rd.rental_car_plate_number = c.car_plate_number " +
-                "JOIN branch_record b ON c.car_branch_id = b.branch_id " +
-                "WHERE rd.rental_status = 'COMPLETED' " +
-                "GROUP BY b.branch_name, c.car_plate_number, c.car_brand, c.car_model, c.car_transmission " +
-                "ORDER BY b.branch_name, rate_of_utilization DESC";
+        String sql = """
+                SELECT b.branch_name, c.car_plate_number, c.car_brand, c.car_model, c.car_transmission,
+                COUNT(rd.rental_id) AS total_rentals,
+                COALESCE(SUM(DATEDIFF(
+                    COALESCE(rd.rental_actual_return_datetime, rd.rental_expected_return_datetime),
+                    COALESCE(rd.rental_actual_return_datetime, rd.rental_expected_return_datetime)
+                ) + 1), 0) AS total_days_rented,
+                ROUND(
+                    COALESCE(SUM(DATEDIFF(
+                        COALESCE(rd.rental_actual_return_datetime, rd.rental_expected_return_datetime),
+                        COALESCE(rd.rental_actual_return_datetime, rd.rental_expected_return_datetime)
+                     ) + 1), 0) / 365.0 * 100, 2
+                ) AS rate_of_utilization
+                FROM car_record c
+                JOIN rental_details rd ON rd.rental_car_plate_number = c.car_plate_number
+                JOIN branch_record b on c.car_branch_id = b.branch_id
+                GROUP BY b.branch_name, c.car_plate_number, c.car_brand, c.car_model, c.car_transmission
+                ORDER BY b.branch_name, rate_of_utilization DESC
+           """;
 
         try (
                 Connection conn = DBConnection.getConnection();
