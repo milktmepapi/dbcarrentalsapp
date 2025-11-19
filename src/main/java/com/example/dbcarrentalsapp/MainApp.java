@@ -8,7 +8,7 @@ import javafx.scene.image.Image;
 
 public class MainApp extends Application {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ClassNotFoundException {
         RentalDAO rentalDAO = new RentalDAO();
         RentalScheduler scheduler = new RentalScheduler(rentalDAO);
         scheduler.start();

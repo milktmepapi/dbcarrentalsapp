@@ -340,4 +340,36 @@ public class CancellationDAO {
                 rs.getString("cancellation_reason")
         );
     }
+
+    public void importExistingCancelledRentals() {
+        String sql = """
+        INSERT INTO cancellation_details (
+            cancellation_id,
+            cancellation_rental_id,
+            cancellation_staff_id,
+            cancellation_date,
+            cancellation_reason
+        )
+        SELECT
+            CONCAT('CXL', LPAD(FLOOR(RAND() * 99999), 5, '0')),
+            r.rental_id,
+            COALESCE(r.rental_staff_id_return, r.rental_staff_id_pickup),
+            NOW(),
+            'Change of plans'
+        FROM rental_details r
+        LEFT JOIN cancellation_details c
+            ON r.rental_id = c.cancellation_rental_id
+        WHERE r.rental_status = 'CANCELLED'
+          AND c.cancellation_rental_id IS NULL;
+    """;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

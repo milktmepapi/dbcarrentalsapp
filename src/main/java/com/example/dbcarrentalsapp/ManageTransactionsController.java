@@ -33,6 +33,9 @@ public class ManageTransactionsController {
         CancellationView cancellationView = new CancellationView();
         new CancellationController(cancellationView, stage);
         stage.setScene(cancellationView.getScene());
+
+        CancellationDAO dao = new CancellationDAO();
+        dao.importExistingCancelledRentals();
         // future: navigate to RentalCancellationsView
     }
 
