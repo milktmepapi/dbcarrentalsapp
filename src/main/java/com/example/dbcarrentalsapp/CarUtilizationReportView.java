@@ -7,6 +7,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import model.CarUtilizationReport;
 
@@ -43,16 +44,25 @@ public class CarUtilizationReportView {
         root.setBackground(new Background(bg));
 
         // ===== TITLE (kept same structure, revenue style) =====
+        // ===== TITLE (F1 font style) =====
         Text title = new Text("CAR UTILIZATION REPORT");
-        title.setStyle("""
-                -fx-fill: white;
-                -fx-font-size: 48px;
-                -fx-font-weight: bold;
-                -fx-effect: dropshadow(gaussian, black, 4, 0.5, 1, 1);
-        """);
+
+        Font f1Font = Font.loadFont(
+                getClass().getResourceAsStream("/com/example/dbcarrentalsapp/Formula1-Bold_web_0.ttf"),
+                48
+        );
+        title.setFont(f1Font != null ? f1Font : Font.font("Arial Black", 48));
+
+        title.setStyle(
+                "-fx-fill: white;" +
+                        "-fx-font-style: italic;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-effect: dropshadow(gaussian, black, 4, 0.5, 1, 1);"
+        );
 
         StackPane.setAlignment(title, Pos.TOP_CENTER);
-        StackPane.setMargin(title, new Insets(80, 0, 0, 0));
+        StackPane.setMargin(title, new Insets(100, 0, 0, 0));
+
         root.getChildren().add(title);
 
         // ===== SEARCH BAR =====

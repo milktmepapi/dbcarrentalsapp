@@ -4,6 +4,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
@@ -101,8 +102,24 @@ public class RentalView {
         TableColumn<RentalRecord, String> statusCol = new TableColumn<>("Status");
         statusCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("rentalStatus"));
 
-        TableColumn<RentalRecord, String> paymentCol = new TableColumn<>("Payment");
-        paymentCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("totalPayment"));
+        TableColumn<RentalRecord, BigDecimal> paymentCol = new TableColumn<>("Total Payment");
+        paymentCol.setCellValueFactory(new PropertyValueFactory<>("totalPayment"));
+
+        paymentCol.setCellFactory(column -> new TableCell<RentalRecord, BigDecimal>() {
+            @Override
+            protected void updateItem(BigDecimal value, boolean empty) {
+                super.updateItem(value, empty);
+
+                if (empty || value == null) {
+                    setText(null);
+                    return;
+                }
+
+                setText("₱" + String.format("%,.2f", value));
+                setAlignment(Pos.CENTER_RIGHT);
+            }
+        });
+
 
         tableView.getColumns().addAll(
                 idCol, dlCol, plateCol, branchCol, pickupCol, returnCol, statusCol, paymentCol
