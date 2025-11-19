@@ -12,6 +12,7 @@ import java.util.List;
 public class RentalDAO {
 
     private static final int PICKUP_GRACE_MINUTES = 5;
+    private final CancellationDAO cancellationDAO = new CancellationDAO();
 
     /**
      * Check if a car is valid to rent:
@@ -295,6 +296,8 @@ public class RentalDAO {
                 throw e;
             }
         }
+
+        cancellationDAO.importExistingCancelledRentals();
     }
 
     /**
