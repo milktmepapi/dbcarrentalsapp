@@ -79,8 +79,22 @@ public class JobView {
         TableColumn<JobRecord, String> jobDepartmentIDCol = new TableColumn<>("Job Department ID");
         jobDepartmentIDCol.setCellValueFactory(new PropertyValueFactory<>("jobDepartmentId"));
 
-        TableColumn<JobRecord, String> jobSalaryCol = new TableColumn<>("Job Salary");
+        TableColumn<JobRecord, Double> jobSalaryCol = new TableColumn<>("Job Salary");
         jobSalaryCol.setCellValueFactory(new PropertyValueFactory<>("jobSalary"));
+
+        jobSalaryCol.setCellFactory(column -> new TableCell<JobRecord, Double>() {
+            @Override
+            protected void updateItem(Double value, boolean empty) {
+                super.updateItem(value, empty);
+
+                if (empty || value == null) {
+                    setText(null);
+                } else {
+                    setText("₱" + String.format("%,.2f", value));
+                }
+            }
+        });
+
 
         tableView.getColumns().addAll(jobIDCol, jobTitleCol, jobDepartmentIDCol, jobSalaryCol);
 

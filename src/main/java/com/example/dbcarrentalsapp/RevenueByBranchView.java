@@ -380,7 +380,7 @@ public class RevenueByBranchView {
 
         // ==== enlarge the actual pie chart by wrapping it, but keep dialog reasonable ====
         StackPane pieWrapper = new StackPane(pie);
-        pieWrapper.setPrefSize(760, 520); // bigger graph area but dialog won't be enormous
+        pieWrapper.setPrefSize(900, 750); // bigger graph area but dialog won't be enormous
         pieWrapper.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         HBox.setHgrow(pieWrapper, Priority.ALWAYS);
         VBox.setVgrow(pieWrapper, Priority.ALWAYS);

@@ -108,7 +108,7 @@ public class CarView {
                 if (empty || value == null) {
                     setText(null);
                 } else {
-                    setText(String.format("%.2f", value)); // <-- FORMAT TO 2 DECIMAL PLACES
+                    setText("₱" + String.format("%,.2f", value)); // <-- FORMAT TO 2 DECIMAL PLACES
                 }
             }
         });
