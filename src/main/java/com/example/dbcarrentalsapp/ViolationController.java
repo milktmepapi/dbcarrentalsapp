@@ -103,12 +103,12 @@ public class ViolationController {
                     if (violation.getDurationHours() > 0) {
                         violationMessage.append(String.format("  Duration: %d hours\n", violation.getDurationHours()));
                     }
-                    violationMessage.append(String.format("  Penalty: $%.2f\n\n", violation.getPenaltyFee()));
+                    violationMessage.append(String.format("  Penalty: ₱%.2f\n\n", violation.getPenaltyFee()));
 
                     totalPenalties += violation.getPenaltyFee();
                 }
 
-                violationMessage.append(String.format("TOTAL PENALTIES: $%.2f", totalPenalties));
+                violationMessage.append(String.format("TOTAL PENALTIES: ₱%.2f", totalPenalties));
 
                 // Generate receipt including all violations
                 String receipt = violationDAO.generateRentalReceipt(rentalId);
@@ -153,7 +153,7 @@ public class ViolationController {
                 for (String rentalId : overdueRentals) {
                     int lateHours = violationDAO.calculateLateHours(rentalId);
                     double penalty = violationDAO.calculateLatePenalty(rentalId);
-                    message.append(String.format("• %s: %d hours late - Penalty: $%.2f\n",
+                    message.append(String.format("• %s: %d hours late - Penalty: ₱%.2f\n",
                             rentalId, lateHours, penalty));
                 }
                 message.append("\nPlease process returns for these rentals.");

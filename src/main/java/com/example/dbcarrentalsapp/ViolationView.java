@@ -92,7 +92,7 @@ public class ViolationView {
                 if (empty || item == null) {
                     setText(null);
                 } else {
-                    setText(String.format("$%.2f", item));
+                    setText(String.format("₱%.2f", item)); // Changed from $ to ₱
                     setStyle("-fx-text-fill: black;");
                 }
             }
@@ -323,7 +323,7 @@ public class ViolationView {
                         penalty = dao.calculateLatePenaltyFromHours(lateHours);
                         info.append("Status: WOULD BE LATE RETURN\n");
                         info.append(String.format("Late by: %d hours\n", lateHours));
-                        info.append(String.format("Penalty Fee: $%.2f\n", penalty));
+                        info.append(String.format("Penalty Fee: ₱%.2f\n", penalty));
                         info.append("\n⚠ This will automatically create a late return violation!");
                     } else {
                         info.append("Status: ON TIME\n");
@@ -379,12 +379,12 @@ public class ViolationView {
                         if (violation.getDurationHours() > 0) {
                             violationMessage.append(String.format("  Duration: %d hours\n", violation.getDurationHours()));
                         }
-                        violationMessage.append(String.format("  Penalty: $%.2f\n\n", violation.getPenaltyFee()));
+                        violationMessage.append(String.format("  Penalty: ₱%.2f\n\n", violation.getPenaltyFee()));
 
                         totalPenalties += violation.getPenaltyFee();
                     }
 
-                    violationMessage.append(String.format("TOTAL PENALTIES: $%.2f", totalPenalties));
+                    violationMessage.append(String.format("TOTAL PENALTIES: ₱%.2f", totalPenalties));
 
                     // Generate receipt that includes ALL violations
                     String receipt = dao.generateRentalReceipt(rentalId);

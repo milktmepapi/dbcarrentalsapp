@@ -71,7 +71,7 @@ public class ViolationDAO {
 
     /**
      * Calculates late return penalty based on rental duration
-     * Uses tiered pricing: $50/hour first 6 hours, $100/hour thereafter
+     * Uses tiered pricing: ₱50/hour first 6 hours, ₱100/hour thereafter
      */
     public double calculateLatePenalty(String rentalId) throws SQLException {
         int lateHours = calculateLateHours(rentalId);
@@ -293,7 +293,7 @@ public class ViolationDAO {
                 receipt.append(String.format("Contact: %s\n", rentalRs.getString("renter_phone_number")));
 
                 receipt.append(String.format("Car: %s (%s)\n", rentalRs.getString("car_model"), rentalRs.getString("car_plate_number")));
-                receipt.append(String.format("Daily Rate: $%.2f\n", rentalRs.getDouble("car_rental_fee")));
+                receipt.append(String.format("Daily Rate: ₱%.2f\n", rentalRs.getDouble("car_rental_fee")));
                 receipt.append(String.format("Rental Date: %s\n", formatTimestamp(rentalRs.getTimestamp("rental_datetime"))));
                 receipt.append(String.format("Pickup Date: %s\n", formatTimestamp(rentalRs.getTimestamp("rental_actual_pickup_datetime"))));
                 receipt.append(String.format("Expected Return: %s\n", formatTimestamp(rentalRs.getTimestamp("rental_expected_return_datetime"))));
@@ -307,7 +307,7 @@ public class ViolationDAO {
                 receipt.append(String.format("Status: %s\n", rentalRs.getString("rental_status")));
 
                 double totalPayment = rentalRs.getDouble("rental_total_payment");
-                receipt.append(String.format("\nBase Rental Payment: $%.2f\n", totalPayment));
+                receipt.append(String.format("\nBase Rental Payment: ₱%.2f\n", totalPayment));
             }
 
             // Violation details
@@ -335,7 +335,7 @@ public class ViolationDAO {
                 if (duration > 0) {
                     receipt.append(String.format("  Duration: %d hours\n", duration));
                 }
-                receipt.append(String.format("  Penalty: $%.2f\n", penaltyFee));
+                receipt.append(String.format("  Penalty: ₱%.2f\n", penaltyFee));
 
                 totalViolationFees += penaltyFee;
             }
@@ -344,9 +344,9 @@ public class ViolationDAO {
             double finalTotal = rentalRs.getDouble("rental_total_payment") + totalViolationFees;
 
             receipt.append("\n--- PAYMENT SUMMARY ---\n");
-            receipt.append(String.format("Rental Amount: $%.2f\n", rentalRs.getDouble("rental_total_payment")));
-            receipt.append(String.format("Violation Fees: $%.2f\n", totalViolationFees));
-            receipt.append(String.format("TOTAL AMOUNT: $%.2f\n", finalTotal));
+            receipt.append(String.format("Rental Amount: ₱%.2f\n", rentalRs.getDouble("rental_total_payment")));
+            receipt.append(String.format("Violation Fees: ₱%.2f\n", totalViolationFees));
+            receipt.append(String.format("TOTAL AMOUNT: ₱%.2f\n", finalTotal));
             receipt.append("\nThank you for your business!\n");
             receipt.append("=== END OF RECEIPT ===\n");
         }
@@ -373,13 +373,13 @@ public class ViolationDAO {
         receipt.append(String.format("Late Return Detected: %d hours overdue\n", lateHours));
         receipt.append(String.format("Penalty Calculation:\n"));
         if (lateHours <= 6) {
-            receipt.append(String.format("  %d hours × $%.2f/hour = $%.2f\n", lateHours, RATE_FIRST_6_HOURS, penalty));
+            receipt.append(String.format("  %d hours × ₱%.2f/hour = ₱%.2f\n", lateHours, RATE_FIRST_6_HOURS, penalty));
         } else {
-            receipt.append(String.format("  First 6 hours: 6 × $%.2f = $%.2f\n", RATE_FIRST_6_HOURS, 6 * RATE_FIRST_6_HOURS));
-            receipt.append(String.format("  Additional %d hours: %d × $%.2f = $%.2f\n",
+            receipt.append(String.format("  First 6 hours: 6 × ₱%.2f = ₱%.2f\n", RATE_FIRST_6_HOURS, 6 * RATE_FIRST_6_HOURS));
+            receipt.append(String.format("  Additional %d hours: %d × ₱%.2f = ₱%.2f\n",
                     lateHours - 6, lateHours - 6, RATE_AFTER_6_HOURS, (lateHours - 6) * RATE_AFTER_6_HOURS));
         }
-        receipt.append(String.format("Total Penalty Fee: $%.2f\n", penalty));
+        receipt.append(String.format("Total Penalty Fee: ₱%.2f\n", penalty));
         receipt.append("\nPlease pay the penalty fee at the rental counter.\n");
         receipt.append("=== END OF NOTICE ===\n");
 
